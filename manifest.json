@@ -1,0 +1,36 @@
+{
+    "name": "Z-push",
+    "id": "z-push",
+    "description": {
+        "en": "A self hostable read-it-later app",
+        "fr": "Une application de lecture-plus-tard auto-hébergeable" 
+    },
+    "licence": "WTFPL-2",
+    "developer": {
+        "name": "beudbeud",
+        "email": "beudbeud@beudibox.fr",
+        "url": "http://www.z-push.org"
+    },
+    "multi_instance": "true",
+    "arguments": {
+        "install" : [
+            {
+                "name": "domain",
+                "ask": {
+                    "en": "Choose a domain for Z-push",
+                    "fr": "Choisissez un domaine pour Z-push"
+                },
+                "example": "domain.org"
+            },
+            {
+                "name": "path",
+                "ask": {
+                    "en": "Choose a path for Z-push",
+                    "fr": "Choisissez un chemin pour Z-push"
+                },
+                "example": "/z-push",
+                "default": "/z-push"
+            }
+        ]
+    }
+}

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo rm -rf /var/www/z-push
+#sudo rm -f /etc/nginx/conf.d/$domain.d/z-push.conf
