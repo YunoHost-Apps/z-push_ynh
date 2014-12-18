@@ -5,11 +5,11 @@
         "en": "Z-Push is an open-source application to synchronize ActiveSync",
         "fr": "Z-Push est un serveur open source de synchronisation ActiveSync" 
     },
-    "licence": "WTFPL-2",
+    "licence": "GPL v3",
     "developer": {
         "name": "beudbeud",
         "email": "beudbeud@beudibox.fr",
-        "url": "http://www.z-push.org"
+        "url": "https://z-push.org"
     },
     "multi_instance": "false",
     "arguments": {
