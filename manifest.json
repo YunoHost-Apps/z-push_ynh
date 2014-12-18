@@ -11,7 +11,7 @@
         "email": "beudbeud@beudibox.fr",
         "url": "https://z-push.org"
     },
-    "multi_instance": "false",
+    "multi_instance": "true",
     "arguments": {
         "install" : [
             {
