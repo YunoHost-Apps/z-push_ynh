@@ -2,7 +2,7 @@
 
 # Retrieve arguments
 domain=$1
-path=$2
+path="z-push"
 
 # Check domain/path availability
 sudo yunohost app checkurl $domain$path -a z-push
@@ -37,7 +37,7 @@ sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/z-push.conf
 
 # Enable api for client
-sudo yunohost app setting z-push skipped_uris -v "/"
+sudo yunohost app setting z-push skipped_uris -v "/Microsoft-Server-ActiveSync"
 
 # Reload Nginx and regenerate SSOwat conf
 sudo service nginx reload
