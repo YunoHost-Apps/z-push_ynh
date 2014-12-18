@@ -2,7 +2,7 @@
 
 # Retrieve arguments
 domain=$1
-path="z-push"
+path="/z-push"
 
 # Check domain/path availability
 sudo yunohost app checkurl $domain$path -a z-push
