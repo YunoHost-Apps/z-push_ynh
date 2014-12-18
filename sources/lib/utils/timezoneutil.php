@@ -1100,11 +1100,23 @@ class TimezoneUtil {
         ZLog::Write(LOGLEVEL_DEBUG, "TimezoneUtil::GetFullTZ() for ". $phptimezone);
 
         $servertzname = self::guessTZNameFromPHPName($phptimezone);
-        $offset = self::$tzonesoffsets[$servertzname];
+        return self::GetFullTZFromTZName($servertzname);
+    }
+
+    /**
+     * Returns a full timezone array
+     *
+     * @param string   $tzname     a TZID value
+     *
+     * @access public
+     * @return array
+     */
+    static public function GetFullTZFromTZName($tzname) {
+        $offset = self::$tzonesoffsets[$tzname];
 
         $tz = array(
             "bias" => $offset[0],
-            "tzname" => self::encodeTZName(self::getMSTZnameFromTZName($servertzname)),
+            "tzname" => self::encodeTZName(self::getMSTZnameFromTZName($tzname)),
             "dstendyear" => $offset[3],
             "dstendmonth" => $offset[4],
             "dstendday" => $offset[6],
@@ -1114,7 +1126,7 @@ class TimezoneUtil {
             "dstendsecond" => $offset[9],
             "dstendmillis" => $offset[10],
             "stdbias" => $offset[1],
-            "tznamedst" => self::encodeTZName(self::getMSTZnameFromTZName($servertzname)),
+            "tznamedst" => self::encodeTZName(self::getMSTZnameFromTZName($tzname)),
             "dststartyear" => $offset[11],
             "dststartmonth" => $offset[12],
             "dststartday" => $offset[14],
@@ -1258,6 +1270,26 @@ class TimezoneUtil {
         }
     }
 
+    /**
+     * Pack timezone info for Sync
+     *
+     * @param array     $tz
+     *
+     * @access private
+     * @return string
+     */
+    static public function GetSyncBlobFromTZ($tz) {
+        // set the correct TZ name (done using the Bias)
+        if (!isset($tz["tzname"]) || !$tz["tzname"] || !isset($tz["tznamedst"]) || !$tz["tznamedst"])
+            $tz = TimezoneUtil::FillTZNames($tz);
+
+        $packed = pack("la64vvvvvvvv" . "la64vvvvvvvv" . "l",
+                $tz["bias"], $tz["tzname"], 0, $tz["dstendmonth"], $tz["dstendday"], $tz["dstendweek"], $tz["dstendhour"], $tz["dstendminute"], $tz["dstendsecond"], $tz["dstendmillis"],
+                $tz["stdbias"], $tz["tznamedst"], 0, $tz["dststartmonth"], $tz["dststartday"], $tz["dststartweek"], $tz["dststarthour"], $tz["dststartminute"], $tz["dststartsecond"], $tz["dststartmillis"],
+                $tz["dstbias"]);
+
+        return $packed;
+    }
 }
 
 ?>

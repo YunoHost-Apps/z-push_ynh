@@ -57,6 +57,7 @@
 require_once("backend/maildir/config.php");
 
 include_once('lib/default/diffbackend/diffbackend.php');
+
 include_once('include/mimeDecode.php');
 require_once('include/z_RFC822.php');
 
@@ -539,6 +540,22 @@ class BackendMaildir extends BackendDiff {
             rename($this->getPath() ."/$fn", $this->getPath() . "/$newfn");
 
         return true;
+    }
+
+    /**
+     * Changes the 'star' flag of a message on disk
+     *
+     * @param string        $folderid       id of the folder
+     * @param string        $id             id of the message
+     * @param int           $flags          star flag of the message
+     * @param ContentParameters   $contentParameters
+     *
+     * @access public
+     * @return boolean                      status of the operation
+     * @throws StatusException              could throw specific SYNC_STATUS_* exceptions
+     */
+    public function SetStarFlag($folderid, $id, $flags, $contentParameters) {
+        return false;
     }
 
     /**

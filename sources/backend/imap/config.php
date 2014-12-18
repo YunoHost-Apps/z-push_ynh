@@ -54,25 +54,107 @@ define('IMAP_PORT', 143);
 // best cross-platform compatibility (see http://php.net/imap_open for options)
 define('IMAP_OPTIONS', '/notls/norsh');
 
-// overwrite the "from" header if it isn't set when sending emails
-// options: 'username'    - the username will be set (usefull if your login is equal to your emailaddress)
-//        'domain'    - the value of the "domain" field is used
+// overwrite the "from" header with some value
+// options:
+//        ''              - do nothing, use the From header
+//        'username'      - the username will be set (usefull if your login is equal to your emailaddress)
+//        'domain'        - the value of the "domain" field is used
+//        'sql'           - the username will be the result of a sql query. REMEMBER TO INSTALL PHP-PDO AND PHP-DATABASE
+//        'ldap'          - the username will be the result of a ldap query. REMEMBER TO INSTALL PHP-LDAP!!
 //        '@mydomain.com' - the username is used and the given string will be appended
 define('IMAP_DEFAULTFROM', '');
 
+// DSN: formatted PDO connection string
+//    mysql:host=xxx;port=xxx;dbname=xxx
+// USER: username to DB
+// PASSWORD: password to DB
+// OPTIONS: array with options needed
+// QUERY: query to execute
+// FIELDS: columns in the query
+// FROM: string that will be the from, replacing the column names with the values
+define('IMAP_FROM_SQL_DSN', '');
+define('IMAP_FROM_SQL_USER', '');
+define('IMAP_FROM_SQL_PASSWORD', '');
+define('IMAP_FROM_SQL_OPTIONS', serialize(array(PDO::ATTR_PERSISTENT => true)));
+define('IMAP_FROM_SQL_QUERY', "select first_name, last_name, mail_address from users where mail_address = '#username@#domain'");
+define('IMAP_FROM_SQL_FIELDS', serialize(array('first_name', 'last_name', 'mail_address')));
+define('IMAP_FROM_SQL_FROM', '#first_name #last_name <#mail_address>');
+define('IMAP_FROM_SQL_FULLNAME', '#first_name #last_name');
+
+// SERVER: ldap server
+// SERVER_PORT: ldap port
+// USER: dn to use for connecting
+// PASSWORD: password
+// QUERY: query to execute
+// FIELDS: columns in the query
+// FROM: string that will be the from, replacing the field names with the values
+define('IMAP_FROM_LDAP_SERVER', 'localhost');
+define('IMAP_FROM_LDAP_SERVER_PORT', '389');
+define('IMAP_FROM_LDAP_USER', 'cn=zpush,ou=servers,dc=zpush,dc=org');
+define('IMAP_FROM_LDAP_PASSWORD', 'password');
+define('IMAP_FROM_LDAP_BASE', 'dc=zpush,dc=org');
+define('IMAP_FROM_LDAP_QUERY', '(mail=#username@#domain)');
+define('IMAP_FROM_LDAP_FIELDS', serialize(array('givenname', 'sn', 'mail')));
+define('IMAP_FROM_LDAP_FROM', '#givenname #sn <#mail>');
+define('IMAP_FROM_LDAP_FULLNAME', '#givenname #sn');
+
+
+// Root folder or prefix in your IMAP server (without the separator). For example, with courier it will be INBOX, and your folder will be INBOX.Sent
+//  You can use the real case
+define('IMAP_FOLDER_ROOT', 'INBOX');
+
 // copy outgoing mail to this folder. If not set z-push will try the default folders
-define('IMAP_SENTFOLDER', '');
+//  You can use the real case and the full path (INBOX.Sent)
+define('IMAP_FOLDER_SENT', '');
 
-// forward messages inline (default false - as attachment)
-define('IMAP_INLINE_FORWARD', false);
+// Draft folder
+//  You can use the real case and the full path (INBOX.Draft)
+define('IMAP_FOLDER_DRAFT', '');
 
-// use imap_mail() to send emails (default) - if false mail() is used
-define('IMAP_USE_IMAPMAIL', true);
+// Trash folder
+//  You can use the real case and the full path (INBOX.Trash)
+define('IMAP_FOLDER_TRASH', '');
 
-/* BEGIN fmbiete's contribution r1527, ZP-319 */
+// forward messages inline (default true - inlined)
+define('IMAP_INLINE_FORWARD', true);
+
 // list of folders we want to exclude from sync. Names, or part of it, separated by |
 // example: dovecot.sieve|archive|spam
 define('IMAP_EXCLUDED_FOLDERS', '');
-/* END fmbiete's contribution r1527, ZP-319 */
+
+
+// Method used for sending mail
+// mail => mail() php function
+// sendmail => sendmail executable
+// smtp => direct connection against SMTP
+define('IMAP_SMTP_METHOD', 'mail');
+
+global $imap_smtp_params;
+// SMTP Parameters
+//      mail : no params
+$imap_smtp_params = array();
+//      sendmail
+//$imap_smtp_params = array('sendmail_path' => '/usr/bin/sendmail', 'sendmail_args' => '-i');
+//      smtp
+//          "host"          - The server to connect. Default is localhost.
+//          "port"          - The port to connect. Default is 25.
+//          "auth"          - Whether or not to use SMTP authentication. Default is FALSE.
+//          "username"      - The username to use for SMTP authentication. "imap_username" for using the same username as the imap server
+//          "password"      - The password to use for SMTP authentication. "imap_password" for using the same password as the imap server
+//          "localhost"     - The value to give when sending EHLO or HELO. Default is localhost
+//          "timeout"       - The SMTP connection timeout. Default is NULL (no timeout).
+//          "verp"          - Whether to use VERP or not. Default is FALSE.
+//          "debug"         - Whether to enable SMTP debug mode or not. Default is FALSE.
+//          "persist"       - Indicates whether or not the SMTP connection should persist over multiple calls to the send() method.
+//          "pipelining"    - Indicates whether or not the SMTP commands pipelining should be used.
+//$imap_smtp_params = array('host' => 'localhost', 'port' => 25, 'auth' => false);
+// If you want to use SSL with port 25 or port 465 you must preppend "ssl://" before the hostname or IP of your SMTP server
+// IMPORTANT: To use SSL you must use PHP 5.1 or later, install openssl libs and use ssl:// within the host variable
+//$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');
+
+
+// If you are using IMAP_SMTP_METHOD = mail or sendmail and your sent messages are not correctly displayed you can change this to "\n".
+//   BUT, it doesn't comply with RFC 2822 and will break if using smtp method
+define('MAIL_MIMEPART_CRLF', "\r\n");
 
 ?>

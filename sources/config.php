@@ -60,10 +60,66 @@
     // This setting specifies the owner parameter in the certificate to look at.
     define("CERTIFICATE_OWNER_PARAMETER", "SSL_CLIENT_S_DN_CN");
 
+    /*
+     * Whether to use the complete email address as a login name
+     * (e.g. user@company.com) or the username only (user).
+     * This is required for Z-Push to work properly after autodiscover.
+     * Possible values:
+     * false - use the username only (default).
+     * true - use the complete email address.
+     */
+    define('USE_FULLEMAIL_FOR_LOGIN', false);
+
+/**********************************************************************************
+ * Device pre-authorization. Useful when using Z-Push as a standalone product.
+ *
+ * It will use the STATE_MACHINE specified below, to store the users/devices
+ * FILE => STATE_DIR/PreAuthUserDevices
+ * SQL => auth_users
+ *
+ * FALSE => default
+ * TRUE
+ */
+    define('PRE_AUTHORIZE_USERS', false);
+
+    // New users are pre-authorized automatically
+    define('PRE_AUTHORIZE_NEW_USERS', false);
+
+    // New devices are pre-authorized automatically for pre-authorized users
+    define('PRE_AUTHORIZE_NEW_DEVICES', false);
+
+    // Max number of devices pre-authorized for user, you can pre-authorize more manually
+    define('PRE_AUTHORIZE_MAX_DEVICES', 5);
+
+
+/**********************************************************************************
+ * Select StateMachine mechanism
+ *
+ * FILE => FileStateMachine, default
+ * SQL => SqlStateMachine
+ */
+    define('STATE_MACHINE', 'FILE');
+
 /**********************************************************************************
  *  Default FileStateMachine settings
  */
     define('STATE_DIR', '/var/lib/z-push/');
+
+
+/**********************************************************************************
+ * Optional SqlStateMachine settings
+ *
+ * DSN: formatted PDO connection string
+ *    mysql:host=xxx;port=xxx;dbname=xxx
+ *    DON'T FORGET TO INSTALL THE PHP-DRIVER PACKAGE!!!
+ * USER: username to DB
+ * PASSWORD: password to DB
+ * OPTIONS: array with options needed
+ */
+    define('STATE_SQL_DSN', '');
+    define('STATE_SQL_USER', '');
+    define('STATE_SQL_PASSWORD', '');
+    define('STATE_SQL_OPTIONS', serialize(array(PDO::ATTR_PERSISTENT => true)));
 
 
 /**********************************************************************************
@@ -191,6 +247,13 @@
     // In multicompany environments this enable an admin user of any company to retrieve
     // this full list, so this feature is disabled by default. Enable with care.
     define('ALLOW_WEBSERVICE_USERS_ACCESS', false);
+
+    // Users with many folders can use the 'partial foldersync' feature, where the server
+    // actively stops processing the folder list if it takes too long. Other requests are
+    // then redirected to the FolderSync to synchronize the remaining items.
+    // Device compatibility for this procedure is not fully understood.
+    // NOTE: THIS IS AN EXPERIMENTAL FEATURE WHICH COULD PREVENT YOUR MOBILES FROM SYNCHRONIZING.
+    define('USE_PARTIAL_FOLDERSYNC', false);
 
 /**********************************************************************************
  *  Backend settings

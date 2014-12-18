@@ -203,6 +203,17 @@ abstract class Backend implements IBackend {
         return $r;
     }
 
+    /**
+     * Returns the email address and the display name of the user. Used by autodiscover.
+     *
+     * @param string        $username           The username
+     *
+     * @access public
+     * @return Array
+     */
+    public function GetUserDetails($username) {
+        return array('emailaddress' => $username, 'fullname' => $username);
+    }
 
     /**----------------------------------------------------------------------------------------------------------
      * Protected methods for BackendStorage

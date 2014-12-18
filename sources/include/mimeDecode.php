@@ -356,7 +356,7 @@ class Mail_mimeDecode
                     if ($this->_rfc822_bodies) {
                         $encoding = isset($content_transfer_encoding) ? $content_transfer_encoding['value'] : '7bit';
                         $charset = isset($return->ctype_parameters['charset']) ? $return->ctype_parameters['charset'] : $this->_charset;
-                        $return->body = ($this->_decode_bodies ? $this->_decodeBody($body, $encoding, $charset) : $body);
+                        $return->body = ($this->_decode_bodies ? $this->_decodeBody($body, $encoding, $charset, false) : $body);
                     }
 
                     $obj = new Mail_mimeDecode($body);
@@ -371,7 +371,7 @@ class Mail_mimeDecode
                         $content_transfer_encoding['value'] = '7bit';
                     // if there is no explicit charset, then don't try to convert to default charset, and make sure that only text mimetypes are converted
                     $charset = (isset($return->ctype_parameters['charset']) && ((isset($return->ctype_primary) && $return->ctype_primary == 'text') || !isset($return->ctype_primary)) )? $return->ctype_parameters['charset']: '';
-                    $this->_include_bodies ? $return->body = ($this->_decode_bodies ? $this->_decodeBody($body, $content_transfer_encoding['value'], $charset) : $body) : null;
+                    $this->_include_bodies ? $return->body = ($this->_decode_bodies ? $this->_decodeBody($body, $content_transfer_encoding['value'], $charset, false) : $body) : null;
                     break;
             }
 
@@ -711,8 +711,11 @@ class Mail_mimeDecode
         // Remove white space between encoded-words
         $input = preg_replace('/(=\?[^?]+\?(q|b)\?[^?]*\?=)(\s)+=\?/i', '\1=?', $input);
 
+        $encodedwords = false;
+        $charset = '';
         // For each encoded-word...
         while (preg_match('/(=\?([^?]+)\?(q|b)\?([^?]*)\?=)/i', $input, $matches)) {
+            $encodedwords = true;
 
             $encoded  = $matches[1];
             $charset  = $matches[2];
@@ -727,12 +730,17 @@ class Mail_mimeDecode
                 case 'q':
                     $text = str_replace('_', ' ', $text);
                     preg_match_all('/=([a-f0-9]{2})/i', $text, $matches);
-                    foreach($matches[1] as $value)
+                    foreach($matches[1] as $value) {
                         $text = str_replace('='.$value, chr(hexdec($value)), $text);
+                    }
                     break;
             }
 
-            $input = str_replace($encoded, $this->_fromCharset($charset, $text), $input);
+            $input = str_replace($encoded, $this->_autoconvert_encoding($text, $charset), $input);
+        }
+
+        if (!$encodedwords) {
+            $input = $this->_autoconvert_encoding($input, $charset);
         }
 
         return $input;
@@ -744,31 +752,74 @@ class Mail_mimeDecode
      *
      * @param  string Input body to decode
      * @param  string Encoding type to use.
+     * @param  string Charset
+     * @param  boolean Must try to autodetect the real charset used
      * @return string Decoded body
      * @access private
      */
-    function _decodeBody($input, $encoding = '7bit', $charset = '')
+    function _decodeBody($input, $encoding = '7bit', $charset = '', $detectCharset =  true)
     {
         switch (strtolower($encoding)) {
-            case '7bit':
-                return $this->_fromCharset($charset, $input);;
-                break;
-
-            case '8bit':
-                return $this->_fromCharset($charset, $input);
-                break;
-
             case 'quoted-printable':
-                return $this->_fromCharset($charset, $this->_quotedPrintableDecode($input));
+                $input_decoded = $this->_quotedPrintableDecode($input);
+                return $detectCharset ? $this->_autoconvert_encoding($input_decoded, $charset) : $input_decoded;
                 break;
 
             case 'base64':
-                return $this->_fromCharset($charset, base64_decode($input));
+                $input_decoded = base64_decode($input);
+                return $detectCharset ? $this->_autoconvert_encoding($input_decoded, $charset) : $input_decoded;
                 break;
 
+            case '7bit':
+            case '8bit':
             default:
-                return $input;
+                return $detectCharset ? $this->_autoconvert_encoding($input, $charset) : $input;
+                break;
         }
+    }
+
+    /**
+     * Error handler dummy for _autoconvert_encoding
+     *
+     * @param integer $errno
+     * @param string $errstr
+     * @return boolean true
+     * @access public static
+     */
+    static function _iconv_notice_handler($errno, $errstr) {
+        return true;
+    }
+
+    /**
+     * Autoconvert the text from any encoding. THIS WILL NEVER WORK 100%.
+     * Will ignore the E_NOTICE for iconv when detecting ilegal charsets
+     *
+     * @param string $input Input string to convert
+     * @param string $supposed_encoding Encoding that the text is possibly using
+     * @return string Converted string
+     * @access private
+     */
+    function _autoconvert_encoding($input, $supposed_encoding = "UTF-8") {
+        $input_converted = $input;
+
+        if (function_exists("mb_detect_order")) {
+            $mb_order = array_merge(array($supposed_encoding), mb_detect_order());
+            set_error_handler('Mail_mimeDecode::_iconv_notice_handler');
+            try {
+                $input_converted = iconv(mb_detect_encoding($input, $mb_order, true), $this->_charset, $input);
+            }
+            catch(Exception $ex) {
+                $this->raiseError($ex->getMessage());
+            }
+            restore_error_handler();
+
+            if (strlen($input_converted) == 0 && strlen($input) != 0) {
+                ZLog::Write(LOGLEVEL_INFO, "Mail_mimeDecode() - Text cannot be correctly decoded, using original text. Expect encoding errors");
+                $input_converted = mb_convert_encoding($input, 'UTF-8', 'UTF-8');
+            }
+        }
+
+        return $input_converted;
     }
 
     /**
@@ -863,6 +914,34 @@ class Mail_mimeDecode
         }
 
         return $files;
+    }
+
+    /**
+     * Get all parts in the message with specified type and concatenate them together, unless the
+     * Content-Disposition is 'attachment', in which case the text is apparently an attachment
+     *
+     * @param string        $message        mimedecode message(part)
+     * @param string        $message        message subtype
+     * @param string        &$body          body reference
+     *
+     * @return void
+     * @access public
+     */
+    static function getBodyRecursive($message, $subtype, &$body) {
+        if(!isset($message->ctype_primary)) return;
+        if(strcasecmp($message->ctype_primary,"text")==0 && strcasecmp($message->ctype_secondary,$subtype)==0 && isset($message->body))
+            $body .= $message->body;
+
+        if(strcasecmp($message->ctype_primary,"multipart")==0 && isset($message->parts) && is_array($message->parts)) {
+            foreach($message->parts as $part) {
+                // Check testing/samples/m1009.txt
+                // Content-Type: text/plain; charset=us-ascii; name="hareandtoroise.txt" Content-Transfer-Encoding: 7bit Content-Disposition: inline; filename="hareandtoroise.txt"
+                // We don't want to show that file text (outlook doesn't show it), so if we have content-disposition we don't apply recursivity
+                if(!isset($part->disposition))  {
+                    Mail_mimeDecode::getBodyRecursive($part, $subtype, $body);
+                }
+            }
+        }
     }
 
     /**
@@ -1024,25 +1103,6 @@ class Mail_mimeDecode
                   str_repeat($htab, $indent) . '</header>' . $crlf;
 
         return $return;
-    }
-
-    /**
-     * Z-Push helper to decode text
-     *
-     * @param  string  current charset of input
-     * @param  string  input
-     * @return string  XML version of input
-     * @access private
-     */
-    function _fromCharset($charset, $input) {
-        if($charset == '' || (strtolower($charset) == $this->_charset))
-            return $input;
-
-        // all ISO-8859-1 are converted as if they were Windows-1252 - see Mantis #456
-        if (strtolower($charset) == 'iso-8859-1')
-            $charset = 'Windows-1252';
-
-        return @iconv($charset, $this->_charset. "//TRANSLIT", $input);
     }
 
     /**

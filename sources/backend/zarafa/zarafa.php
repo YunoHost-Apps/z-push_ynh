@@ -91,6 +91,9 @@ class BackendZarafa implements IBackend, ISearchProvider {
     private $wastebasket;
     private $addressbook;
 
+    // ZCP config parameter for PR_EC_ENABLED_FEATURES / PR_EC_DISABLED_FEATURES
+    const ZPUSH_ENABLED = 'mobile';
+
     /**
      * Constructor of the Zarafa Backend
      *
@@ -199,6 +202,8 @@ class BackendZarafa implements IBackend, ISearchProvider {
         $this->storeName = $this->mainUser;
 
         ZLog::Write(LOGLEVEL_DEBUG, sprintf("ZarafaBackend->Logon(): User '%s' is authenticated",$user));
+
+        $this->isZPushEnabled();
 
         // check if this is a Zarafa 7 store with unicode support
         MAPIUtils::IsUnicodeStore($this->store);
@@ -1180,6 +1185,22 @@ class BackendZarafa implements IBackend, ISearchProvider {
         }
     }
 
+    /**
+     * Returns the email address and the display name of the user. Used by autodiscover.
+     *
+     * @param string        $username           The username
+     *
+     * @access public
+     * @return Array
+     */
+    public function GetUserDetails($username) {
+        ZLog::Write(LOGLEVEL_WBXML, sprintf("ZarafaBackend->GetUserDetails for '%s'.", $username));
+        $zarafauserinfo = @mapi_zarafa_getuser_by_name($this->defaultstore, $username);
+        $userDetails['emailaddress'] = (isset($zarafauserinfo['emailaddress']) && $zarafauserinfo['emailaddress']) ? $zarafauserinfo['emailaddress'] : false;
+        $userDetails['fullname'] = (isset($zarafauserinfo['fullname']) && $zarafauserinfo['fullname']) ? $zarafauserinfo['fullname'] : false;
+        return $userDetails;
+    }
+
 
     /**----------------------------------------------------------------------------------------------------------
      * Private methods
@@ -1549,8 +1570,11 @@ class BackendZarafa implements IBackend, ISearchProvider {
         $searchGreater = strtotime($cpo->GetSearchValueGreater());
         $searchLess = strtotime($cpo->GetSearchValueLess());
 
+        if (version_compare(phpversion(),'5.3.4') < 0) {
+            ZLog::Write(LOGLEVEL_WARN, sprintf("Your system's PHP version (%s) might not correctly process unicode strings. Search containing such characters might not return correct results. It is recommended to update to at least PHP 5.3.4. See ZP-541 for more information.", phpversion()));
+        }
         // split the search on whitespache and look for every word
-        $searchText = preg_split("/\W+/", $searchText);
+        $searchText = preg_split("/\W+/u", $searchText);
         $searchProps = array(PR_BODY, PR_SUBJECT, PR_DISPLAY_TO, PR_DISPLAY_CC, PR_SENDER_NAME, PR_SENDER_EMAIL_ADDRESS, PR_SENT_REPRESENTING_NAME, PR_SENT_REPRESENTING_EMAIL_ADDRESS);
         $resAnd = array();
         foreach($searchText as $term) {
@@ -1830,6 +1854,25 @@ class BackendZarafa implements IBackend, ISearchProvider {
             return false;
         }
         return $this->addressbook;
+    }
+
+    /**
+     * Checks if the user is not disabled for Z-Push.
+     *
+     * @access private
+     * @throws FatalException if user is disabled for Z-Push
+     *
+     * @return boolean
+     */
+    private function isZPushEnabled() {
+        $addressbook = $this->getAddressbook();
+        $userEntryid = mapi_getprops($this->store, array(PR_MAILBOX_OWNER_ENTRYID));
+        $mailuser = mapi_ab_openentry($addressbook, $userEntryid[PR_MAILBOX_OWNER_ENTRYID]);
+        $enabledFeatures = mapi_getprops($mailuser, array(PR_EC_DISABLED_FEATURES));
+        if (isset($enabledFeatures[PR_EC_DISABLED_FEATURES]) && is_array($enabledFeatures[PR_EC_DISABLED_FEATURES]) && in_array(self::ZPUSH_ENABLED, $enabledFeatures[PR_EC_DISABLED_FEATURES])) {
+            throw new FatalException("User is disabled for Z-Push.");
+        }
+        return true;
     }
 }
 

@@ -231,7 +231,7 @@ class MAPIProvider {
             // set server default timezone (correct timezone should be configured!)
             $tz = TimezoneUtil::GetFullTZ();
         }
-        $message->timezone = base64_encode($this->getSyncBlobFromTZ($tz));
+        $message->timezone = base64_encode(TimezoneUtil::GetSyncBlobFromTZ($tz));
 
         if(isset($messageprops[$appointmentprops["isrecurring"]]) && $messageprops[$appointmentprops["isrecurring"]]) {
             // Process recurrence
@@ -313,6 +313,11 @@ class MAPIProvider {
         }
 
         if (!isset($message->nativebodytype)) $message->nativebodytype = $this->getNativeBodyType($messageprops);
+
+        // If the user is working from a location other than the office the busystatus should be interpreted as free.
+        if (isset($message->busystatus) && $message->busystatus == fbWorkingElsewhere) {
+            $message->busystatus = fbFree;
+        }
 
         return $message;
     }
@@ -459,6 +464,10 @@ class MAPIProvider {
             if(!isset($syncMessage->exceptions))
                 $syncMessage->exceptions = array();
 
+            // If the user is working from a location other than the office the busystatus should be interpreted as free.
+            if (isset($exception->busystatus) && $exception->busystatus == fbWorkingElsewhere) {
+                $exception->busystatus = fbFree;
+            }
             array_push($syncMessage->exceptions, $exception);
         }
 
@@ -544,7 +553,7 @@ class MAPIProvider {
             else
                 $tz = $this->getGMTTZ();
 
-            $message->meetingrequest->timezone = base64_encode($this->getSyncBlobFromTZ($tz));
+            $message->meetingrequest->timezone = base64_encode(TimezoneUtil::GetSyncBlobFromTZ($tz));
 
             // send basedate if exception
             if(isset($props[$meetingrequestproperties["recReplTime"]]) ||
@@ -624,6 +633,7 @@ class MAPIProvider {
                     $req->processMeetingCancellation();
                 }
             }
+            $message->contentclass = DEFAULT_CALENDAR_CONTENTCLASS;
         }
 
         // Add attachments
@@ -746,7 +756,7 @@ class MAPIProvider {
         //TODO contentclass and nativebodytype and internetcpid
         if (!isset($message->internetcpid)) $message->internetcpid = (defined('STORE_INTERNET_CPID')) ? constant('STORE_INTERNET_CPID') : INTERNET_CPID_WINDOWS1252;
         $this->setFlag($mapimessage, $message);
-        $message->contentclass = DEFAULT_EMAIL_CONTENTCLASS;
+        if (!isset($message->contentclass)) $message->contentclass = DEFAULT_EMAIL_CONTENTCLASS;
         if (!isset($message->nativebodytype)) $message->nativebodytype = $this->getNativeBodyType($messageprops);
 
         // reply, reply to all, forward flags
@@ -1840,27 +1850,6 @@ class MAPIProvider {
         $tz["timezonedst"] = $tz["dstbias"];
 
         return $tz;
-    }
-
-    /**
-     * Pack timezone info for Sync
-     *
-     * @param array     $tz
-     *
-     * @access private
-     * @return string
-     */
-    private function getSyncBlobFromTZ($tz) {
-        // set the correct TZ name (done using the Bias)
-        if (!isset($tz["tzname"]) || !$tz["tzname"] || !isset($tz["tznamedst"]) || !$tz["tznamedst"])
-            $tz = TimezoneUtil::FillTZNames($tz);
-
-        $packed = pack("la64vvvvvvvv" . "la64vvvvvvvv" . "l",
-                $tz["bias"], $tz["tzname"], 0, $tz["dstendmonth"], $tz["dstendday"], $tz["dstendweek"], $tz["dstendhour"], $tz["dstendminute"], $tz["dstendsecond"], $tz["dstendmillis"],
-                $tz["stdbias"], $tz["tznamedst"], 0, $tz["dststartmonth"], $tz["dststartday"], $tz["dststartweek"], $tz["dststarthour"], $tz["dststartminute"], $tz["dststartsecond"], $tz["dststartmillis"],
-                $tz["dstbias"]);
-
-        return $packed;
     }
 
     /**
