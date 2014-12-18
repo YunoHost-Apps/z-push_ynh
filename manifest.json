@@ -1,5 +1,5 @@
 {
-    "name": "Z-push",
+    "name": "Z-Push",
     "id": "z-push",
     "description": {
         "en": "Z-Push is an open-source application to synchronize ActiveSync",
@@ -11,7 +11,7 @@
         "email": "beudbeud@beudibox.fr",
         "url": "https://z-push.org"
     },
-    "multi_instance": "false",
+    "multi_instance": "true",
     "arguments": {
         "install" : [
             {
