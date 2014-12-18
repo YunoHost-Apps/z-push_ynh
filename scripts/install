@@ -10,6 +10,10 @@ if [[ ! $? -eq 0 ]]; then
 exit 1
 fi
 
+# Prereqs
+sudo apt_install php-soap php5-imap libawl-php php5-xsl
+
+
 # Copy files to the right place
 final_path=/var/www/z-push
 sudo mkdir -p $final_path
@@ -19,12 +23,18 @@ sudo cp -a ../sources/* $final_path
 sudo chown -R www-data: $final_path
 
 # Configuration
-#sudo cp ../conf/config.inc.php $final_path/inc/poche/
+sudo cp ../conf/config.php $final_path/
+sudo sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" $final_path/config.php
+sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" $final_path/config.php
+
+# Create directory
+sudo mkdir -p /var/log/z-push
+sudo chmod 750 /var/log/z-push
+sudo chown www-data:www-data /var/log/z-push
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
-#sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf*
-#sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf*
-#sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/z-push.conf
+sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
+sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/z-push.conf
 
 # Enable api for client
 sudo yunohost app setting z-push skipped_uris -v "/"
