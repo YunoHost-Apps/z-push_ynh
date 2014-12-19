@@ -40,7 +40,7 @@ sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/z-push.conf
 
 # Enable api for client
-sudo yunohost app setting z-push skipped_urls -v "/"
+sudo yunohost app setting z-push skipped_uris -v "/"
 
 # Reload Nginx and regenerate SSOwat conf
 sudo service nginx reload
