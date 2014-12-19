@@ -11,7 +11,7 @@ exit 1
 fi
 
 # Prereqs
-sudo apt_install php-soap php5-imap libawl-php php5-xsl libawl-php
+sudo apt-get install php-soap php5-imap libawl-php php5-xsl
 
 
 # Copy files to the right place
