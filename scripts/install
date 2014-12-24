@@ -41,10 +41,10 @@ if [ "$?" -eq 0 ]; then
 
 	# Copy config
 	sudo cp ../conf/config-combined.php $final_path/config.php
-	sudo cp ../conf/backend/imap/config.php $final_path/backend/config-imap.php
-	sudo cp ../conf/backend/carddav/config.php $final_path/backend/config-carddav.php
-	sudo cp ../conf/backend/caldav/config.php $final_path/backend/config-caldav.php
-	sudo cp ../conf/backend/combined/config.php $final_path/backend/config-combined.php
+	sudo cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
+	sudo cp ../conf/backend/config-carddav.php $final_path/backend/carddav/config.php
+	sudo cp ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
+	sudo cp ../conf/backend/config-combined.php $final_path/backend/combined/config.php
 else
 	# Copy config
 	sudo cp ../conf/config.php $final_path/
