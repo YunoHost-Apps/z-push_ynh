@@ -23,9 +23,32 @@ sudo cp -a ../sources/* $final_path
 sudo chown -R www-data: $final_path
 
 # Configuration
-sudo cp ../conf/config.php $final_path/
-sudo sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" $final_path/config.php
-sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" $final_path/config.php
+sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config*.php
+sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/config*.php
+
+# Enable caldav carddav support
+sudo yunohost app list -f baikal --json | grep '"installed": true'
+if [ "$?" -eq 0 ]; then
+	echo "Detected Baikal"
+	caldavdomain=$(sudo yunohost app setting baikal domain)
+	caldavpath=$(sudo yunohost app setting baikal path)
+	caldavpath=${caldavpath%/}
+
+	# Configuration baikal
+	sed -i "s@BAIKALDOMAIN@$caldavdomain@g" ../conf/backend/config*.php
+	sed -i "s@BAIKALPATH@$caldavpath@g" ../conf/backend/config*.php
+	sed -i "s@DOMAINTOCHANGE@$domain@g" ../conf/backend/config-imap.php
+
+	# Copy config
+	sudo cp ../conf/config-combined.php $final_path/config.php
+	sudo cp ../conf/backend/imap/config.php $final_path/backend/config-imap.php
+	sudo cp ../conf/backend/carddav/config.php $final_path/backend/config-carddav.php
+	sudo cp ../conf/backend/caldav/config.php $final_path/backend/config-caldav.php
+	sudo cp ../conf/backend/combined/config.php $final_path/backend/config-combined.php
+else
+	# Copy config
+	sudo cp ../conf/config.php $final_path/
+fi
 
 # Create directory
 sudo mkdir -p /var/log/z-push

@@ -49,7 +49,7 @@
 define('CARDDAV_PROTOCOL', 'https');
 
 // Server name
-define('CARDDAV_SERVER', 'beudi.nohost.me');
+define('CARDDAV_SERVER', 'BAIKALDOMAIN');
 
 // Server port
 define('CARDDAV_PORT', '443');
@@ -63,7 +63,7 @@ define('CARDDAV_PORT', '443');
 // %u: replaced with the username
 // %d: replaced with the domain
 //   Add the trailing /
-define('CARDDAV_PATH', '/baikal/card.php/addressbooks/%u/');
+define('CARDDAV_PATH', 'BAIKALPATH/card.php/addressbooks/%u/');
 
 
 // Server path to the default addressbook
@@ -71,7 +71,7 @@ define('CARDDAV_PATH', '/baikal/card.php/addressbooks/%u/');
 // %u: replaced with the username
 // %d: replaced with the domain
 //   Add the trailing /
-define('CARDDAV_DEFAULT_PATH', '/baikal/card.php/addressbooks/%u/default');
+define('CARDDAV_DEFAULT_PATH', 'BAIKALPATH/card.php/addressbooks/%u/default');
 
 // Server path to the GAL addressbook. This addressbook is readonly and searchable by the user, but it will NOT be synced.
 // If you don't want GAL, comment it
