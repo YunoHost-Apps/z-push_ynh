@@ -11,8 +11,7 @@ exit 1
 fi
 
 # Prereqs
-sudo apt-get install php-soap php5-imap libawl-php php5-xsl
-
+sudo apt-get install php-soap php5-imap libawl-php php5-xsl -y
 
 # Copy files to the right place
 final_path=/var/www/z-push
