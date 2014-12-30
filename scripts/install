@@ -48,6 +48,9 @@ if [ "$?" -eq 0 ]; then
 else
 	# Copy config
 	sudo cp ../conf/config.php $final_path/
+	sed -i "s@DOMAINTOCHANGE@$domain@g" ../conf/backend/config-imap.php
+	sudo cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
+	
 fi
 
 # Create directory
@@ -68,4 +71,3 @@ sudo yunohost app setting z-push skipped_uris -v "/"
 # Reload Nginx and regenerate SSOwat conf
 sudo service nginx reload
 sudo yunohost app ssowatconf
-
