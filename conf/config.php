@@ -206,7 +206,7 @@
  *  If set, the Search Provider will always be preferred.
  *  Use 'BackendSearchLDAP' to search in a LDAP directory (see backend/searchldap/config.php)
  */
-    define('SEARCH_PROVIDER', 'BackendSearchLDAP');
+    define('SEARCH_PROVIDER', '');
     // Time in seconds for the server search. Setting it too high might result in timeout.
     // Setting it too low might not return all results. Default is 10.
     define('SEARCH_WAIT', 10);
