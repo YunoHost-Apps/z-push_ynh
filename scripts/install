@@ -6,7 +6,7 @@ path="/Microsoft-Server-ActiveSync"
 app=z-push
 
 # Check domain/path availability
-sudo yunohost app checkurl $domain$path -a z-push
+sudo yunohost app checkurl $domain$path -a $app
 if [[ ! $? -eq 0 ]]; then
 exit 1
 fi
@@ -15,7 +15,7 @@ fi
 sudo apt-get install php-soap php5-imap libawl-php php5-xsl -y
 
 # Copy files to the right place
-final_path=/var/www/z-push
+final_path=/var/www/$app
 sudo mkdir -p $final_path
 sudo cp -a ../sources/* $final_path
 
@@ -54,10 +54,10 @@ fi
 sudo chown -R www-data: $final_path
 
 
-# Create directory
-sudo mkdir -p /var/log/z-push
-sudo chmod 750 /var/log/z-push
-sudo chown www-data:www-data /var/log/z-push
+# Create log directory
+sudo mkdir -p /var/log/$app
+sudo chmod 750 /var/log/$app
+sudo chown www-data:www-data /var/log/$app
 
 #Copy XMLElement.php
 sudo ln -s /usr/share/awl/inc/XML* /var/www/z-push/include/
@@ -65,7 +65,7 @@ sudo ln -s /usr/share/awl/inc/XML* /var/www/z-push/include/
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
 sudo sed -i "s@NAMETOCHANGE@$app@g" ../conf/nginx.conf
-sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/z-push.conf
+sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 
 # Dedicated php-fpm processes
 sudo sed -i "s@NAMETOCHANGE@$app@g" ../conf/php-fpm.conf
@@ -75,7 +75,7 @@ sudo chown root: $finalphpconf
 sudo chmod 644 $finalphpconf
 
 # Enable api for client
-sudo yunohost app setting z-push skipped_uris -v "/"
+sudo yunohost app setting $app skipped_uris -v "/"
 
 # Reload Nginx and regenerate SSOwat conf
 sudo service nginx reload
