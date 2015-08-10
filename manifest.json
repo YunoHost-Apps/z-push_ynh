@@ -6,8 +6,8 @@
         "fr": "Z-Push est un serveur open source de synchronisation ActiveSync" 
     },
     "developer": {
-        "name": "beudbeud", "polytan02",
-        "email": "beudbeud@beudibox.fr", "polytan02@mcgva.org"
+        "name": "beudbeud",
+        "email": "beudbeud@beudibox.fr",
         "url": "https://z-push.org"
     },
     "multi_instance": "true",
