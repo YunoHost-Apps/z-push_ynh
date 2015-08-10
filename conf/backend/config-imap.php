@@ -49,11 +49,12 @@
 define('IMAP_SERVER', 'localhost');
 
 // connecting to default port (143)
-define('IMAP_PORT', 143);
+define('IMAP_PORT', 993);
 
 // best cross-platform compatibility (see http://php.net/imap_open for options)
-define('IMAP_OPTIONS', '/notls/norsh');
-
+// Original :
+//define('IMAP_OPTIONS', '/notls/norsh');
+define('IMAP_OPTIONS', '/ssl/novalidate-cert');
 
 // Mark messages as read when moving to Trash.
 //      BE AWARE that you will lose the unread flag, but some mail clients do this so the Trash folder doesn't get boldened
@@ -95,7 +96,7 @@ define('IMAP_AUTOSEEN_ON_DELETE', false);
 
 // Since I know you won't configure this, I will raise an error unless you do.
 // When configured set this to true to remove the error
-define('IMAP_FOLDER_CONFIGURED', false);
+define('IMAP_FOLDER_CONFIGURED', true);
 
 // Folder prefix is the common part in your names (3, 4)
 define('IMAP_FOLDER_PREFIX', '');
@@ -116,7 +117,7 @@ define('IMAP_FOLDER_DRAFT', 'DRAFTS');
 define('IMAP_FOLDER_TRASH', 'TRASH');
 
 // Spam folder name (case doesn't matter). Only showed as special by iOS devices
-define('IMAP_FOLDER_SPAM', 'SPAM');
+define('IMAP_FOLDER_SPAM', 'JUNK');
 
 // Archive folder name (case doesn't matter). Only showed as special by iOS devices
 define('IMAP_FOLDER_ARCHIVE', 'ARCHIVE');
@@ -140,7 +141,7 @@ define('IMAP_EXCLUDED_FOLDERS', '');
 //        'sql'           - the username will be the result of a sql query. REMEMBER TO INSTALL PHP-PDO AND PHP-DATABASE
 //        'ldap'          - the username will be the result of a ldap query. REMEMBER TO INSTALL PHP-LDAP!!
 //        '@mydomain.com' - the username is used and the given string will be appended
-define('IMAP_DEFAULTFROM', '');
+define('IMAP_DEFAULTFROM', '@DOMAINTOCHANGE');
 
 // DSN: formatted PDO connection string
 //    mysql:host=xxx;port=xxx;dbname=xxx
@@ -168,10 +169,16 @@ define('IMAP_FROM_SQL_FULLNAME', '#first_name #last_name');
 // FROM: string that will be the from, replacing the field names with the values
 define('IMAP_FROM_LDAP_SERVER', 'localhost');
 define('IMAP_FROM_LDAP_SERVER_PORT', '389');
-define('IMAP_FROM_LDAP_USER', 'cn=zpush,ou=servers,dc=zpush,dc=org');
-define('IMAP_FROM_LDAP_PASSWORD', 'password');
-define('IMAP_FROM_LDAP_BASE', 'dc=zpush,dc=org');
-define('IMAP_FROM_LDAP_QUERY', '(mail=#username@#domain)');
+//define('IMAP_FROM_LDAP_USER', 'cn=zpush,ou=servers,dc=zpush,dc=org');
+//define('IMAP_FROM_LDAP_PASSWORD', 'password');
+//define('IMAP_FROM_LDAP_BASE', 'dc=zpush,dc=org');
+//define('IMAP_FROM_LDAP_QUERY', '(mail=#username@#domain)');
+
+define('IMAP_FROM_LDAP_USER', '');
+define('IMAP_FROM_LDAP_PASSWORD', '');
+define('IMAP_FROM_LDAP_BASE', 'dc=yunohost,dc=org');
+define('IMAP_FROM_LDAP_QUERY', '(mail=#username)');
+
 define('IMAP_FROM_LDAP_FIELDS', serialize(array('givenname', 'sn', 'mail')));
 define('IMAP_FROM_LDAP_FROM', '#givenname #sn <#mail>');
 define('IMAP_FROM_LDAP_FULLNAME', '#givenname #sn');
@@ -224,4 +231,4 @@ define('SYSTEM_MIME_TYPES_MAPPING', '/etc/mime.types');
 
 
 // Use BackendCalDAV for Meetings. You cannot hope to get that functionality working without a caldav backend.
-define('IMAP_MEETING_USE_CALDAV', false);
+define('IMAP_MEETING_USE_CALDAV', FLAGTOCHANGE);
