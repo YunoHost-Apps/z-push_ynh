@@ -3,6 +3,7 @@
 # Retrieve arguments
 domain=$1
 path="/Microsoft-Server-ActiveSync"
+app=z-push
 
 # Check domain/path availability
 sudo yunohost app checkurl $domain$path -a z-push
@@ -64,6 +65,13 @@ sudo ln -s /usr/share/awl/inc/XML* /var/www/z-push/include/
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/z-push.conf
+
+# Dedicated php-fpm processes
+sed -i "s@NAMETOCHANGE@$app@g" ../conf/php-fpm.conf
+finalphpconf=/etc/php5/fpm/pool.d/$app.conf
+sudo cp ../conf/php-fpm.conf $finalphpconf
+sudo chown root: $finalphpconf
+sudo chmod 644 $finalphpconf
 
 # Enable api for client
 sudo yunohost app setting z-push skipped_uris -v "/"
