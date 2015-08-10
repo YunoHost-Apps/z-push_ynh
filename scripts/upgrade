@@ -3,6 +3,7 @@
 # Retrieve arguments
 domain=$(sudo yunohost app setting z-push domain)
 path="/Microsoft-Server-ActiveSync"
+app=z-push
 
 # Prereqs
 sudo apt-get install php-soap php5-imap libawl-php php5-xsl
@@ -58,6 +59,7 @@ sudo chown -R www-data: $final_path
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
+sudo sed -i "s@NAMETOCHANGE@$app@g" ../conf/nginx.conf
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/z-push.conf
 
 # Dedicated php-fpm processes
