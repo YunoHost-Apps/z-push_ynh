@@ -105,22 +105,22 @@ define('IMAP_FOLDER_PREFIX', '');
 define('IMAP_FOLDER_PREFIX_IN_INBOX', false);
 
 // Inbox folder name (case doesn't matter) - (empty in 4)
-define('IMAP_FOLDER_INBOX', 'INBOX');
+define('IMAP_FOLDER_INBOX', 'Inbox');
 
 // Sent folder name (case doesn't matter)
-define('IMAP_FOLDER_SENT', 'SENT');
+define('IMAP_FOLDER_SENT', 'Sent');
 
 // Draft folder name (case doesn't matter)
-define('IMAP_FOLDER_DRAFT', 'DRAFTS');
+define('IMAP_FOLDER_DRAFT', 'Drafts');
 
 // Trash folder name (case doesn't matter)
-define('IMAP_FOLDER_TRASH', 'TRASH');
+define('IMAP_FOLDER_TRASH', 'Trash');
 
 // Spam folder name (case doesn't matter). Only showed as special by iOS devices
-define('IMAP_FOLDER_SPAM', 'JUNK');
+define('IMAP_FOLDER_SPAM', 'Junk');
 
 // Archive folder name (case doesn't matter). Only showed as special by iOS devices
-define('IMAP_FOLDER_ARCHIVE', 'ARCHIVE');
+define('IMAP_FOLDER_ARCHIVE', 'Archive');
 
 
 
