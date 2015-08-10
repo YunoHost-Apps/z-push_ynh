@@ -41,7 +41,7 @@ else
 	sudo cp ../conf/config.php $final_path/
 	sed -i "s@DOMAINTOCHANGE@$domain@g" ../conf/backend/config-imap.php
 	sudo cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
-	
+
 fi
 
 # Create directory
@@ -53,7 +53,7 @@ sudo chown www-data:www-data /var/log/z-push
 sudo ln -s /usr/share/awl/inc/XML* /var/www/z-push/include/
 
 
-# Set permissions to roundcube directory
+# Set permissions to z-push directory
 sudo chown -R www-data: $final_path
 
 # Modify Nginx configuration file and copy it to Nginx conf directory

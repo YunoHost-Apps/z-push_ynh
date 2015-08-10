@@ -18,9 +18,6 @@ final_path=/var/www/z-push
 sudo mkdir -p $final_path
 sudo cp -a ../sources/* $final_path
 
-# Set permissions to roundcube directory
-sudo chown -R www-data: $final_path
-
 # Configuration
 sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config*.php
 sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/config*.php
@@ -49,8 +46,12 @@ else
 	sudo cp ../conf/config.php $final_path/
 	sed -i "s@DOMAINTOCHANGE@$domain@g" ../conf/backend/config-imap.php
 	sudo cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
-	
+
 fi
+
+# Set permissions to z-push directory
+sudo chown -R www-data: $final_path
+
 
 # Create directory
 sudo mkdir -p /var/log/z-push
