@@ -71,7 +71,7 @@ sudo chmod 750 $final_logpath
 sudo chown www-data:www-data $final_logpath
 
 #Copy XMLElement.php
-sudo ln -s /usr/share/awl/inc/XML* /var/www/z-push/include/
+sudo ln -s /usr/share/awl/inc/XML* /var/www/$app/include/
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
