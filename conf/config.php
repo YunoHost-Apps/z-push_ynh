@@ -171,7 +171,7 @@
     define('LOG_SYSLOG_PROGRAM', '[z-push]');
 
 
-    define('LOG_MEMORY_PROFILER', true);
+    define('LOG_MEMORY_PROFILER', false);
     define('LOG_MEMORY_PROFILER_FILE', 'LOGTOCHANGE/memory_profile');
 
 /**********************************************************************************
