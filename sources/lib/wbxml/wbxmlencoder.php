@@ -45,10 +45,11 @@
 class WBXMLEncoder extends WBXMLDefs {
     private $_dtd;
     private $_out;
+    private $_outLog;
 
-    private $_tagcp;
-    private $_attrcp;
+    private $_tagcp = 0;
 
+    private $log = false;
     private $logStack = array();
 
     // We use a delayed output mechanism in which we only output a tag when it actually has something
@@ -63,13 +64,10 @@ class WBXMLEncoder extends WBXMLDefs {
     private $bodyparts;
 
     public function WBXMLEncoder($output, $multipart = false) {
-        // make sure WBXML_DEBUG is defined. It should be at this point
-        if (!defined('WBXML_DEBUG')) define('WBXML_DEBUG', false);
+        $this->log = defined('WBXML_DEBUG') && WBXML_DEBUG;
 
         $this->_out = $output;
-
-        $this->_tagcp = 0;
-        $this->_attrcp = 0;
+        $this->_outLog = StringStreamWrapper::Open("");
 
         // reverse-map the DTD
         foreach($this->dtd["namespaces"] as $nsid => $nsname) {
@@ -124,7 +122,6 @@ class WBXMLEncoder extends WBXMLDefs {
 
         if(!$nocontent) {
             $stackelem['tag'] = $tag;
-            $stackelem['attributes'] = $attributes;
             $stackelem['nocontent'] = $nocontent;
             $stackelem['sent'] = false;
 
@@ -134,7 +131,7 @@ class WBXMLEncoder extends WBXMLDefs {
             // output of an empty tag, and we therefore output the stack here
         } else {
             $this->_outputStack();
-            $this->_startTag($tag, $attributes, $nocontent);
+            $this->_startTag($tag, $nocontent);
         }
     }
 
@@ -157,6 +154,8 @@ class WBXMLEncoder extends WBXMLDefs {
             if(count($this->_stack) == 0 && $this->multipart == true) {
                 $this->processMultipart();
             }
+            if(count($this->_stack) == 0)
+                $this->writeLog();
         }
     }
 
@@ -198,6 +197,8 @@ class WBXMLEncoder extends WBXMLDefs {
      * @return void
      */
     public function addBodypartStream($bp) {
+        if (!is_resource($bp))
+            throw new Exception("WBXMLEncoder->addBodypartStream(): trying to add a ".gettype($bp)." instead off a stream");
         if ($this->multipart)
             $this->bodyparts[] = $bp;
     }
@@ -225,7 +226,7 @@ class WBXMLEncoder extends WBXMLDefs {
     private function _outputStack() {
         for($i=0;$i<count($this->_stack);$i++) {
             if(!$this->_stack[$i]['sent']) {
-                $this->_startTag($this->_stack[$i]['tag'], $this->_stack[$i]['attributes'], $this->_stack[$i]['nocontent']);
+                $this->_startTag($this->_stack[$i]['tag'], $this->_stack[$i]['nocontent']);
                 $this->_stack[$i]['sent'] = true;
             }
         }
@@ -237,8 +238,9 @@ class WBXMLEncoder extends WBXMLDefs {
      * @access private
      * @return
      */
-    private function _startTag($tag, $attributes = false, $nocontent = false) {
-        $this->logStartTag($tag, $attributes, $nocontent);
+    private function _startTag($tag, $nocontent = false) {
+        if ($this->log)
+            $this->logStartTag($tag, $nocontent);
 
         $mapping = $this->getMapping($tag);
 
@@ -251,17 +253,11 @@ class WBXMLEncoder extends WBXMLDefs {
         }
 
         $code = $mapping["code"];
-        if(isset($attributes) && is_array($attributes) && count($attributes) > 0) {
-            $code |= 0x80;
-        }
 
         if(!isset($nocontent) || !$nocontent)
             $code |= 0x40;
 
         $this->outByte($code);
-
-        if($code & 0x80)
-            $this->outAttributes($attributes);
     }
 
     /**
@@ -271,8 +267,9 @@ class WBXMLEncoder extends WBXMLDefs {
      * @return
      */
     private function _content($content) {
-        $this->logContent($content);
-        $this->outByte(WBXML_STR_I);
+        if ($this->log)
+            $this->logContent($content);
+        $this->outByte(self::WBXML_STR_I);
         $this->outTermStr($content);
     }
 
@@ -283,8 +280,9 @@ class WBXMLEncoder extends WBXMLDefs {
      * @return
      */
     private function _endTag() {
-        $this->logEndTag();
-        $this->outByte(WBXML_END);
+        if ($this->log)
+            $this->logEndTag();
+        $this->outByte(self::WBXML_END);
     }
 
     /**
@@ -297,6 +295,7 @@ class WBXMLEncoder extends WBXMLDefs {
      */
     private function outByte($byte) {
         fwrite($this->_out, chr($byte));
+        fwrite($this->_outLog, chr($byte));
     }
 
     /**
@@ -331,20 +330,8 @@ class WBXMLEncoder extends WBXMLDefs {
     private function outTermStr($content) {
         fwrite($this->_out, $content);
         fwrite($this->_out, chr(0));
-    }
-
-    /**
-     * Output attributes
-     * We don't actually support this, because to do so, we would have
-     * to build a string table before sending the data (but we can't
-     * because we're streaming), so we'll just send an END, which just
-     * terminates the attribute list with 0 attributes.
-     *
-     * @access private
-     * @return
-     */
-    private function outAttributes() {
-        $this->outByte(WBXML_END);
+        fwrite($this->_outLog, $content);
+        fwrite($this->_outLog, chr(0));
     }
 
     /**
@@ -356,7 +343,7 @@ class WBXMLEncoder extends WBXMLDefs {
      * @return
      */
     private function outSwitchPage($page) {
-        $this->outByte(WBXML_SWITCH_PAGE);
+        $this->outByte(self::WBXML_SWITCH_PAGE);
         $this->outByte($page);
     }
 
@@ -420,16 +407,12 @@ class WBXMLEncoder extends WBXMLDefs {
      * Logs a StartTag to ZLog
      *
      * @param $tag
-     * @param $attr
      * @param $nocontent
      *
      * @access private
      * @return
      */
-    private function logStartTag($tag, $attr, $nocontent) {
-        if(!WBXML_DEBUG)
-            return;
-
+    private function logStartTag($tag, $nocontent) {
         $spaces = str_repeat(" ", count($this->logStack));
         if($nocontent)
             ZLog::Write(LOGLEVEL_WBXML,"O " . $spaces . " <$tag/>");
@@ -446,9 +429,6 @@ class WBXMLEncoder extends WBXMLDefs {
      * @return
      */
     private function logEndTag() {
-        if(!WBXML_DEBUG)
-            return;
-
         $spaces = str_repeat(" ", count($this->logStack));
         $tag = array_pop($this->logStack);
         ZLog::Write(LOGLEVEL_WBXML,"O " . $spaces . "</$tag>");
@@ -463,9 +443,6 @@ class WBXMLEncoder extends WBXMLDefs {
      * @return
      */
     private function logContent($content) {
-        if(!WBXML_DEBUG)
-            return;
-
         $spaces = str_repeat(" ", count($this->logStack));
         ZLog::Write(LOGLEVEL_WBXML,"O " . $spaces . $content);
     }
@@ -479,29 +456,58 @@ class WBXMLEncoder extends WBXMLDefs {
     private function processMultipart() {
         ZLog::Write(LOGLEVEL_DEBUG, sprintf("WBXMLEncoder->processMultipart() with %d parts to be processed", $this->getBodypartsCount()));
         $len = ob_get_length();
+        // #190 - KD 2015-06-08 Replace ob_get_flush with ob_get_clean; because we don't want to disable the buffering
         $buffer = ob_get_clean();
         $nrBodyparts = $this->getBodypartsCount();
         $blockstart = (($nrBodyparts + 1) * 2) * 4 + 4;
 
         $data = pack("iii", ($nrBodyparts + 1), $blockstart, $len);
 
-        ob_start(null, 1048576);
-
         foreach ($this->bodyparts as $bp) {
             $blockstart = $blockstart + $len;
-            $len = fstat($bp);
-            $len = (isset($len['size'])) ? $len['size'] : 0;
+            if (is_resource($bp)) {
+                $len = fstat($bp);
+                $len = (isset($len['size'])) ? $len['size'] : 0;
+            } elseif (is_string($bp)) {
+                $len = strlen($bp);
+            } else {
+                throw new Exception("bp is a ".gettype($bp)."!?!");
+            }
             $data .= pack("ii", $blockstart, $len);
         }
 
         fwrite($this->_out, $data);
         fwrite($this->_out, $buffer);
+        fwrite($this->_outLog, $data);
+        fwrite($this->_outLog, $buffer);
         foreach($this->bodyparts as $bp) {
-            while (!feof($bp)) {
-                fwrite($this->_out, fread($bp, 4096));
+            if (is_resource($bp)) {
+                stream_copy_to_stream($bp, $this->_out);
+                stream_copy_to_stream($bp, $this->_outLog);
+                fclose($bp);
+            } elseif (is_string($bp)) {
+                fwrite($this->_out, $bp);
+		fwrite($this->_outLog, $bp);
+            } else {
+                throw new Exception("bp is a ".gettype($bp)."!?!");
             }
         }
     }
-}
 
-?>
+    /**
+     * Writes the sent WBXML data to the log if it is not bigger than 512K.
+     *
+     * @access private
+     * @return void
+     */
+    private function writeLog() {
+        $stat = fstat($this->_outLog);
+        if ($stat['size'] < 524288) {
+            $data = base64_encode(stream_get_contents($this->_outLog, -1,0));
+        }
+        else {
+            $data = "more than 512K of data";
+        }
+        ZLog::Write(LOGLEVEL_WBXML, "WBXML-OUT: ". $data, false);
+    }
+}

@@ -1,10 +1,10 @@
 <?php
 /***********************************************
-* File      :   exceptions.php
+* File      :   stringstreamwrapper.php
 * Project   :   Z-Push
-* Descr     :   Includes all Z-Push exceptions
+* Descr     :   Wraps a string as a standard php stream
 *
-* Created   :   06.02.2012
+* Created   :   24.11.2011
 *
 * Copyright 2007 - 2013 Zarafa Deutschland GmbH
 *
@@ -41,26 +41,25 @@
 * Consult LICENSE file for details
 ************************************************/
 
-// main exception
-include_once('zpushexception.php');
-
-// Fatal exceptions
-include_once('fatalexception.php');
-include_once('fatalmisconfigurationexception.php');
-include_once('fatalnotimplementedexception.php');
-include_once('wbxmlexception.php');
-include_once('nopostrequestexception.php');
-include_once('httpreturncodeexception.php');
-include_once('authenticationrequiredexception.php');
-include_once('provisioningrequiredexception.php');
-
-// Non fatal exceptions
-include_once('notimplementedexception.php');
-include_once('syncobjectbrokenexception.php');
-include_once('statusexception.php');
-include_once('statenotfoundexception.php');
-include_once('stateinvalidexception.php');
-include_once('nohierarchycacheavailableexception.php');
-include_once('statenotyetavailableexception.php');
-
-?>
+class StringStreamWrapper {
+    /**
+     * Instantiates a stream
+     *
+     * @param string $string  The string to be wrapped
+     * @access public
+     * @return stream
+     */
+    public static function Open($string) {
+        ZLog::Write(LOGLEVEL_DEBUG, sprintf("StringStreamWrapper::Open(): len = %d", strlen($string)));
+        if (defined('BUG68532FIXED') && BUG68532FIXED === true) {
+            ZLog::Write(LOGLEVEL_DEBUG, "StringStreamWrapper::Open(): Using php://temp");
+            $stream = fopen('php://temp', 'r+');
+        } else {
+            ZLog::Write(LOGLEVEL_DEBUG, "StringStreamWrapper::Open(): Using tmpfile()");
+            $stream = tmpfile();
+        }
+        fwrite($stream, $string);
+        rewind($stream);
+        return $stream;
+    }
+}

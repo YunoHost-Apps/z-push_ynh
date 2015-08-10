@@ -46,25 +46,20 @@
 // config file
 require_once("backend/caldav/config.php");
 
-include_once('lib/default/diffbackend/diffbackend.php');
-include_once('include/z_caldav.php');
-include_once('include/z_RTF.php');
-include_once('include/iCalendar.php');
-
 class BackendCalDAV extends BackendDiff {
+    /**
+     * @var CalDAVClient
+     */
     private $_caldav;
     private $_caldav_path;
     private $_collection = array();
-    private $_username;
 
     private $changessinkinit;
     private $sinkdata;
     private $sinkmax;
 
-
     /**
      * Constructor
-     *
      */
     public function BackendCalDAV() {
         if (!function_exists("curl_init")) {
@@ -81,18 +76,17 @@ class BackendCalDAV extends BackendDiff {
      * @see IBackend::Logon()
      */
     public function Logon($username, $domain, $password) {
-        $this->_username = $username;
         $this->_caldav_path = str_replace('%u', $username, CALDAV_PATH);
-        $this->_caldav = new CalDAVClient(CALDAV_SERVER . ":" . CALDAV_PORT . $this->_caldav_path, $username, $password);
-        $options = $this->_caldav->DoOptionsRequest();
-        if (isset($options["PROPFIND"])) {
-            ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCalDAV->Logon(): User '%s' is authenticated on CalDAV", $username));
-            return true;
+        $url = sprintf("%s://%s:%d%s", CALDAV_PROTOCOL, CALDAV_SERVER, CALDAV_PORT, $this->_caldav_path);
+        $this->_caldav = new CalDAVClient($url, $username, $password);
+        if ($connected = $this->_caldav->CheckConnection()) {
+            ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCalDAV->Logon(): User '%s' is authenticated on CalDAV '%s'", $username, $url));
         }
         else {
-            ZLog::Write(LOGLEVEL_WARN, sprintf("BackendCalDAV->Logon(): User '%s' is not authenticated on CalDAV", $username));
-            return false;
+            ZLog::Write(LOGLEVEL_WARN, sprintf("BackendCalDAV->Logon(): User '%s' is not authenticated on CalDAV '%s'", $username, $url));
         }
+
+        return $connected;
     }
 
     /**
@@ -100,13 +94,17 @@ class BackendCalDAV extends BackendDiff {
      * @see IBackend::Logoff()
      */
     public function Logoff() {
-        ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCalDAV->Logoff()"));
-        $this->_caldav = null;
+        if ($this->_caldav != null) {
+            $this->_caldav->Disconnect();
+            unset($this->_caldav);
+        }
 
         $this->SaveStorages();
 
         unset($this->sinkdata);
         unset($this->sinkmax);
+
+        ZLog::Write(LOGLEVEL_DEBUG, "BackendCalDAV->Logoff(): disconnected from CALDAV server");
 
         return true;
     }
@@ -306,15 +304,14 @@ class BackendCalDAV extends BackendDiff {
         }
         else {
             $etag = "*";
-            $date = gmdate("Ymd\THis\Z");
-            $random = hash("md5", microtime());
-            $id = $date . "-" . $random . ".ics";
+            $id = sprintf("%s-%s.ics", gmdate("Ymd\THis\Z"), hash("md5", microtime()));
         }
 
-        $data = $this->_ParseASToVCalendar($message, $folderid, substr($id, 0, strlen($id)-4));
-
         $url = $this->_caldav_path . substr($folderid, 1) . "/" . $id;
-        $etag_new = $this->_caldav->DoPUTRequest($url, $data, $etag);
+
+        $data = $this->_ParseASToVCalendar($message, $folderid, substr($id, 0, strlen($id) - 4));
+
+        $etag_new = $this->CreateUpdateCalendar($data, $url, $etag);
 
         $item = array();
         $item['href'] = $id;
@@ -334,21 +331,6 @@ class BackendCalDAV extends BackendDiff {
     }
 
     /**
-     * Changes the 'star' flag of a message on disk
-     *
-     * @param string        $folderid       id of the folder
-     * @param string        $id             id of the message
-     * @param int           $flags          star flag of the message
-     *
-     * @access public
-     * @return boolean                      status of the operation
-     * @throws StatusException              could throw specific SYNC_STATUS_* exceptions
-     */
-    public function SetStarFlag($folderid, $id, $flags, $contentParameters) {
-        return false;
-    }
-
-    /**
      * Delete a message from the CalDAV server.
      * @see BackendDiff::DeleteMessage()
      */
@@ -356,10 +338,7 @@ class BackendCalDAV extends BackendDiff {
         ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCalDAV->DeleteMessage('%s','%s')", $folderid,  $id));
         $url = $this->_caldav_path . substr($folderid, 1) . "/" . $id;
         $http_status_code = $this->_caldav->DoDELETERequest($url);
-        if ($http_status_code == "204") {
-            return true;
-        }
-        return false;
+        return $http_status_code == "204";
     }
 
     /**
@@ -368,6 +347,51 @@ class BackendCalDAV extends BackendDiff {
      */
     public function MoveMessage($folderid, $id, $newfolderid, $contentParameters) {
         return false;
+    }
+
+    /**
+     * Create or Update one event
+     *
+     * @access public
+     * @param $data     string      VCALENDAR text
+     * @param $url      string      URL for the calendar, if false a new calendar object is created
+     * @param $etag     string      ETAG for the calendar, if '*' is a new object
+     * @return array
+     */
+    public function CreateUpdateCalendar($data, $url = false, $etag = "*") {
+        if ($url === false) {
+            $url = sprintf("%s%s/%s-%s.ics", $this->_caldav_path, CALDAV_PERSONAL, gmdate("Ymd\THis\Z"), hash("md5", microtime()));
+            $etag = "*";
+        }
+
+        return $this->_caldav->DoPUTRequest($url, $data, $etag);
+    }
+
+    /**
+     * Deletes one VCALENDAR
+     *
+     * @access public
+     * @param $id       string      ID of the VCALENDAR
+     * @return boolean
+     */
+    public function DeleteCalendar($id) {
+        $http_status_code = $this->_caldav->DoDELETERequest(sprintf("%s%s/%s", $this->_caldav_path, CALDAV_PERSONAL, $id));
+        return $http_status_code == "204";
+    }
+
+    /**
+     * Finds one VCALENDAR
+     *
+     * @access public
+     * @param $uid      string      UID attribute
+     * @return array
+     */
+    public function FindCalendar($uid) {
+        $filter = sprintf("<C:filter><C:comp-filter name=\"VCALENDAR\"><C:comp-filter name=\"VEVENT\"><C:prop-filter name=\"UID\"><C:text-match>%s</C:text-match></C:prop-filter></C:comp-filter></C:comp-filter></C:filter>", $uid);
+
+        $events = $this->_caldav->DoCalendarQuery($filter, sprintf("%s%s", $this->_caldav_path, CALDAV_PERSONAL));
+
+        return $events;
     }
 
     /**
@@ -444,57 +468,59 @@ class BackendCalDAV extends BackendDiff {
             return $notifications;
         }
 
-        while($stopat > time() && empty($notifications)) {
+        // only check once to reduce pressure in the DAV server
+        foreach ($this->sinkdata as $k => $v) {
+            $changed = false;
 
-            foreach ($this->sinkdata as $k => $v) {
-                $changed = false;
+            $url = $this->_caldav_path . substr($k, 1) . "/";
+            $response = $this->_caldav->GetSync($url, false, CALDAV_SUPPORTS_SYNC);
 
-                $url = $this->_caldav_path . substr($k, 1) . "/";
-                $response = $this->_caldav->GetSync($url, false, CALDAV_SUPPORTS_SYNC);
-
-                if (CALDAV_SUPPORTS_SYNC) {
-                    if (count($response) > 0) {
-                        $changed = true;
-                        ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCalDAV->ChangesSink - Changes detected"));
-                    }
+            if (CALDAV_SUPPORTS_SYNC) {
+                if (count($response) > 0) {
+                    $changed = true;
+                    ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCalDAV->ChangesSink - Changes detected"));
+                }
+            }
+            else {
+                // If the numbers of events are different, we know for sure, there are changes
+                if (count($response) != count($v)) {
+                    $changed = true;
+                    ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCalDAV->ChangesSink - Changes detected"));
                 }
                 else {
-                    // If the numbers of events are different, we know for sure, there are changes
-                    if (count($response) != count($v)) {
-                        $changed = true;
+                    // If the numbers of events are equals, we compare the biggest date
+                    // FIXME: we are comparing strings no dates
+                    if (!isset($this->sinkmax[$k])) {
+                        $this->sinkmax[$k] = '';
+                        for ($i = 0; $i < count($v); $i++) {
+                            if ($v[$i]['getlastmodified'] > $this->sinkmax[$k]) {
+                                $this->sinkmax[$k] = $v[$i]['getlastmodified'];
+                            }
+                        }
+                    }
+
+                    for ($i = 0; $i < count($response); $i++) {
+                        if ($response[$i]['getlastmodified'] > $this->sinkmax[$k]) {
+                            $changed = true;
+                        }
+                    }
+
+                    if ($changed) {
                         ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCalDAV->ChangesSink - Changes detected"));
                     }
-                    else {
-                        // If the numbers of events are equals, we compare the biggest date
-                        // FIXME: we are comparing strings no dates
-                        if (!isset($this->sinkmax[$k])) {
-                            $this->sinkmax[$k] = '';
-                            for ($i = 0; $i < count($v); $i++) {
-                                if ($v[$i]['getlastmodified'] > $this->sinkmax[$k]) {
-                                    $this->sinkmax[$k] = $v[$i]['getlastmodified'];
-                                }
-                            }
-                        }
-
-                        for ($i = 0; $i < count($response); $i++) {
-                            if ($response[$i]['getlastmodified'] > $this->sinkmax[$k]) {
-                                $changed = true;
-                            }
-                        }
-
-                        if ($changed) {
-                            ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCalDAV->ChangesSink - Changes detected"));
-                        }
-                    }
-                }
-
-                if ($changed) {
-                    $notifications[] = $k;
                 }
             }
 
-            if (empty($notifications))
-                sleep(5);
+            if ($changed) {
+                $notifications[] = $k;
+            }
+        }
+
+        // Wait to timeout
+        if (empty($notifications)) {
+            while ($stopat > time()) {
+                sleep(1);
+            }
         }
 
         return $notifications;
@@ -508,7 +534,8 @@ class BackendCalDAV extends BackendDiff {
      * @return SyncAppointment
      */
     private function _ParseVEventToAS($data, $contentparameters) {
-        ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCalDAV->_ParseVEventToAS(): Parsing VEvent"));
+        ZLog::Write(LOGLEVEL_DEBUG, "BackendCalDAV->_ParseVEventToAS(): Parsing VEvent");
+
         $truncsize = Utils::GetTruncSize($contentparameters->GetTruncation());
         $message = new SyncAppointment();
 
@@ -700,7 +727,6 @@ class BackendCalDAV extends BackendDiff {
                             $body = Utils::Utf8_truncate($body, $truncsize);
                             $message->bodytruncated = 1;
                         } else {
-                            $body = $body;
                             $message->bodytruncated = 0;
                         }
                         $body = str_replace("\n","\r\n", str_replace("\r","",$body));
@@ -737,6 +763,12 @@ class BackendCalDAV extends BackendDiff {
                 default:
                     ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCalDAV->_ParseVEventToSyncObject(): '%s' is not yet supported.", $property->Name()));
             }
+        }
+
+        // Workaround #127 - No organizeremail defined
+        if (!isset($message->organizeremail)) {
+            ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCalDAV->_ParseVEventToSyncObject(): No organizeremail defined, using username"));
+            $message->organizeremail = $this->originalUsername;
         }
 
         $valarm = current($event->GetComponents("VALARM"));
@@ -880,7 +912,7 @@ class BackendCalDAV extends BackendDiff {
         $ical = new iCalComponent();
         $ical->SetType("VCALENDAR");
         $ical->AddProperty("VERSION", "2.0");
-        $ical->AddProperty("PRODID", "-//php-push//NONSGML PHP-Push Calendar//EN");
+        $ical->AddProperty("PRODID", "-//z-push-contrib//NONSGML Z-Push-contrib Calendar//EN");
         $ical->AddProperty("CALSCALE", "GREGORIAN");
 
         if ($folderid[0] == "C") {
@@ -950,9 +982,11 @@ class BackendCalDAV extends BackendDiff {
         if (isset($data->endtime)) {
             if ($data->alldayevent == 1) {
                 $vevent->AddProperty("DTEND", $this->_GetDateFromUTC("Ymd", $data->endtime, $data->timezone), array("VALUE" => "DATE"));
+                $vevent->AddProperty("X-MICROSOFT-CDO-ALLDAYEVENT", "TRUE");
             }
             else {
                 $vevent->AddProperty("DTEND", gmdate("Ymd\THis\Z", $data->endtime));
+                $vevent->AddProperty("X-MICROSOFT-CDO-ALLDAYEVENT", "FALSE");
             }
         }
         if (isset($data->recurrence)) {
@@ -1002,13 +1036,19 @@ class BackendCalDAV extends BackendDiff {
             switch ($data->meetingstatus) {
                 case "1":
                     $vevent->AddProperty("STATUS", "TENTATIVE");
+                    $vevent->AddProperty("X-MICROSOFT-CDO-BUSYSTATUS", "TENTATIVE");
+                    $vevent->AddProperty("X-MICROSOFT-DISALLOW-COUNTER", "FALSE");
                     break;
                 case "3":
                     $vevent->AddProperty("STATUS", "CONFIRMED");
+                    $vevent->AddProperty("X-MICROSOFT-CDO-BUSYSTATUS", "CONFIRMED");
+                    $vevent->AddProperty("X-MICROSOFT-DISALLOW-COUNTER", "FALSE");
                     break;
                 case "5":
                 case "7":
                     $vevent->AddProperty("STATUS", "CANCELLED");
+                    $vevent->AddProperty("X-MICROSOFT-CDO-BUSYSTATUS", "CANCELLED");
+                    $vevent->AddProperty("X-MICROSOFT-DISALLOW-COUNTER", "TRUE");
                     break;
             }
         }
@@ -1017,11 +1057,15 @@ class BackendCalDAV extends BackendDiff {
             //Some phones doesn't send the organizeremail, so we gotto get it somewhere else.
             //Lets use the login here ($username)
             if (!isset($data->organizeremail)) {
-                $vevent->AddProperty("ORGANIZER", sprintf("MAILTO:%s", $this->_username));
+                $vevent->AddProperty("ORGANIZER", sprintf("MAILTO:%s", $this->originalUsername));
             }
             foreach ($data->attendees as $att) {
-                $att_str = sprintf("MAILTO:%s", $att->email);
-                $vevent->AddProperty("ATTENDEE", $att_str, array("CN" => $att->name));
+                if (isset($att->name)) {
+                    $vevent->AddProperty("ATTENDEE", sprintf("MAILTO:%s", $att->email), array("CN" => $att->name));
+                }
+                else {
+                    $vevent->AddProperty("ATTENDEE", sprintf("MAILTO:%s", $att->email));
+                }
             }
         }
         if (isset($data->body)) {
@@ -1033,6 +1077,13 @@ class BackendCalDAV extends BackendDiff {
         if (isset($data->categories) && is_array($data->categories)) {
             $vevent->AddProperty("CATEGORIES", implode(",", $data->categories));
         }
+
+// X-MICROSOFT-CDO-APPT-SEQUENCE:0
+// X-MICROSOFT-CDO-OWNERAPPTID:2113393086
+// X-MICROSOFT-CDO-INTENDEDSTATUS:BUSY
+// X-MICROSOFT-CDO-IMPORTANCE:1
+// X-MICROSOFT-CDO-INSTTYPE:0
+
 
         return $vevent;
     }
@@ -1462,5 +1513,3 @@ class BackendCalDAV extends BackendDiff {
         return base64_encode(pack('la64vvvvvvvvla64vvvvvvvvl', 0, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, 0, 0, 0, 0));
     }
 }
-
-?>

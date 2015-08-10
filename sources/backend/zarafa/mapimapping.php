@@ -378,6 +378,7 @@ class MAPIMapping {
             "startdate"             => "PT_SYSTIME:PSETID_Task:0x8104",
             "subject"               => PR_SUBJECT,
             "rtf"                   => PR_RTF_COMPRESSED,
+            "html"                  => PR_HTML,
             );
     }
 
@@ -518,7 +519,8 @@ class MAPIMapping {
                 "attachnum"             => PR_ATTACH_NUM,
                 "attachdatabin"         => PR_ATTACH_DATA_BIN,
                 "internetcpid"          => PR_INTERNET_CPID,
+                "rtf"                   => PR_RTF_COMPRESSED,
+                "rtfinsync"             => PR_RTF_IN_SYNC,
         );
     }
 }
-?>

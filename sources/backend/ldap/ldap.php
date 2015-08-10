@@ -48,8 +48,6 @@
 // config file
 require_once("backend/ldap/config.php");
 
-include_once('lib/default/diffbackend/diffbackend.php');
-
 class BackendLDAP extends BackendDiff {
 
     private $ldap_link;
@@ -521,10 +519,6 @@ class BackendLDAP extends BackendDiff {
         return false;
     }
 
-    public function SetStarFlag($folderid, $id, $flags, $contentParameters) {
-        return false;
-    }
-
     public function DeleteMessage($folderid, $id, $contentParameters) {
         ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendLDAP->DeleteMessage('%s','%s')", $folderid, $id));
         $base_dns = explode("|", LDAP_BASE_DNS);
@@ -581,4 +575,3 @@ class BackendLDAP extends BackendDiff {
         return ZPush::ASV_14;
     }
 }
-?>
