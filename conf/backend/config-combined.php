@@ -65,20 +65,8 @@ class BackendCombinedConfig {
                 'i' => array(
                     'name' => 'BackendIMAP',
                 ),
-                'z' => array(
-                    'name' => 'BackendZarafa',
-                ),
-                'm' => array(
-                    'name' => 'BackendMaildir',
-                ),
-                'v' => array(
-                    'name' => 'BackendVCardDir',
-                ),
                 'c' => array(
                     'name' => 'BackendCalDAV',
-                ),
-                'l' => array(
-                    'name' => 'BackendLDAP',
                 ),
                 'd' => array(
                     'name' => 'BackendCardDAV',
@@ -93,19 +81,19 @@ class BackendCombinedConfig {
                 SYNC_FOLDER_TYPE_WASTEBASKET => 'i',
                 SYNC_FOLDER_TYPE_SENTMAIL => 'i',
                 SYNC_FOLDER_TYPE_OUTBOX => 'i',
-                SYNC_FOLDER_TYPE_TASK => 'z',
-                SYNC_FOLDER_TYPE_APPOINTMENT => 'z',
-                SYNC_FOLDER_TYPE_CONTACT => 'z',
-                SYNC_FOLDER_TYPE_NOTE => 'z',
-                SYNC_FOLDER_TYPE_JOURNAL => 'z',
+                SYNC_FOLDER_TYPE_TASK => 'c',
+                SYNC_FOLDER_TYPE_APPOINTMENT => 'c',
+                SYNC_FOLDER_TYPE_CONTACT => 'd',
+                SYNC_FOLDER_TYPE_NOTE => 'c',
+                SYNC_FOLDER_TYPE_JOURNAL => 'c',
                 SYNC_FOLDER_TYPE_OTHER => 'i',
                 SYNC_FOLDER_TYPE_USER_MAIL => 'i',
-                SYNC_FOLDER_TYPE_USER_APPOINTMENT => 'z',
-                SYNC_FOLDER_TYPE_USER_CONTACT => 'z',
-                SYNC_FOLDER_TYPE_USER_TASK => 'z',
-                SYNC_FOLDER_TYPE_USER_JOURNAL => 'z',
-                SYNC_FOLDER_TYPE_USER_NOTE => 'z',
-                SYNC_FOLDER_TYPE_UNKNOWN => 'z',
+                SYNC_FOLDER_TYPE_USER_APPOINTMENT => 'c',
+                SYNC_FOLDER_TYPE_USER_CONTACT => 'd',
+                SYNC_FOLDER_TYPE_USER_TASK => 'c',
+                SYNC_FOLDER_TYPE_USER_JOURNAL => 'c',
+                SYNC_FOLDER_TYPE_USER_NOTE => 'c',
+                SYNC_FOLDER_TYPE_UNKNOWN => 'i',
             ),
             //creating a new folder in the root folder should create a folder in one backend
             'rootcreatefolderbackend' => 'i',
