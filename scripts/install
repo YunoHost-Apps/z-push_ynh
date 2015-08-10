@@ -14,14 +14,17 @@ fi
 # Prereqs
 sudo apt-get install php-soap php5-imap libawl-php php5-xsl -y
 
-# Copy files to the right place
+final_logpath=/var/log/$app
 final_path=/var/www/$app
+
+# Copy files to the right place
 sudo mkdir -p $final_path
 sudo cp -a ../sources/* $final_path
 
 # Configuration
-sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config*.php
-sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/config*.php
+sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config.php
+sed -i "s@ALIASTOCHANGE@$final_path@g" ../conf/config.php
+sed -i "s@LOGTOCHANGE@$final_logpath@g" ../conf/config.php
 
 # Enable caldav carddav support
 sudo yunohost app list -f baikal --json | grep '"installed": true'
@@ -31,20 +34,26 @@ if [ "$?" -eq 0 ]; then
 	caldavpath=$(sudo yunohost app setting baikal path)
 	caldavpath=${caldavpath%/}
 
+	# Configuration of backend
+	sed -i "s@BACKENDTOCHANGE@BackendCombined@g" ../conf/config.php
+
 	# Configuration baikal
 	sed -i "s@BAIKALDOMAIN@$caldavdomain@g" ../conf/backend/config*.php
 	sed -i "s@BAIKALPATH@$caldavpath@g" ../conf/backend/config*.php
 	sed -i "s@DOMAINTOCHANGE@$domain@g" ../conf/backend/config-imap.php
 
 	# Copy config
-	sudo cp ../conf/config-combined.php $final_path/config.php
+	sudo cp ../conf/config.php $final_path/config.php
 	sudo cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
 	sudo cp ../conf/backend/config-carddav.php $final_path/backend/carddav/config.php
 	sudo cp ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
 	sudo cp ../conf/backend/config-combined.php $final_path/backend/combined/config.php
 else
+	# Configuration of backend
+	sed -i "s@BACKENDTOCHANGE@BackendIMAP@g" ../conf/config.php
+
 	# Copy config
-	sudo cp ../conf/config.php $final_path/
+	sudo cp ../conf/config.php $final_path/config.php
 	sed -i "s@DOMAINTOCHANGE@$domain@g" ../conf/backend/config-imap.php
 	sudo cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
 
@@ -55,9 +64,9 @@ sudo chown -R www-data: $final_path
 
 
 # Create log directory
-sudo mkdir -p /var/log/$app
-sudo chmod 750 /var/log/$app
-sudo chown www-data:www-data /var/log/$app
+sudo mkdir -p $final_logpath
+sudo chmod 750 $final_logpath
+sudo chown www-data:www-data $final_logpath
 
 #Copy XMLElement.php
 sudo ln -s /usr/share/awl/inc/XML* /var/www/z-push/include/

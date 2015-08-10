@@ -48,14 +48,14 @@
     define('TIMEZONE', '');
 
     // Defines the base path on the server
-    define('BASE_PATH', dirname(__FILE__) . '/');
+    define('BASE_PATH', dirname($_SERVER['SCRIPT_FILENAME']). '/');
 
     // Try to set unlimited timeout
     define('SCRIPT_TIMEOUT', 0);
 
     // Your PHP could have a bug when base64 encoding: https://bugs.php.net/bug.php?id=68532
     // NOTE: Run "php testing/testing-bug68532fixed.php" to know what value put here
-    define('BUG68532FIXED', true);
+    define('BUG68532FIXED', false);
 
     // When accessing through a proxy, the "X-Forwarded-For" header contains the original remote IP
     define('USE_X_FORWARDED_FOR_HEADER', false);
@@ -111,7 +111,7 @@
 /**********************************************************************************
  *  Default FileStateMachine settings
  */
-    define('STATE_DIR', '/var/lib/z-push/');
+    define('STATE_DIR', 'ALIASTOCHANGE/');
 
 
 /**********************************************************************************
@@ -147,7 +147,7 @@
  *  ones, e.g. setting to LOGLEVEL_DEBUG will also output LOGLEVEL_FATAL, LOGLEVEL_ERROR,
  *  LOGLEVEL_WARN and LOGLEVEL_INFO level entries.
  */
-    define('LOGFILEDIR', '/var/log/z-push/');
+    define('LOGFILEDIR', 'LOGTOCHANGE/');
     define('LOGFILE', LOGFILEDIR . 'z-push.log');
     define('LOGERRORFILE', LOGFILEDIR . 'z-push-error.log');
     define('LOGLEVEL', LOGLEVEL_INFO);
@@ -172,7 +172,7 @@
 
 
     define('LOG_MEMORY_PROFILER', true);
-    define('LOG_MEMORY_PROFILER_FILE', '/var/log/z-push/memory_profile');
+    define('LOG_MEMORY_PROFILER_FILE', 'LOGTOCHANGE/memory_profile');
 
 /**********************************************************************************
  *  Mobile settings
@@ -276,7 +276,7 @@
  *  Backend settings
  */
     // the backend data provider
-    define('BACKEND_PROVIDER', '');
+    define('BACKEND_PROVIDER', 'BACKENDTOCHANGE');
 
     // top collector backend class name
     //    Default is: TopCollector
