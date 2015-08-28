@@ -44,8 +44,6 @@
 // config file
 require_once("backend/vcarddir/config.php");
 
-include_once('lib/default/diffbackend/diffbackend.php');
-
 class BackendVCardDir extends BackendDiff {
     /**----------------------------------------------------------------------------------------------------------
      * default backend methods
@@ -598,22 +596,6 @@ class BackendVCardDir extends BackendDiff {
     }
 
     /**
-     * Changes the 'star' flag of a message on disk
-     *
-     * @param string        $folderid       id of the folder
-     * @param string        $id             id of the message
-     * @param int           $flags          star flag of the message
-     * @param ContentParameters   $contentParameters
-     *
-     * @access public
-     * @return boolean                      status of the operation
-     * @throws StatusException              could throw specific SYNC_STATUS_* exceptions
-     */
-    public function SetStarFlag($folderid, $id, $flags, $contentParameters) {
-        return false;
-    }
-
-    /**
      * Called when the user has requested to delete (really delete) a message
      *
      * @param string              $folderid             id of the folder
@@ -693,5 +675,4 @@ class BackendVCardDir extends BackendDiff {
         $data = str_replace(array('\\\\', '\\;', '\\,', '\\n','\\N'),array('\\', ';', ',', "\n", "\n"),$data);
         return $data;
     }
-};
-?>
+}

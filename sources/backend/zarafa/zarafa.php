@@ -164,7 +164,15 @@ class BackendZarafa implements IBackend, ISearchProvider {
         try {
             // check if notifications are available in php-mapi
             if(function_exists('mapi_feature') && mapi_feature('LOGONFLAGS')) {
-                $this->session = @mapi_logon_zarafa($user, $pass, MAPI_SERVER, null, null, 0);
+                // send Z-Push version and user agent to ZCP - ZP-589
+                if (Utils::CheckMapiExtVersion('7.2.0')) {
+                    $zpush_version = 'Z-Push_' . @constant('ZPUSH_VERSION');
+                    $user_agent = $_SERVER['HTTP_USER_AGENT'];
+                    $this->session = @mapi_logon_zarafa($user, $pass, MAPI_SERVER, null, null, 0, $zpush_version, $user_agent);
+                }
+                else {
+                    $this->session = @mapi_logon_zarafa($user, $pass, MAPI_SERVER, null, null, 0);
+                }
                 $this->notifications = true;
             }
             // old fashioned session
@@ -453,17 +461,13 @@ class BackendZarafa implements IBackend, ISearchProvider {
         // @see http://jira.zarafa.com/browse/ZP-68
         $meetingRequestProps = MAPIMapping::GetMeetingRequestProperties();
         $meetingRequestProps = getPropIdsFromStrings($this->store, $meetingRequestProps);
-        $props = mapi_getprops($mapimessage, array(PR_MESSAGE_CLASS, $meetingRequestProps["goidtag"], $sendMailProps["internetcpid"]));
+        $props = mapi_getprops($mapimessage, array(PR_MESSAGE_CLASS, $meetingRequestProps["goidtag"], $sendMailProps["internetcpid"], $sendMailProps["body"], $sendMailProps["html"], $sendMailProps["rtf"], $sendMailProps["rtfinsync"]));
 
-        // Convert sent message's body to UTF-8.
-        // @see http://jira.zarafa.com/browse/ZP-505
-        if (isset($props[$sendMailProps["internetcpid"]]) && $props[$sendMailProps["internetcpid"]] != INTERNET_CPID_UTF8) {
-            ZLog::Write(LOGLEVEL_DEBUG, sprintf("Sent email cpid is not unicode (%d). Set it to unicode and convert email body.", $props[$sendMailProps["internetcpid"]]));
+        // Convert sent message's body to UTF-8 if it was a HTML message.
+        // @see http://jira.zarafa.com/browse/ZP-505 and http://jira.zarafa.com/browse/ZP-555
+        if (isset($props[$sendMailProps["internetcpid"]]) && $props[$sendMailProps["internetcpid"]] != INTERNET_CPID_UTF8 && MAPIUtils::GetNativeBodyType($props) == SYNC_BODYPREFERENCE_HTML) {
+            ZLog::Write(LOGLEVEL_DEBUG, sprintf("Sent email cpid is not unicode (%d). Set it to unicode and convert email html body.", $props[$sendMailProps["internetcpid"]]));
             $mapiprops[$sendMailProps["internetcpid"]] = INTERNET_CPID_UTF8;
-
-            $body = MAPIUtils::readPropStream($mapimessage, PR_BODY);
-            $body = Utils::ConvertCodepageStringToUtf8($props[$sendMailProps["internetcpid"]], $body);
-            $mapiprops[$sendMailProps["body"]] = $body;
 
             $bodyHtml = MAPIUtils::readPropStream($mapimessage, PR_HTML);
             $bodyHtml = Utils::ConvertCodepageStringToUtf8($props[$sendMailProps["internetcpid"]], $bodyHtml);
@@ -968,9 +972,9 @@ class BackendZarafa implements IBackend, ISearchProvider {
      * @throws StatusException
      */
     public function GetGALSearchResults($searchquery, $searchrange){
-        // only return users from who the displayName or the username starts with $name
+        // only return users whose displayName or the username starts with $name
         //TODO: use PR_ANR for this restriction instead of PR_DISPLAY_NAME and PR_ACCOUNT
-        $addrbook = mapi_openaddressbook($this->session);
+        $addrbook = $this->getAddressbook();
         if ($addrbook)
             $ab_entryid = mapi_ab_getdefaultdir($addrbook);
         if ($ab_entryid)
@@ -1003,12 +1007,16 @@ class BackendZarafa implements IBackend, ISearchProvider {
         $querycnt = mapi_table_getrowcount($table);
         //do not return more results as requested in range
         $querylimit = (($rangeend + 1) < $querycnt) ? ($rangeend + 1) : $querycnt;
-        $items['range'] = ($querylimit > 0) ? $rangestart.'-'.($querylimit - 1) : '0-0';
-        $items['searchtotal'] = $querycnt;
+
         if ($querycnt > 0)
             $abentries = mapi_table_queryrows($table, array(PR_ACCOUNT, PR_DISPLAY_NAME, PR_SMTP_ADDRESS, PR_BUSINESS_TELEPHONE_NUMBER, PR_GIVEN_NAME, PR_SURNAME, PR_MOBILE_TELEPHONE_NUMBER, PR_HOME_TELEPHONE_NUMBER, PR_TITLE, PR_COMPANY_NAME, PR_OFFICE_LOCATION), $rangestart, $querylimit);
 
         for ($i = 0; $i < $querylimit; $i++) {
+            if (!isset($abentries[$i][PR_SMTP_ADDRESS])) {
+                ZLog::Write(LOGLEVEL_WARN, sprintf("The GAL entry '%s' does not have an email address and will be ignored.", w2u($abentries[$i][PR_DISPLAY_NAME])));
+                continue;
+            }
+
             $items[$i][SYNC_GAL_DISPLAYNAME] = w2u($abentries[$i][PR_DISPLAY_NAME]);
 
             if (strlen(trim($items[$i][SYNC_GAL_DISPLAYNAME])) == 0)
@@ -1047,6 +1055,9 @@ class BackendZarafa implements IBackend, ISearchProvider {
             if (isset($abentries[$i][PR_OFFICE_LOCATION]))
                 $items[$i][SYNC_GAL_OFFICE] = w2u($abentries[$i][PR_OFFICE_LOCATION]);
         }
+        $nrResults = count($items);
+        $items['range'] = ($nrResults > 0) ? $rangestart.'-'.($nrResults - 1) : '0-0';
+        $items['searchtotal'] = $nrResults;
         return $items;
     }
 
@@ -1195,12 +1206,21 @@ class BackendZarafa implements IBackend, ISearchProvider {
      */
     public function GetUserDetails($username) {
         ZLog::Write(LOGLEVEL_WBXML, sprintf("ZarafaBackend->GetUserDetails for '%s'.", $username));
-        $zarafauserinfo = @mapi_zarafa_getuser_by_name($this->defaultstore, $username);
+        $zarafauserinfo = @mapi_zarafa_getuser_by_name($this->store, $username);
         $userDetails['emailaddress'] = (isset($zarafauserinfo['emailaddress']) && $zarafauserinfo['emailaddress']) ? $zarafauserinfo['emailaddress'] : false;
         $userDetails['fullname'] = (isset($zarafauserinfo['fullname']) && $zarafauserinfo['fullname']) ? $zarafauserinfo['fullname'] : false;
         return $userDetails;
     }
 
+    /**
+     * Returns the username of the currently active user
+     *
+     * @access public
+     * @return String
+     */
+    public function GetCurrentUsername() {
+        return $this->storeName;
+    }
 
     /**----------------------------------------------------------------------------------------------------------
      * Private methods
@@ -1880,5 +1900,3 @@ class BackendZarafa implements IBackend, ISearchProvider {
  * DEPRECATED legacy class
  */
 class BackendICS extends BackendZarafa {}
-
-?>

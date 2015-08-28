@@ -9,8 +9,8 @@
 * Created   :   07.04.2012
 *
 * Copyright 2012 - 2014 Jean-Louis Dupond
-*
 * Jean-Louis Dupond released this code as AGPLv3 here: https://github.com/dupondje/PHP-Push-2/issues/93
+* Copyright 2015 - Francisco Miguel Biete
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU Affero General Public License, version 3,
@@ -47,8 +47,6 @@
 
 // config file
 require_once("backend/ldap/config.php");
-
-include_once('lib/default/diffbackend/diffbackend.php');
 
 class BackendLDAP extends BackendDiff {
 
@@ -521,10 +519,6 @@ class BackendLDAP extends BackendDiff {
         return false;
     }
 
-    public function SetStarFlag($folderid, $id, $flags, $contentParameters) {
-        return false;
-    }
-
     public function DeleteMessage($folderid, $id, $contentParameters) {
         ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendLDAP->DeleteMessage('%s','%s')", $folderid, $id));
         $base_dns = explode("|", LDAP_BASE_DNS);
@@ -572,6 +566,19 @@ class BackendLDAP extends BackendDiff {
     }
 
     /**
+     * Resolves recipients
+     *
+     * @param SyncObject        $resolveRecipients
+     *
+     * @access public
+     * @return SyncObject       $resolveRecipients
+     */
+    public function ResolveRecipients($resolveRecipients) {
+        // TODO:
+        return false;
+    }
+
+    /**
      * Indicates which AS version is supported by the backend.
      *
      * @access public
@@ -581,4 +588,3 @@ class BackendLDAP extends BackendDiff {
         return ZPush::ASV_14;
     }
 }
-?>

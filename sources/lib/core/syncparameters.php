@@ -269,7 +269,7 @@ class SyncParameters extends StateObject {
             ZLog::Write(LOGLEVEL_DEBUG, "SyncParameters->UseCPO(): removed existing DEFAULT CPO as it is obsolete");
         }
 
-        ZLOG::Write(LOGLEVEL_DEBUG, sprintf("SyncParameters->UseCPO('%s')", $options));
+        ZLog::Write(LOGLEVEL_DEBUG, sprintf("SyncParameters->UseCPO('%s')", $options));
         $this->currentCPO = $options;
         $this->checkCPO($this->currentCPO);
     }
@@ -347,8 +347,6 @@ class SyncParameters extends StateObject {
             elseif (isset($this->contentParameters[self::TASKOPTIONS]))
                 $returnCPO = self::TASKOPTIONS;
 
-            if ($returnCPO != $options)
-                ZLog::Write(LOGLEVEL_DEBUG, sprintf("SyncParameters->normalizeType(): using %s for requested %s", $returnCPO, $options));
             return $returnCPO;
         }
         // something unexpected happened, just return default, empty in the worst case
@@ -410,10 +408,10 @@ class SyncParameters extends StateObject {
      * @return boolean
      */
     protected function postUnserialize() {
-        // init with default options
-        $this->UseCPO();
+        // init with the available CPO or default
+        $availableCPO = $this->normalizeType(self::DEFAULTOPTIONS);
+        $this->UseCPO($availableCPO);
 
         return true;
     }
 }
-?>

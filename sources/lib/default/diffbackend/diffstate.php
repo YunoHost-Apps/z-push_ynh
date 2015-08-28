@@ -132,12 +132,7 @@ class DiffState implements IChanges {
      * @return boolean
      */
     static public function RowCmp($a, $b) {
-        if (is_numeric($a["id"]) && is_numeric($b["id"])) {
-            return $a["id"] < $b["id"] ? 1 : -1;
-        }
-        else {
-            return strcmp($a["id"], $b["id"]) < 0 ? 1 : -1;
-        }
+        return strcmp($b['id'], $a['id']);
     }
 
     /**
@@ -158,34 +153,29 @@ class DiffState implements IChanges {
 
         $inew = 0;
         $iold = 0;
+        $cntstate = count($this->syncstate);
+        $cntnew = count($new);
 
         // Get changes by comparing our list of messages with
         // our previous state
-        while(1) {
-            $change = array();
-
-            if($iold >= count($this->syncstate) || $inew >= count($new))
+        while(true) {
+            if($iold >= $cntstate || $inew >= $cntnew)
                 break;
 
-            if($this->syncstate[$iold]["id"] == $new[$inew]["id"]) {
-                // Both messages are still available, compare flags, star and mod
+            $cmp = strcmp($this->syncstate[$iold]["id"], $new[$inew]["id"]);
+            if ($cmp == 0) {
+                // Both messages are still available, compare flags and mod
                 if(isset($this->syncstate[$iold]["flags"]) && isset($new[$inew]["flags"]) && $this->syncstate[$iold]["flags"] != $new[$inew]["flags"]) {
                     // Flags changed
+                    $change = array();
                     $change["type"] = "flags";
                     $change["id"] = $new[$inew]["id"];
                     $change["flags"] = $new[$inew]["flags"];
                     $changes[] = $change;
                 }
 
-                if(isset($this->syncstate[$iold]["star"]) && isset($new[$inew]["star"]) && $this->syncstate[$iold]["star"] != $new[$inew]["star"]) {
-                    // Star changed
-                    $change["type"] = "star";
-                    $change["id"] = $new[$inew]["id"];
-                    $change["star"] = $new[$inew]["star"];
-                    $changes[] = $change;
-                }
-
-                if($this->syncstate[$iold]["mod"] != $new[$inew]["mod"]) {
+                if(isset($this->syncstate[$iold]["mod"]) && isset($new[$inew]["mod"]) && $this->syncstate[$iold]["mod"] != $new[$inew]["mod"]) {
+                    $change = array();
                     $change["type"] = "change";
                     $change["id"] = $new[$inew]["id"];
                     $changes[] = $change;
@@ -193,38 +183,38 @@ class DiffState implements IChanges {
 
                 $inew++;
                 $iold++;
+            } elseif ($cmp > 0) {
+                // Message in state seems to have disappeared (delete)
+                $change = array();
+                $change["type"] = "delete";
+                $change["id"] = $this->syncstate[$iold]["id"];
+                $changes[] = $change;
+                $iold++;
             } else {
-                if($this->syncstate[$iold]["id"] > $new[$inew]["id"]) {
-                    // Message in state seems to have disappeared (delete)
-                    $change["type"] = "delete";
-                    $change["id"] = $this->syncstate[$iold]["id"];
-                    $changes[] = $change;
-                    $iold++;
-                } else {
-                    // Message in new seems to be new (add)
-                    $change["type"] = "change";
-                    $change["flags"] = SYNC_NEWMESSAGE;
-                    $change["star"] = SYNC_NEWMESSAGE;
-                    $change["id"] = $new[$inew]["id"];
-                    $changes[] = $change;
-                    $inew++;
-                }
+                // Message in new seems to be new (add)
+                $change = array();
+                $change["type"] = "change";
+                $change["flags"] = SYNC_NEWMESSAGE;
+                $change["id"] = $new[$inew]["id"];
+                $changes[] = $change;
+                $inew++;
             }
         }
 
-        while($iold < count($this->syncstate)) {
+        while($iold < $cntstate) {
             // All data left in 'syncstate' have been deleted
+            $change = array();
             $change["type"] = "delete";
             $change["id"] = $this->syncstate[$iold]["id"];
             $changes[] = $change;
             $iold++;
         }
 
-        while($inew < count($new)) {
+        while($inew < $cntnew) {
             // All data left in new have been added
+            $change = array();
             $change["type"] = "change";
             $change["flags"] = SYNC_NEWMESSAGE;
-            $change["star"] = SYNC_NEWMESSAGE;
             $change["id"] = $new[$inew]["id"];
             $changes[] = $change;
             $inew++;
@@ -245,32 +235,33 @@ class DiffState implements IChanges {
      */
     protected function updateState($type, $change) {
         // Change can be a change or an add
-        if($type == "change") {
-            for($i=0; $i < count($this->syncstate); $i++) {
-                if($this->syncstate[$i]["id"] == $change["id"]) {
+        $change_id = $change['id'];
+        foreach ($this->syncstate as $i => &$state) {
+            if($this->syncstate[$i]["id"] == $change["id"]) {
+                if ($state['id'] == $change_id) {
                     $this->syncstate[$i] = $change;
-                    return;
+                    switch ($type) {
+                        case 'change':
+                            $state = $change;
+                            return;
+                        case 'flags':
+                            $state['flags'] = $change['flags'];
+                            return;
+                        case 'delete':
+                            array_splice($this->syncstate, $i, 1);
+                            return;
+                        default:
+                            throw new Exception(sprintf("updateState: type '%s' is not supported", $type));
+                    }
                 }
             }
-            // Not found, add as new
+        }
+        if($type == "change") {
             $this->syncstate[] = $change;
         } else {
-            for($i=0; $i < count($this->syncstate); $i++) {
-                // Search for the entry for this item
-                if($this->syncstate[$i]["id"] == $change["id"]) {
-                    if($type == "flags") {
-                        // Update flags
-                        $this->syncstate[$i]["flags"] = $change["flags"];
-                    } else if($type == "star") {
-                        // Update star
-                        $this->syncstate[$i]["star"] = $change["star"];
-                    } else if($type == "delete") {
-                        // Delete item
-                        array_splice($this->syncstate, $i, 1);
-                    }
-                    return;
-                }
-            }
+            $flags = empty($change['flags'])?"<no flags>":$change['flags'];
+            $mod = empty($change['mod'])?"<no mod>":$change['mod'];
+            ZLog::Write(LOGLEVEL_WARN, sprintf("updateState: no state modification!!! %s|%s|%s|%s", $type, $change_id, $flags, $mod));
         }
     }
 
@@ -321,5 +312,3 @@ class DiffState implements IChanges {
     }
 
 }
-
-?>

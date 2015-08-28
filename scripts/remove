@@ -1,4 +1,15 @@
 #!/bin/bash
 
-sudo rm -rf /var/www/z-push
-#sudo rm -f /etc/nginx/conf.d/$domain.d/z-push.conf
+app=z-push
+domain=$(sudo yunohost app setting $app domain)
+
+# Cleaning
+sudo rm -rf /var/www/$app
+sudo rm -rf /var/log/$app
+sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
+sudo rm -f /etc/php5/fpm/pool.d/$app.conf
+
+# Restart of services
+sudo service php5-fpm restart
+sudo service nginx reload
+sudo yunohost app ssowatconf

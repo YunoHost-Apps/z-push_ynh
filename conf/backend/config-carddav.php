@@ -65,7 +65,6 @@ define('CARDDAV_PORT', '443');
 //   Add the trailing /
 define('CARDDAV_PATH', 'BAIKALPATH/card.php/addressbooks/%u/');
 
-
 // Server path to the default addressbook
 //  Mobile device will create new contacts here. It must be under CARDDAV_PATH
 // %u: replaced with the username

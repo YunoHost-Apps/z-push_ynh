@@ -100,7 +100,6 @@ class ImportChangesDiff extends DiffState implements IImportChanges {
             $change["mod"] = 0; // dummy, will be updated later if the change succeeds
             $change["parent"] = $this->folderid;
             $change["flags"] = (isset($message->read)) ? $message->read : 0;
-            $change["star"] = (isset($message->flag) && isset($message->flag->flagstatus)) ? $message->flag->flagstatus : 0;
             $this->updateState("change", $change);
 
             if($conflict && $this->flags == SYNC_CONFLICT_OVERWRITE_PIM)
@@ -186,42 +185,13 @@ class ImportChangesDiff extends DiffState implements IImportChanges {
     }
 
     /**
-     * Imports a change in 'star' flag
-     * This can never conflict
-     *
-     * @param string        $id
-     * @param int           $flags - flagged/unflagged
-     *
-     * @access public
-     * @return boolean
-     * @throws StatusException
-     */
-    public function ImportMessageStarFlag($id, $flags) {
-        //do nothing if it is a dummy folder
-        if ($this->folderid == SYNC_FOLDER_TYPE_DUMMY)
-            throw new StatusException(sprintf("ImportChangesDiff->ImportMessageStarFlag('%s','%s'): can not be done on a dummy folder", $id, $flags), SYNC_STATUS_SYNCCANNOTBECOMPLETED);
-
-        // Update client state
-        $change = array();
-        $change["id"] = $id;
-        $change["star"] = $flags;
-        $this->updateState("star", $change);
-
-        $stat = $this->backend->SetStarFlag($this->folderid, $id, $flags, $this->contentparameters);
-        if (!$stat)
-            throw new StatusException(sprintf("ImportChangesDiff->ImportMessageStarFlag('%s','%s'): Error, unable retrieve message from backend", $id, $flags), SYNC_STATUS_OBJECTNOTFOUND);
-
-        return true;
-    }
-
-    /**
      * Imports a move of a message. This occurs when a user moves an item to another folder
      *
      * @param string        $id
-     * @param int           $flags - read/unread
+     * @param string        $newfolder
      *
      * @access public
-     * @return boolean
+     * @return string
      * @throws StatusException
      */
     public function ImportMessageMove($id, $newfolder) {
@@ -229,7 +199,12 @@ class ImportChangesDiff extends DiffState implements IImportChanges {
         if ($this->folderid == SYNC_FOLDER_TYPE_DUMMY || $newfolder == SYNC_FOLDER_TYPE_DUMMY)
             throw new StatusException(sprintf("ImportChangesDiff->ImportMessageMove('%s'): can not be done on a dummy folder", $id), SYNC_MOVEITEMSSTATUS_CANNOTMOVE);
 
-        return $this->backend->MoveMessage($this->folderid, $id, $newfolder, $this->contentparameters);
+        $newid = $this->backend->MoveMessage($this->folderid, $id, $newfolder, $this->contentparameters);
+        if ($newid === false)
+            throw new StatusException("ImportChangesDiff->ImportMessageMove($id, $newfolder): MoveMessage failed (false)", SYNC_MOVEITEMSSTATUS_CANNOTMOVE);
+
+        // Don't resync the folder here, since this can be called from the combined backed and $newfolder will not exist (backend prefix is missing)
+        return $newid;
     }
 
 
@@ -301,5 +276,3 @@ class ImportChangesDiff extends DiffState implements IImportChanges {
         return true;
     }
 }
-
-?>

@@ -53,6 +53,10 @@
     // Try to set unlimited timeout
     define('SCRIPT_TIMEOUT', 0);
 
+    // Your PHP could have a bug when base64 encoding: https://bugs.php.net/bug.php?id=68532
+    // NOTE: Run "php testing/testing-bug68532fixed.php" to know what value put here
+    define('BUG68532FIXED', false);
+
     // When accessing through a proxy, the "X-Forwarded-For" header contains the original remote IP
     define('USE_X_FORWARDED_FOR_HEADER', false);
 
@@ -60,10 +64,70 @@
     // This setting specifies the owner parameter in the certificate to look at.
     define("CERTIFICATE_OWNER_PARAMETER", "SSL_CLIENT_S_DN_CN");
 
+    // Location of the trusted CA, e.g. '/etc/ssl/certs/EmailCA.pem'
+    // Uncomment and modify the following line if the validation of the certificates fails.
+    // define('CAINFO', '/etc/ssl/certs/EmailCA.pem');
+
+    /*
+     * Whether to use the complete email address as a login name
+     * (e.g. user@company.com) or the username only (user).
+     * This is required for Z-Push to work properly after autodiscover.
+     * Possible values:
+     * false - use the username only (default).
+     * true - use the complete email address.
+     */
+    define('USE_FULLEMAIL_FOR_LOGIN', true);
+
+/**********************************************************************************
+ * Device pre-authorization. Useful when using Z-Push as a standalone product.
+ *
+ * It will use the STATE_MACHINE specified below, to store the users/devices
+ * FILE => STATE_DIR/PreAuthUserDevices
+ * SQL => auth_users
+ *
+ * FALSE => default
+ * TRUE
+ */
+    define('PRE_AUTHORIZE_USERS', false);
+
+    // New users are pre-authorized automatically
+    define('PRE_AUTHORIZE_NEW_USERS', false);
+
+    // New devices are pre-authorized automatically for pre-authorized users
+    define('PRE_AUTHORIZE_NEW_DEVICES', false);
+
+    // Max number of devices pre-authorized for user, you can pre-authorize more manually
+    define('PRE_AUTHORIZE_MAX_DEVICES', 5);
+
+
+/**********************************************************************************
+ * Select StateMachine mechanism
+ *
+ * FILE => FileStateMachine, default
+ * SQL => SqlStateMachine
+ */
+    define('STATE_MACHINE', 'FILE');
+
 /**********************************************************************************
  *  Default FileStateMachine settings
  */
-    define('STATE_DIR', 'ALIASTOCHANGE');
+    define('STATE_DIR', 'ALIASTOCHANGE/');
+
+
+/**********************************************************************************
+ * Optional SqlStateMachine settings
+ *
+ * DSN: formatted PDO connection string
+ *    mysql:host=xxx;port=xxx;dbname=xxx
+ *    DON'T FORGET TO INSTALL THE PHP-DRIVER PACKAGE!!!
+ * USER: username to DB
+ * PASSWORD: password to DB
+ * OPTIONS: array with options needed
+ */
+    define('STATE_SQL_DSN', '');
+    define('STATE_SQL_USER', '');
+    define('STATE_SQL_PASSWORD', '');
+    define('STATE_SQL_OPTIONS', serialize(array(PDO::ATTR_PERSISTENT => true)));
 
 
 /**********************************************************************************
@@ -83,7 +147,7 @@
  *  ones, e.g. setting to LOGLEVEL_DEBUG will also output LOGLEVEL_FATAL, LOGLEVEL_ERROR,
  *  LOGLEVEL_WARN and LOGLEVEL_INFO level entries.
  */
-    define('LOGFILEDIR', '/var/log/z-push/');
+    define('LOGFILEDIR', 'LOGTOCHANGE/');
     define('LOGFILE', LOGFILEDIR . 'z-push.log');
     define('LOGERRORFILE', LOGFILEDIR . 'z-push-error.log');
     define('LOGLEVEL', LOGLEVEL_INFO);
@@ -97,9 +161,18 @@
     define('LOGUSERLEVEL', LOGLEVEL_DEVICEID);
     $specialLogUsers = array();
 
-    // Location of the trusted CA, e.g. '/etc/ssl/certs/EmailCA.pem'
-    // Uncomment and modify the following line if the validation of the certificates fails.
-    // define('CAINFO', '/etc/ssl/certs/EmailCA.pem');
+    // If you want to disable log to file, and log to syslog instead
+    define('LOG_SYSLOG_ENABLED', false);
+    // false will log to local syslog, otherwise put the remote syslog IP here
+    define('LOG_SYSLOG_HOST', false);
+    // Syslog port
+    define('LOG_SYSLOG_PORT', 514);
+    // Program showed in the syslog. Useful if you have more than one instance login to the same syslog
+    define('LOG_SYSLOG_PROGRAM', '[z-push]');
+
+
+    define('LOG_MEMORY_PROFILER', false);
+    define('LOG_MEMORY_PROFILER_FILE', 'LOGTOCHANGE/memory_profile');
 
 /**********************************************************************************
  *  Mobile settings
@@ -182,8 +255,8 @@
     // in the semantic sanity checks and contacts with larger photos are not synchronized.
     // This limitation is not being followed by the ActiveSync clients which set much bigger
     // contact photos. You can override the default value of the max photo size.
-    // default: 49152 - 48 KB default max photo size in bytes
-    define('SYNC_CONTACTS_MAXPICTURESIZE', 49152);
+    // default: 5242880 - 5 MB default max photo size in bytes
+    define('SYNC_CONTACTS_MAXPICTURESIZE', 5242880);
 
     // Over the WebserviceUsers command it is possible to retrieve a list of all
     // known devices and users on this Z-Push system. The authenticated user needs to have
@@ -192,11 +265,40 @@
     // this full list, so this feature is disabled by default. Enable with care.
     define('ALLOW_WEBSERVICE_USERS_ACCESS', false);
 
+    // Users with many folders can use the 'partial foldersync' feature, where the server
+    // actively stops processing the folder list if it takes too long. Other requests are
+    // then redirected to the FolderSync to synchronize the remaining items.
+    // Device compatibility for this procedure is not fully understood.
+    // NOTE: THIS IS AN EXPERIMENTAL FEATURE WHICH COULD PREVENT YOUR MOBILES FROM SYNCHRONIZING.
+    define('USE_PARTIAL_FOLDERSYNC', false);
+
 /**********************************************************************************
  *  Backend settings
  */
     // the backend data provider
-    define('BACKEND_PROVIDER', 'BackendIMAP');
+    define('BACKEND_PROVIDER', 'BACKENDTOCHANGE');
+
+    // top collector backend class name
+    //    Default is: TopCollector
+    //    Options: ["TopCollector", "TopCollectorRedis"]
+    define('TOP_COLLECTOR_BACKEND', 'TopCollector');
+
+    // ping tracking backend class name
+    //    Default is: PingTracking
+    //    Options: ["PingTracking", "PingTrackingRedis"]
+    define('PING_TRACKING_BACKEND', 'PingTracking');
+
+    // loop detection backend class name
+    //    Default is: LoopDetection
+    //    Options: ["LoopDetection", "LoopDetectionRedis"]
+    define('LOOP_DETECTION_BACKEND', 'LoopDetection');
+
+    // If using the Redis backends (for top, ping and lookp) make sure to set this values as necessary
+    define('IPC_REDIS_IP', '127.0.0.1');
+    define('IPC_REDIS_PORT', 6379);
+    // Database name/index in Redis: 0 by default
+        // NOTE: this database must be exclusive for z-push, since its content will be ERASED. You are warned.
+    define('IPC_REDIS_DATABASE', 0);
 
 /**********************************************************************************
  *  Search provider settings
@@ -265,5 +367,3 @@
         ),
 */
     );
-
-?>

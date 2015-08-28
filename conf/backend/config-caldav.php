@@ -45,10 +45,13 @@
 //  BackendCalDAV settings
 // ************************
 
-// Server address
-define('CALDAV_SERVER', 'https://BAIKALDOMAIN');
+// Server protocol: http or https
+define('CALDAV_PROTOCOL', 'https');
 
-// Port
+// Server name
+define('CALDAV_SERVER', 'BAIKALDOMAIN');
+
+// Server port
 define('CALDAV_PORT', '443');
 
 // Path
@@ -61,7 +64,4 @@ define('CALDAV_PERSONAL', 'default');
 // DAViCal, SOGo and SabreDav support it
 // SabreDav version must be at least 1.9.0, otherwise set this to false
 // Setting this to false will work with most servers, but it will be slower
-define('CALDAV_SUPPORTS_SYNC', true);
-
-
-?>
+define('CALDAV_SUPPORTS_SYNC', false);

@@ -44,14 +44,14 @@
 // config file
 require_once("backend/carddav/config.php");
 
-include_once('lib/default/diffbackend/diffbackend.php');
-include_once('include/z_carddav.php');
-
 class BackendCardDAV extends BackendDiff implements ISearchProvider {
 
     private $domain = '';
     private $username = '';
     private $url = null;
+    /**
+     * @var carddav_backend
+     */
     private $server = null;
     private $default_url = null;
     private $gal_url = null;
@@ -131,14 +131,18 @@ class BackendCardDAV extends BackendDiff implements ISearchProvider {
      * @return boolean
      */
     public function Logoff() {
-        ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCardDAV->Logoff()"));
-        $this->server = null;
+        if ($this->server != null) {
+            $this->server->disconnect();
+            unset($this->server);
+        }
 
         $this->SaveStorages();
 
         unset($this->contactsetag);
         unset($this->sinkdata);
         unset($this->addressbooks);
+
+        ZLog::Write(LOGLEVEL_DEBUG, "BackendCardDAV->Logoff(): disconnected from CARDDAV server");
 
         return true;
     }
@@ -207,8 +211,6 @@ class BackendCardDAV extends BackendDiff implements ISearchProvider {
     public function ChangesSinkInitialize($folderid) {
         ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCardDAV->ChangesSinkInitialize(): folderid '%s'", $folderid));
 
-
-
         // We don't need the actual cards, we only need to get the changes since this moment
         $init_ok = true;
         foreach ($this->addressbooks as $addressbook) {
@@ -261,58 +263,61 @@ class BackendCardDAV extends BackendDiff implements ISearchProvider {
             return $notifications;
         }
 
-        while($stopat > time() && empty($notifications)) {
-            foreach ($this->addressbooks as $addressbook) {
-                $vcards = false;
-                try {
-                    $this->server->set_url($addressbook);
-                    $vcards = $this->server->do_sync(false, false, CARDDAV_SUPPORTS_SYNC);
-                }
-                catch (Exception $ex) {
-                    ZLog::Write(LOGLEVEL_ERROR, sprintf("BackendCardDAV->ChangesSink - Error resyncing vcards: %s", $ex->getMessage()));
-                }
-
-                if ($vcards === false) {
-                    ZLog::Write(LOGLEVEL_ERROR, sprintf("BackendCardDAV->ChangesSink - Error getting the changes"));
-                    return false;
-                }
-                else {
-                    $xml_vcards = new SimpleXMLElement($vcards);
-
-                    if (CARDDAV_SUPPORTS_SYNC) {
-                        if (count($xml_vcards->element) > 0) {
-                            $changed = true;
-                            ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCardDAV->ChangesSink - Changes detected"));
-                        }
-                    }
-                    else {
-                        $xml_sinkdata = new SimpleXMLElement($this->sinkdata[$addressbook]);
-                        if (count($xml_vcards->element) != count($xml_sinkdata->element)) {
-                            // If the number of cards is different, we know for sure, there are changes
-                            $changed = true;
-                            ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCardDAV->ChangesSink - Changes detected"));
-                        }
-                        else {
-                            // If it's the same we need to check vcard to vcard, or the original strings
-                            if (strcmp($this->sinkdata[$addressbook], $vcards) != 0) {
-                                $changed = true;
-                                ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCardDAV->ChangesSink - Changes detected"));
-                            }
-                        }
-                        unset($xml_sinkdata);
-                    }
-
-                    unset($vcards);
-                    unset($xml_vcards);
-                }
-
-                if ($changed) {
-                    $notifications[] = $this->foldername;
-                }
+        // only check once to reduce pressure in the DAV server
+        foreach ($this->addressbooks as $addressbook) {
+            $vcards = false;
+            try {
+                $this->server->set_url($addressbook);
+                $vcards = $this->server->do_sync(false, false, CARDDAV_SUPPORTS_SYNC);
+            }
+            catch (Exception $ex) {
+                ZLog::Write(LOGLEVEL_ERROR, sprintf("BackendCardDAV->ChangesSink - Error resyncing vcards: %s", $ex->getMessage()));
             }
 
-            if (empty($notifications))
-                sleep(5);
+            if ($vcards === false) {
+                ZLog::Write(LOGLEVEL_ERROR, sprintf("BackendCardDAV->ChangesSink - Error getting the changes"));
+                return false;
+            }
+            else {
+                $xml_vcards = new SimpleXMLElement($vcards);
+
+                if (CARDDAV_SUPPORTS_SYNC) {
+                    if (count($xml_vcards->element) > 0) {
+                        $changed = true;
+                        ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCardDAV->ChangesSink - Changes detected"));
+                    }
+                }
+                else {
+                    $xml_sinkdata = new SimpleXMLElement($this->sinkdata[$addressbook]);
+                    if (count($xml_vcards->element) != count($xml_sinkdata->element)) {
+                        // If the number of cards is different, we know for sure, there are changes
+                        $changed = true;
+                        ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCardDAV->ChangesSink - Changes detected"));
+                    }
+                    else {
+                        // If it's the same we need to check vcard to vcard, or the original strings
+                        if (strcmp($this->sinkdata[$addressbook], $vcards) != 0) {
+                            $changed = true;
+                            ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendCardDAV->ChangesSink - Changes detected"));
+                        }
+                    }
+                    unset($xml_sinkdata);
+                }
+
+                unset($vcards);
+                unset($xml_vcards);
+            }
+
+            if ($changed) {
+                $notifications[] = $this->foldername;
+            }
+        }
+
+        // Wait to timeout
+        if (empty($notifications)) {
+            while ($stopat > time()) {
+                sleep(1);
+            }
         }
 
         return $notifications;
@@ -545,7 +550,6 @@ class BackendCardDAV extends BackendDiff implements ISearchProvider {
         $message["mod"] = $this->contactsetag[$id];
         $message["id"] = $id;
         $message["flags"] = 1;
-        $message["star"] = 0;
 
         return $message;
     }
@@ -642,23 +646,6 @@ class BackendCardDAV extends BackendDiff implements ISearchProvider {
     }
 
     /**
-     * Changes the 'star' flag of a message on disk
-     * Not implemented here
-     *
-     * @param string        $folderid       id of the folder
-     * @param string        $id             id of the message
-     * @param int           $flags          star flag of the message
-     * @param ContentParameters   $contentParameters
-     *
-     * @access public
-     * @return boolean                      status of the operation
-     * @throws StatusException              could throw specific SYNC_STATUS_* exceptions
-     */
-    public function SetStarFlag($folderid, $id, $flags, $contentParameters) {
-        return false;
-    }
-
-    /**
      * Called when the user has requested to delete (really delete) a message
      *
      * @param string              $folderid             id of the folder
@@ -711,6 +698,20 @@ class BackendCardDAV extends BackendDiff implements ISearchProvider {
      * @throws StatusException              could throw specific SYNC_MOVEITEMSSTATUS_* exceptions
      */
     public function MoveMessage($folderid, $id, $newfolderid, $contentParameters) {
+        return false;
+    }
+
+
+    /**
+     * Resolves recipients
+     *
+     * @param SyncObject        $resolveRecipients
+     *
+     * @access public
+     * @return SyncObject       $resolveRecipients
+     */
+    public function ResolveRecipients($resolveRecipients) {
+        // TODO:
         return false;
     }
 
@@ -959,7 +960,8 @@ class BackendCardDAV extends BackendDiff implements ISearchProvider {
     }
 
     /**
-     * Converts the vCard into SyncContact
+     * Converts the vCard into SyncContact.
+     * See RFC 6350 for vCard format details.
      *
      * @param string        $data           string with the vcard
      * @param int           $truncsize      truncate size requested
@@ -1001,45 +1003,49 @@ class BackendCardDAV extends BackendDiff implements ISearchProvider {
                 continue;
 
             $field = trim(substr($line, 0, $pos));
-            $value = trim(substr($line, $pos+1));
+            $value = trim(substr($line, $pos + 1));
 
             $fieldparts = preg_split('/(?<!\\\\)(\;)/i', $field, -1, PREG_SPLIT_NO_EMPTY);
 
+            // The base type
             $type = strtolower(array_shift($fieldparts));
 
-            $fieldvalue = array();
+            // We do not care about visually grouping properties together, so strip groups off (see RFC 6350 § 3.3)
+            if (preg_match('#^[a-z0-9\\-]+\\.(.+)$#i', $type, $matches)) {
+                $type = $matches[1];
+            }
 
+            // Parse all field values
+            $fieldvalue = array();
             foreach ($fieldparts as $fieldpart) {
                 if (preg_match('/([^=]+)=(.+)/', $fieldpart, $matches)) {
-                    if (!in_array(strtolower($matches[1]), array('value', 'type', 'encoding', 'language')))
+                    $fieldName = strtolower($matches[1]);
+                    if (!in_array($fieldName, array('value', 'type', 'encoding', 'language')))
                         continue;
-                    if (isset($fieldvalue[strtolower($matches[1])]) && is_array($fieldvalue[strtolower($matches[1])])) {
-                        if (strtolower($matches[1]) == 'type') {
-                            $fieldvalue[strtolower($matches[1])] = array_merge($fieldvalue[strtolower($matches[1])], array_map('strtolower', preg_split('/(?<!\\\\)(\,)/i', $matches[2], -1, PREG_SPLIT_NO_EMPTY)));
+                    if (isset($fieldvalue[$fieldName]) && is_array($fieldvalue[$fieldName])) {
+                        if ($fieldName == 'type') {
+                            $fieldvalue[$fieldName] = array_merge($fieldvalue[$fieldName], array_map('strtolower', preg_split('/(?<!\\\\)(\,)/i', $matches[2], -1, PREG_SPLIT_NO_EMPTY)));
+                        } else {
+                            $fieldvalue[$fieldName] = array_merge($fieldvalue[$fieldName], preg_split('/(?<!\\\\)(\,)/i', $matches[2], -1, PREG_SPLIT_NO_EMPTY));
                         }
-                        else {
-                            $fieldvalue[strtolower($matches[1])] = array_merge($fieldvalue[strtolower($matches[1])], preg_split('/(?<!\\\\)(\,)/i', $matches[2], -1, PREG_SPLIT_NO_EMPTY));
-                        }
-                    }
-                    else {
-                        if (strtolower($matches[1]) == 'type') {
-                            $fieldvalue[strtolower($matches[1])] = array_map('strtolower', preg_split('/(?<!\\\\)(\,)/i', $matches[2], -1, PREG_SPLIT_NO_EMPTY));
-                        }
-                        else {
-                            $fieldvalue[strtolower($matches[1])] = preg_split('/(?<!\\\\)(\,)/i', $matches[2], -1, PREG_SPLIT_NO_EMPTY);
+                    } else {
+                        if ($fieldName == 'type') {
+                            $fieldvalue[$fieldName] = array_map('strtolower', preg_split('/(?<!\\\\)(\,)/i', $matches[2], -1, PREG_SPLIT_NO_EMPTY));
+                        } else {
+                            $fieldvalue[$fieldName] = preg_split('/(?<!\\\\)(\,)/i', $matches[2], -1, PREG_SPLIT_NO_EMPTY);
                         }
                     }
-                }
-                else {
+                } else {
                     if (!isset($types[strtolower($fieldpart)]))
                         continue;
                     $fieldvalue[$types[strtolower($fieldpart)]][] = $fieldpart;
                 }
             }
+
             //
             switch ($type) {
                 case 'categories':
-                    //case 'nickname':
+                //case 'nickname':
                     $val = preg_split('/(\s)*(\\\)?\,(\s)*/i', $value);
                     break;
                 default:
@@ -1061,8 +1067,7 @@ class BackendCardDAV extends BackendDiff implements ISearchProvider {
                         }
                         break;
                 }
-            }
-            else {
+            } else {
                 foreach ($val as $i => $v) {
                     $val[$i] = $this->unescape($v);
                 }
@@ -1125,6 +1130,7 @@ class BackendCardDAV extends BackendDiff implements ISearchProvider {
                 }
             }
         }
+
         //;;street;city;state;postalcode;country
         if (isset($vcard['adr'])) {
             foreach ($vcard['adr'] as $adr) {
@@ -1212,8 +1218,13 @@ class BackendCardDAV extends BackendDiff implements ISearchProvider {
                 $message->bodysize = strlen($message->body);
             }
         }
+
+        // Support both ROLE and TITLE (RFC 6350 § 6.6.1 / § 6.6.2) as mapped to JobTitle
         if (!empty($vcard['role'][0]['val'][0]))
-            $message->jobtitle = $vcard['role'][0]['val'][0];//$vcard['title'][0]['val'][0]
+            $message->jobtitle = $vcard['role'][0]['val'][0];
+        if (!empty($vcard['title'][0]['val'][0]))
+            $message->jobtitle = $vcard['title'][0]['val'][0];
+
         if (!empty($vcard['url'][0]['val'][0]))
             $message->webpage = $vcard['url'][0]['val'][0];
         if (!empty($vcard['categories'][0]['val']))
@@ -1448,5 +1459,4 @@ class BackendCardDAV extends BackendDiff implements ISearchProvider {
         return $addressbookId;
     }
 
-};
-?>
+}

@@ -56,11 +56,6 @@
 // config file
 require_once("backend/maildir/config.php");
 
-include_once('lib/default/diffbackend/diffbackend.php');
-
-include_once('include/mimeDecode.php');
-require_once('include/z_RFC822.php');
-
 class BackendMaildir extends BackendDiff {
     /**----------------------------------------------------------------------------------------------------------
      * default backend methods
@@ -141,7 +136,6 @@ class BackendMaildir extends BackendDiff {
 
         $message = Mail_mimeDecode::decode(array('decode_headers' => true, 'decode_bodies' => true, 'include_bodies' => true, 'input' => $rfc822, 'crlf' => "\n", 'charset' => 'utf-8'));
 
-        include_once('include/stringstreamwrapper.php');
         $attachment = new SyncItemOperationsAttachment();
         $attachment->data = StringStreamWrapper::Open($message->parts[$part]->body);
         if (isset($message->parts[$part]->ctype_primary) && isset($message->parts[$part]->ctype_secondary))
@@ -543,22 +537,6 @@ class BackendMaildir extends BackendDiff {
     }
 
     /**
-     * Changes the 'star' flag of a message on disk
-     *
-     * @param string        $folderid       id of the folder
-     * @param string        $id             id of the message
-     * @param int           $flags          star flag of the message
-     * @param ContentParameters   $contentParameters
-     *
-     * @access public
-     * @return boolean                      status of the operation
-     * @throws StatusException              could throw specific SYNC_STATUS_* exceptions
-     */
-    public function SetStarFlag($folderid, $id, $flags, $contentParameters) {
-        return false;
-    }
-
-    /**
      * Called when the user has requested to delete (really delete) a message
      *
      * @param string              $folderid             id of the folder
@@ -736,5 +714,3 @@ class BackendMaildir extends BackendDiff {
         return MAILDIR_BASE . "/" . $this->store . "/" . MAILDIR_SUBDIR . "/cur";
     }
 }
-
-?>

@@ -46,6 +46,8 @@ class MAPIProvider {
     private $store;
     private $zRFC822;
     private $addressbook;
+    private $storeProps;
+    private $inboxProps;
 
     /**
      * Constructor of the MAPI Provider
@@ -277,8 +279,9 @@ class MAPIProvider {
                 }
             }
 
-            //set attendee's status and type if they're available
-            if (isset($row[PR_RECIPIENT_TRACKSTATUS]))
+            //set attendee's status and type if they're available and if we are the organizer
+            $storeprops = $this->getStoreProps();
+            if (isset($row[PR_RECIPIENT_TRACKSTATUS]) && $messageprops[$appointmentprops["representingentryid"]] == $storeprops[PR_MAILBOX_OWNER_ENTRYID])
                 $attendee->attendeestatus = $row[PR_RECIPIENT_TRACKSTATUS];
             if (isset($row[PR_RECIPIENT_TYPE]))
                 $attendee->attendeetype = $row[PR_RECIPIENT_TYPE];
@@ -317,6 +320,11 @@ class MAPIProvider {
         // If the user is working from a location other than the office the busystatus should be interpreted as free.
         if (isset($message->busystatus) && $message->busystatus == fbWorkingElsewhere) {
             $message->busystatus = fbFree;
+        }
+
+        // If the busystatus has the value of -1, we should be interpreted as tentative (1) / ZP-581
+        if (isset($message->busystatus) && $message->busystatus == -1) {
+            $message->busystatus = fbTentative;
         }
 
         return $message;
@@ -468,6 +476,12 @@ class MAPIProvider {
             if (isset($exception->busystatus) && $exception->busystatus == fbWorkingElsewhere) {
                 $exception->busystatus = fbFree;
             }
+
+            // If the busystatus has the value of -1, we should be interpreted as tentative (1) / ZP-581
+            if (isset($exception->busystatus) && $exception->busystatus == -1) {
+                $exception->busystatus = fbTentative;
+            }
+
             array_push($syncMessage->exceptions, $exception);
         }
 
@@ -622,15 +636,29 @@ class MAPIProvider {
             if(!isset($message->meetingrequest->sensitivity))
                 $message->meetingrequest->sensitivity = 0;
 
+            // If the user is working from a location other than the office the busystatus should be interpreted as free.
+            if (isset($message->meetingrequest->busystatus) && $message->meetingrequest->busystatus == fbWorkingElsewhere) {
+                $message->meetingrequest->busystatus = fbFree;
+            }
+
+            // If the busystatus has the value of -1, we should be interpreted as tentative (1) / ZP-581
+            if (isset($message->meetingrequest->busystatus) && $message->meetingrequest->busystatus == -1) {
+                $message->meetingrequest->busystatus = fbTentative;
+            }
+
             // if a meeting request response hasn't been processed yet,
             // do it so that the attendee status is updated on the mobile
             if(!isset($messageprops[$emailproperties["processed"]])) {
-                $req = new Meetingrequest($this->store, $mapimessage, $this->session);
-                if ($req->isMeetingRequestResponse()) {
-                    $req->processMeetingRequestResponse();
-                }
-                if ($req->isMeetingCancellation()) {
-                    $req->processMeetingCancellation();
+                // check if we are not sending the MR so we can process it - ZP-581
+                $cuser = ZPush::GetBackend()->GetUserDetails(ZPush::GetBackend()->GetCurrentUsername());
+                if(isset($cuser["emailaddress"]) && $cuser["emailaddress"] != $fromaddr) {
+                    $req = new Meetingrequest($this->store, $mapimessage, $this->session);
+                    if ($req->isMeetingRequestResponse()) {
+                        $req->processMeetingRequestResponse();
+                    }
+                    if ($req->isMeetingCancellation()) {
+                        $req->processMeetingCancellation();
+                    }
                 }
             }
             $message->contentclass = DEFAULT_CALENDAR_CONTENTCLASS;
@@ -764,6 +792,15 @@ class MAPIProvider {
             $message->lastverbexecuted = Utils::GetLastVerbExecuted($message->lastverbexecuted);
         }
 
+        // OL 2013 doesn't show sender and subject for signed emails because the headers are missing
+        if(isset($message->messageclass) && strpos($message->messageclass, "IPM.Note.SMIME.MultipartSigned") === 0 &&
+                isset($message->asbody->type) && $message->asbody->type == SYNC_BODYPREFERENCE_MIME) {
+            ZLog::Write(LOGLEVEL_DEBUG, "Attach the transport message headers to a signed message");
+            $transportHeaders = array(PR_TRANSPORT_MESSAGE_HEADERS_W);
+            $messageHeaders = $this->getProps($mapimessage, $transportHeaders);
+            $message->asbody->data = $messageHeaders[PR_TRANSPORT_MESSAGE_HEADERS] ."\r\n\r\n" . $message->asbody->data;
+        }
+
         return $message;
     }
 
@@ -789,18 +826,17 @@ class MAPIProvider {
     }
 
     /**
-     * Reads a folder object from MAPI
+     * Creates a SyncFolder from MAPI properties.
      *
-     * @param mixed             $mapimessage
+     * @param mixed             $folderprops
      *
      * @access public
      * @return SyncFolder
      */
-    public function GetFolder($mapifolder) {
+    public function GetFolder($folderprops) {
         $folder = new SyncFolder();
 
-        $folderprops = mapi_getprops($mapifolder, array(PR_DISPLAY_NAME, PR_PARENT_ENTRYID, PR_SOURCE_KEY, PR_PARENT_SOURCE_KEY, PR_ENTRYID, PR_CONTAINER_CLASS, PR_ATTR_HIDDEN));
-        $storeprops = mapi_getprops($this->store, array(PR_IPM_SUBTREE_ENTRYID));
+        $storeprops = $this->getStoreProps();
 
         if(!isset($folderprops[PR_DISPLAY_NAME]) ||
            !isset($folderprops[PR_PARENT_ENTRYID]) ||
@@ -815,6 +851,12 @@ class MAPIProvider {
         // ignore hidden folders
         if (isset($folderprops[PR_ATTR_HIDDEN]) && $folderprops[PR_ATTR_HIDDEN] != false) {
             ZLog::Write(LOGLEVEL_DEBUG, sprintf("MAPIProvider->GetFolder(): invalid folder '%s' as it is a hidden folder (PR_ATTR_HIDDEN)", $folderprops[PR_DISPLAY_NAME]));
+            return false;
+        }
+
+        // ignore certain undesired folders, like "RSS Feeds"
+        if (isset($folderprops[PR_CONTAINER_CLASS]) && $folderprops[PR_CONTAINER_CLASS] == "IPF.Note.OutlookHomepage") {
+            ZLog::Write(LOGLEVEL_DEBUG, sprintf("MAPIProvider->GetFolder(): folder '%s' should not be synchronized", $folderprops[PR_DISPLAY_NAME]));
             return false;
         }
 
@@ -840,9 +882,8 @@ class MAPIProvider {
      * @return long
      */
     public function GetFolderType($entryid, $class = false) {
-        $storeprops = mapi_getprops($this->store, array(PR_IPM_OUTBOX_ENTRYID, PR_IPM_WASTEBASKET_ENTRYID, PR_IPM_SENTMAIL_ENTRYID));
-        $inbox = mapi_msgstore_getreceivefolder($this->store);
-        $inboxprops = mapi_getprops($inbox, array(PR_ENTRYID, PR_IPM_DRAFTS_ENTRYID, PR_IPM_TASK_ENTRYID, PR_IPM_APPOINTMENT_ENTRYID, PR_IPM_CONTACT_ENTRYID, PR_IPM_NOTE_ENTRYID, PR_IPM_JOURNAL_ENTRYID));
+        $storeprops = $this->getStoreProps();
+        $inboxprops = $this->getInboxProps();
 
         if($entryid == $inboxprops[PR_ENTRYID])
             return SYNC_FOLDER_TYPE_INBOX;
@@ -1255,6 +1296,7 @@ class MAPIProvider {
         $representingprops = $this->getProps($mapimessage, $p);
 
         if (!isset($representingprops[$appointmentprops["representingentryid"]])) {
+            // TODO use getStoreProps
             $storeProps = mapi_getprops($this->store, array(PR_MAILBOX_OWNER_ENTRYID));
             $props[$appointmentprops["representingentryid"]] = $storeProps[PR_MAILBOX_OWNER_ENTRYID];
             $displayname = $this->getFullnameFromEntryID($storeProps[PR_MAILBOX_OWNER_ENTRYID]);
@@ -1518,9 +1560,10 @@ class MAPIProvider {
             // "start" and "end" are in GMT when passing to class.recurrence
             // set recurrence start here because it's calculated differently for tasks and appointments
             $recur["start"] = $task->recurrence->start;
-            $recur["regen"] = $task->regenerate;
+            $recur["regen"] = (isset($task->recurrence->regenerate) && $task->recurrence->regenerate) ? 1 : 0;
             //Also add dates to $recur
             $recur["duedate"] = $task->duedate;
+            $recur["complete"] = (isset($task->complete) && $task->complete) ? 1 : 0;
             $recurrence->setRecurrence($recur);
         }
 
@@ -2607,6 +2650,33 @@ class MAPIProvider {
         }
         return $this->addressbook;
     }
-}
 
-?>
+    /**
+     * Gets the required store properties.
+     *
+     * @access private
+     * @return array
+     */
+    private function getStoreProps() {
+        if (!isset($this->storeProps) || empty($this->storeProps)) {
+            ZLog::Write(LOGLEVEL_DEBUG, "MAPIProvider->getStoreProps(): Getting store properties.");
+            $this->storeProps = mapi_getprops($this->store, array(PR_IPM_SUBTREE_ENTRYID, PR_IPM_OUTBOX_ENTRYID, PR_IPM_WASTEBASKET_ENTRYID, PR_IPM_SENTMAIL_ENTRYID, PR_ENTRYID, PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_IPM_FAVORITES_ENTRYID, PR_MAILBOX_OWNER_ENTRYID));
+        }
+        return $this->storeProps;
+    }
+
+    /**
+     * Gets the required inbox properties.
+     *
+     * @access private
+     * @return array
+     */
+    private function getInboxProps() {
+        if (!isset($this->inboxProps) || empty($this->inboxProps)) {
+            ZLog::Write(LOGLEVEL_DEBUG, "MAPIProvider->getInboxProps(): Getting inbox properties.");
+            $inbox = mapi_msgstore_getreceivefolder($this->store);
+            $this->inboxProps = mapi_getprops($inbox, array(PR_ENTRYID, PR_IPM_DRAFTS_ENTRYID, PR_IPM_TASK_ENTRYID, PR_IPM_APPOINTMENT_ENTRYID, PR_IPM_CONTACT_ENTRYID, PR_IPM_NOTE_ENTRYID, PR_IPM_JOURNAL_ENTRYID));
+        }
+        return $this->inboxProps;
+    }
+}

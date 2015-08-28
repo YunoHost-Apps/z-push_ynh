@@ -99,19 +99,6 @@ interface IImportChanges extends IChanges {
     public function ImportMessageReadFlag($id, $flags);
 
     /**
-     * Imports a change in 'star' flag
-     * This can never conflict
-     *
-     * @param string        $id
-     * @param int           $flags
-     *
-     * @access public
-     * @return boolean
-     * @throws StatusException
-     */
-    public function ImportMessageStarFlag($id, $flags);
-
-    /**
      * Imports a move of a message. This occurs when a user moves an item to another folder
      *
      * @param string        $id
@@ -152,5 +139,3 @@ interface IImportChanges extends IChanges {
     public function ImportFolderDeletion($id, $parent = false);
 
 }
-
-?>
