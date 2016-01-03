@@ -389,13 +389,13 @@ class BackendIMAP extends BackendDiff implements ISearchProvider {
         }
         if (strlen($plainBody) > 0) {
             ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->addTextParts(): The message has PLAIN body"));
-            if (strlen($htmlSource) > 0) {
-                ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->addTextParts(): The original message had HTML body, we cast new PLAIN to HTML"));
-                $altEmail->addSubPart('<html><body><p>' . str_replace("\n", "<br/>", str_replace("\r\n", "\n", $plainBody)) . "</p>" . $separatorHtml . $htmlSource . $separatorHtmlEnd, array('content_type' => 'text/html; charset=utf-8', 'encoding' => 'base64'));
-            }
             if (strlen($plainSource) > 0) {
                 ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->addTextParts(): The original message had PLAIN body"));
-                $altEmail->addSubPart($plainBody . $separator . str_replace("\n", "\n> ", "> ".$plainSource), array('content_type' => 'text/plain; charset=utf-8', 'encoding' => 'base64'));
+                $altEmail->addSubPart($plainBody . $separator . str_replace("\n", "\n> ", "> " . $plainSource), array('content_type' => 'text/plain; charset=utf-8', 'encoding' => 'base64'));
+            }
+            else {
+                ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->addTextParts(): The original message had not PLAIN body, we use original HTML body to create PLAIN"));
+                $altEmail->addSubPart($plainBody . $separator . str_replace("\n", "\n> ", "> " . Utils::ConvertHtmlToText($htmlSource)), array('content_type' => 'text/plain; charset=utf-8', 'encoding' => 'base64'));
             }
         }
 
@@ -2073,30 +2073,31 @@ class BackendIMAP extends BackendDiff implements ISearchProvider {
     protected function getFolderIdFromImapId($imapid, $case_sensitive = true) {
         $this->InitializePermanentStorage();
 
+        if (!isset($this->permanentStorage->fmFimapFid)) {
+            ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->getFolderIdFromImapId('%s') IMAP cache folder not found, creating one", $imapid));
+            $this->GetFolderList();
+        }
+
         if ($case_sensitive) {
-            if (isset($this->permanentStorage->fmFimapFid)) {
-                if (isset($this->permanentStorage->fmFimapFid[$imapid])) {
-                    $folderid = $this->permanentStorage->fmFimapFid[$imapid];
-                    ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->getFolderIdFromImapId('%s') = %s", $imapid, $folderid));
-                    return $folderid;
-                }
-                else {
-                    ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->getFolderIdFromImapId('%s') = %s", $imapid, 'not found'));
-                    return false;
-                }
+            if (isset($this->permanentStorage->fmFimapFid[$imapid])) {
+                $folderid = $this->permanentStorage->fmFimapFid[$imapid];
+                ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->getFolderIdFromImapId('%s') = %s", $imapid, $folderid));
+                return $folderid;
+            }
+            else {
+                ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->getFolderIdFromImapId('%s') = %s", $imapid, 'not found'));
+                return false;
             }
         }
         else {
-            if (isset($this->permanentStorage->fmFimapFidLowercase)) {
-                if (isset($this->permanentStorage->fmFimapFidLowercase[strtolower($imapid)])) {
-                    $folderid = $this->permanentStorage->fmFimapFidLowercase[strtolower($imapid)];
-                    ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->getFolderIdFromImapId('%s', false) = %s", $imapid, $folderid));
-                    return $folderid;
-                }
-                else {
-                    ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->getFolderIdFromImapId('%s', false) = %s", $imapid, 'not found'));
-                    return false;
-                }
+            if (isset($this->permanentStorage->fmFimapFidLowercase[strtolower($imapid)])) {
+                $folderid = $this->permanentStorage->fmFimapFidLowercase[strtolower($imapid)];
+                ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->getFolderIdFromImapId('%s', false) = %s", $imapid, $folderid));
+                return $folderid;
+            }
+            else {
+                ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->getFolderIdFromImapId('%s', false) = %s", $imapid, 'not found'));
+                return false;
             }
         }
 
