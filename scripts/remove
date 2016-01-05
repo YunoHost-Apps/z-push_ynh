@@ -10,6 +10,6 @@ sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
 sudo rm -f /etc/php5/fpm/pool.d/$app.conf
 
 # Restart of services
-sudo service php5-fpm restart
+sudo service php5-fpm reload
 sudo service nginx reload
 sudo yunohost app ssowatconf
