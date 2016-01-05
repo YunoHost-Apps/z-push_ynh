@@ -90,8 +90,6 @@ sudo yunohost app setting $app skipped_uris -v "/"
 
 
 # Restart of services
-sudo service php5-fpm restart
+sudo service php5-fpm reload
 sudo service nginx reload
 sudo yunohost app ssowatconf
-
-
