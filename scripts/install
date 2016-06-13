@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Retrieve arguments
-domain=$1
-path="/Microsoft-Server-ActiveSync"
-app=z-push
+domain=$YNH_APP_ARG_DOMAIN
+path=$YNH_APP_ARG_PATH
+app=$YNH_APP_INSTANCE_NAME
 
 # Check domain/path availability
 sudo yunohost app checkurl $domain$path -a $app

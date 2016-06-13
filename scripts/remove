@@ -1,6 +1,6 @@
 #!/bin/bash
 
-app=z-push
+app=$YNH_APP_INSTANCE_NAME
 domain=$(sudo yunohost app setting $app domain)
 
 # Cleaning
