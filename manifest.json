@@ -1,20 +1,30 @@
 {
     "name": "Z-Push",
     "id": "z-push",
+    "packaging_format": 1,
     "description": {
         "en": "Z-Push is an open-source application to synchronize ActiveSync",
-        "fr": "Z-Push est un serveur open source de synchronisation ActiveSync" 
+        "fr": "Z-Push est un serveur open source de synchronisation ActiveSync"
     },
-    "developer": {
+    "url": "https://z-push.org",
+    "license": "free",
+    "maintainer": {
         "name": "beudbeud",
-        "email": "beudbeud@beudibox.fr",
-        "url": "https://z-push.org"
+        "email": "beudbeud@beudibox.fr"
     },
-    "multi_instance": "true",
+    "requirements": {
+        "yunohost": ">=2.4.0"
+    },
+    "services": [
+        "nginx",
+        "php5-fpm"
+    ],
+    "multi_instance": true,
     "arguments": {
         "install" : [
             {
                 "name": "domain",
+                "type": "domain",
                 "ask": {
                     "en": "Choose a domain for Z-push",
                     "fr": "Choisissez un domaine pour Z-push"
