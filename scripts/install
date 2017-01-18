@@ -72,9 +72,6 @@ final_logpath=/var/log/$app
 
 # Define variables and Save app settings
 ynh_app_setting_set "$app" domain "$domain"
-ynh_app_setting_set "$app" final_logpath "$final_logpath"
-ynh_app_setting_set "$app" final_path "$final_path"
-
 
 
 # Copy files to the right place
