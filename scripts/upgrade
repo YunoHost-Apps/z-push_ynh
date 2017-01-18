@@ -67,8 +67,8 @@ sed -i "s@LOGTOCHANGE@$final_logpath@g" ../conf/config.php
 # Enable caldav carddav support
 if sudo yunohost app list --installed -f baikal | grep -q id ; then
         echo "Detected Baikal"
-        caldavdomain=$(sudo ynh_app_setting_get baikal domain)
-        caldavpath=$(sudo ynh_app_setting_get baikal path)
+        caldavdomain=$(ynh_app_setting_get baikal domain)
+        caldavpath=$(ynh_app_setting_get baikal path)
         caldavpath=${caldavpath%/}
 
         # Configuration of backend
