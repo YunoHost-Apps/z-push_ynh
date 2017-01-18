@@ -34,7 +34,7 @@ source /usr/share/yunohost/helpers
 # Retrieve arguments
 app=$YNH_APP_INSTANCE_NAME
 domain=$YNH_APP_ARG_DOMAIN
-path="/Microsoft-Server-ActiveSync"
+path=$YNH_APP_ARG_PATH
 
 # We check variables are not empty
 CHECK_VAR () {  # Vérifie que la variable n'est pas vide.
@@ -44,6 +44,18 @@ CHECK_VAR () {  # Vérifie que la variable n'est pas vide.
 }
 
 CHECK_VAR "$app" "app name not set"
+
+# Check the path value and correct it (adds / at begining and removes it at the end)
+CHECK_PATH () { # Vérifie la présence du / en début de path. Et son absence à la fin.
+        if [ "${path:0:1}" != "/" ]; then    # Si le premier caractère n'est pas un /
+                path="/$path"    # Ajoute un / en début de path
+        fi
+        if [ "${path:${#path}-1}" == "/" ] && [ ${#path} -gt 1 ]; then    # Si le dernier caractère est un / et que ce n'est pas l$
+                path="${path:0:${#path}-1}"     # Supprime le dernier caractère
+        fi
+}
+
+CHECK_PATH;
 
 # Check domain and path availibility
 CHECK_DOMAINPATH () {   # Vérifie la disponibilité du path et du domaine.
