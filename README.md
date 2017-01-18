@@ -5,3 +5,5 @@
 * Ability to send calendar invitations
 
 * The sources are based on https://github.com/fmbiete/Z-Push-contrib
+
+*tbd : update sources get download them at installation.
