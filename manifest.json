@@ -30,6 +30,16 @@
                     "fr": "Choisissez un domaine pour Z-push"
                 },
                 "example": "domain.org"
+            },
+            {
+                "name": "path",
+                "type": "path",
+                "ask": {
+                    "en": "No choice, it must be /Microsoft-Server-ActiveSync",
+                    "fr": "Pas de choix, cela doit être /Microsoft-Server-ActiveSync"
+                },
+                "choices": ["/Microsoft-Server-ActiveSync"],
+                "default": "/Microsoft-Server-ActiveSync"
             }
         ]
     }
