@@ -1,7 +1,11 @@
 #!/bin/bash
 
+# Source app helpers
+source /usr/share/yunohost/helpers
+
+# We retrieve app parameters
 app=$YNH_APP_INSTANCE_NAME
-domain=$(sudo yunohost app setting $app domain)
+domain=$(ynh_app_setting_get $app domain)
 
 # Cleaning
 sudo rm -rf /var/www/$app
