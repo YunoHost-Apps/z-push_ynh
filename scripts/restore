@@ -1,0 +1,42 @@
+#!/bin/bash
+
+app=$YNH_APP_INSTANCE_NAME
+
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
+
+# Retrieve old app settings
+path=$(ynh_app_setting_get $app path)
+domain=$(ynh_app_setting_get $app domain)
+final_path=$(ynh_app_setting_get $app final_path)
+final_logpath=$(ynh_app_setting_get $app final_logpath)
+final_nginxconf=$(ynh_app_setting_get $app finalnginxconf)
+final_phpconf=$(ynh_app_setting_get $app finalphpconf)
+
+# Restore sources, data and permissions
+sudo mkdir -p $final_path
+sudo cp -a ./sources/* $final_path/
+sudo chown -R www-data: $final_path
+
+# Restore logs, data & permissions
+sudo mkdir -p $final_logpath
+sudo cp -a ./logs/* $logs/
+sudo chown -R www-data:www-data $final_logpath
+
+# Restore NGINX configuration
+sudo cp -a ./nginx.conf $final_nginxconf
+
+# Restore PHP-FPM configuration
+sudo cp -a ./php-fpm.conf $final_phpconf
+sudo chown root: $final_phpconf
+sudo chmod 644 $final_phpconf
+
+# Make app public
+ynh_app_setting_set $app skipped_uris "/"
+
+
+# Restart webserver
+sudo service nginx reload
+sudo service php5-fpm reload
+sudo yunohost app ssowatconf
+
