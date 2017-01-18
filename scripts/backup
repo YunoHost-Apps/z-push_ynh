@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Exit on command errors and treat unset variables as an error
+#set -eu
+
+#TRAP_ON () {    # Activate signal capture
+#        trap EXIT_PROPERLY ERR  # Capturing ex it signals on error
+#}
+
+# Active trap pour arrêter le script si une erreur est détectée.
+#TRAP_ON
+
+# See comments in install script
+app=$YNH_APP_INSTANCE_NAME
+
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
+
+path=$(ynh_app_setting_get $app path)
+domain=$(ynh_app_setting_get $app domain)
+final_path=$(ynh_app_setting_get $app final_path)
+final_logpath=$(ynh_app_setting_get $app final_logpath)
+final_nginxconf=$(ynh_app_setting_get $app final_nginxconf)
+final_phpconf=$(ynh_app_setting_get $app final_phpconf)
+
+# Backup sources & data
+# Note: the last argument is where to save this path, see the restore script.
+ynh_backup "$final_path" "sources"
+
+# Backup logs
+ynh_backup "$final_logpath" "logs"
+
+# Copy NGINX configuration
+ynh_backup "$final_nginxconf" "nginx.conf"
+
+# Copy PHP-FPM configuration
+ynh_backup "$final_phpconf" "php-fpm.conf"
