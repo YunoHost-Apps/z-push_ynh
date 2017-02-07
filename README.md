@@ -6,6 +6,3 @@
 
 * The sources are based on https://github.com/fmbiete/Z-Push-contrib
 
-* tbd : 
-<br/>update sources 
-<br/>download them at installation
