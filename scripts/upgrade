@@ -57,7 +57,15 @@ sudo rm -f $final_phpconf
 
 # Copy files to the right place
 sudo mkdir -p $final_path
-sudo cp -a ../sources/* $final_path
+
+# We download the sources and check the md5sum
+SHA1=`sudo cat ../sources/source_sha1`;
+sed -i "s@SHA1TOCHANGE@$SHA1@g" ../sources/source_url
+sed -i "s@SHA1TOCHANGE@$SHA1@g" ../sources/source_md5
+sudo wget -nv -i ../sources/source_url -O Z-Push-contrib-${SHA1}.zip
+sudo md5sum -c ../sources/source_md5 --status || (echo "Corrupt source" >&2 && false)
+sudo unzip Z-Push-contrib-${SHA1}.zip -d ../sources/
+sudo cp -R ../sources/Z-Push-contrib-${SHA1}/* $final_path
 
 # Configuration
 sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config.php
