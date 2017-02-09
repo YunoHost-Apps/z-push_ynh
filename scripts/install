@@ -99,9 +99,9 @@ sudo mkdir -p $final_path
 
 # We download the sources and check the md5sum
 SFILE=`sudo cat ../sources/source_file`;
-sudo wget -nv -i ../sources/source_url -O $SFILE
+sudo wget -nv -i ../sources/source_url -O ${SFILE}.tar.gz
 sudo md5sum -c ../sources/source_md5 --status || (echo "Corrupt source" >&2 && false)
-sudo tar xzvf $SFILE -C ../sources/
+sudo tar xvf ${SFILE}.tar.gz -C ../sources/
 sudo cp -R ../sources/$SFILE/* $final_path
 
 # Configuration
