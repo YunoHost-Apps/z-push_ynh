@@ -161,7 +161,8 @@ define('IMAP_FROM_LDAP_USER', '');
 define('IMAP_FROM_LDAP_PASSWORD', '');
 define('IMAP_FROM_LDAP_BASE', 'dc=yunohost,dc=org');
 //a revoir, le mail n'est pas le username ! exemple login : john email john.doe@domain.tld
-define('IMAP_FROM_LDAP_QUERY', '(mail=#username)');
+//define('IMAP_FROM_LDAP_QUERY', '(mail=#username)');
+define('IMAP_FROM_LDAP_QUERY', '(mail=#mail)');
 
 define('IMAP_FROM_LDAP_FIELDS', serialize(array('givenname', 'sn', 'mail')));
 define('IMAP_FROM_LDAP_FROM', '#givenname #sn <#mail>');
