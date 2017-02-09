@@ -6,29 +6,11 @@
 *
 * Created   :   27.11.2012
 *
-* Copyright 2007 - 2013 Zarafa Deutschland GmbH
+* Copyright 2007 - 2016 Zarafa Deutschland GmbH
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU Affero General Public License, version 3,
-* as published by the Free Software Foundation with the following additional
-* term according to sec. 7:
-*
-* According to sec. 7 of the GNU Affero General Public License, version 3,
-* the terms of the AGPL are supplemented with the following terms:
-*
-* "Zarafa" is a registered trademark of Zarafa B.V.
-* "Z-Push" is a registered trademark of Zarafa Deutschland GmbH
-* The licensing of the Program under the AGPL does not imply a trademark license.
-* Therefore any rights, title and interest in our trademarks remain entirely with us.
-*
-* However, if you propagate an unmodified version of the Program you are
-* allowed to use the term "Z-Push" to indicate that you distribute the Program.
-* Furthermore you may use our trademarks where it is necessary to indicate
-* the intended purpose of a product or service provided you use it in accordance
-* with honest practices in industrial or commercial matters.
-* If you want to propagate modified versions of the Program under the name "Z-Push",
-* you may only do so if you have a written permission by Zarafa Deutschland GmbH
-* (to acquire a permission please contact Zarafa at trademark@zarafa.com).
+* as published by the Free Software Foundation.
 *
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -49,12 +31,11 @@
 define('IMAP_SERVER', 'localhost');
 
 // connecting to default port (143)
-define('IMAP_PORT', 993);
+define('IMAP_PORT', 143);
 
 // best cross-platform compatibility (see http://php.net/imap_open for options)
-// Original :
-//define('IMAP_OPTIONS', '/notls/norsh');
-define('IMAP_OPTIONS', '/ssl/novalidate-cert');
+define('IMAP_OPTIONS', '/notls/norsh');
+
 
 // Mark messages as read when moving to Trash.
 //      BE AWARE that you will lose the unread flag, but some mail clients do this so the Trash folder doesn't get boldened
@@ -87,16 +68,17 @@ define('IMAP_AUTOSEEN_ON_DELETE', false);
         // gmail is a special case, where the default folders are under the [gmail] prefix and the folders defined by the user are under INBOX.
         // This configuration seems to work:
         //      define('IMAP_FOLDER_PREFIX', '');
+        //      define('IMAP_FOLDER_PREFIX_IN_INBOX', false);
         //      define('IMAP_FOLDER_INBOX', 'INBOX');
         //      define('IMAP_FOLDER_SENT', '[Gmail]/Sent');
-        //      define('IMAP_FOLDER_DRAFTS', '[Gmail]/Drafts');
+        //      define('IMAP_FOLDER_DRAFT', '[Gmail]/Drafts');
         //      define('IMAP_FOLDER_TRASH', '[Gmail]/Trash');
         //      define('IMAP_FOLDER_SPAM', '[Gmail]/Spam');
         //      define('IMAP_FOLDER_ARCHIVE', '[Gmail]/All Mail');
 
 // Since I know you won't configure this, I will raise an error unless you do.
 // When configured set this to true to remove the error
-define('IMAP_FOLDER_CONFIGURED', true);
+define('IMAP_FOLDER_CONFIGURED', false);
 
 // Folder prefix is the common part in your names (3, 4)
 define('IMAP_FOLDER_PREFIX', '');
@@ -105,22 +87,22 @@ define('IMAP_FOLDER_PREFIX', '');
 define('IMAP_FOLDER_PREFIX_IN_INBOX', false);
 
 // Inbox folder name (case doesn't matter) - (empty in 4)
-define('IMAP_FOLDER_INBOX', 'Inbox');
+define('IMAP_FOLDER_INBOX', 'INBOX');
 
 // Sent folder name (case doesn't matter)
-define('IMAP_FOLDER_SENT', 'Sent');
+define('IMAP_FOLDER_SENT', 'SENT');
 
 // Draft folder name (case doesn't matter)
-define('IMAP_FOLDER_DRAFT', 'Drafts');
+define('IMAP_FOLDER_DRAFT', 'DRAFTS');
 
 // Trash folder name (case doesn't matter)
-define('IMAP_FOLDER_TRASH', 'Trash');
+define('IMAP_FOLDER_TRASH', 'TRASH');
 
 // Spam folder name (case doesn't matter). Only showed as special by iOS devices
-define('IMAP_FOLDER_SPAM', 'Junk');
+define('IMAP_FOLDER_SPAM', 'SPAM');
 
 // Archive folder name (case doesn't matter). Only showed as special by iOS devices
-define('IMAP_FOLDER_ARCHIVE', 'Archive');
+define('IMAP_FOLDER_ARCHIVE', 'ARCHIVE');
 
 
 
@@ -141,7 +123,7 @@ define('IMAP_EXCLUDED_FOLDERS', '');
 //        'sql'           - the username will be the result of a sql query. REMEMBER TO INSTALL PHP-PDO AND PHP-DATABASE
 //        'ldap'          - the username will be the result of a ldap query. REMEMBER TO INSTALL PHP-LDAP!!
 //        '@mydomain.com' - the username is used and the given string will be appended
-define('IMAP_DEFAULTFROM', '@DOMAINTOCHANGE');
+define('IMAP_DEFAULTFROM', '');
 
 // DSN: formatted PDO connection string
 //    mysql:host=xxx;port=xxx;dbname=xxx
@@ -169,16 +151,10 @@ define('IMAP_FROM_SQL_FULLNAME', '#first_name #last_name');
 // FROM: string that will be the from, replacing the field names with the values
 define('IMAP_FROM_LDAP_SERVER', 'localhost');
 define('IMAP_FROM_LDAP_SERVER_PORT', '389');
-//define('IMAP_FROM_LDAP_USER', 'cn=zpush,ou=servers,dc=zpush,dc=org');
-//define('IMAP_FROM_LDAP_PASSWORD', 'password');
-//define('IMAP_FROM_LDAP_BASE', 'dc=zpush,dc=org');
-//define('IMAP_FROM_LDAP_QUERY', '(mail=#username@#domain)');
-
-define('IMAP_FROM_LDAP_USER', '');
-define('IMAP_FROM_LDAP_PASSWORD', '');
-define('IMAP_FROM_LDAP_BASE', 'dc=yunohost,dc=org');
-define('IMAP_FROM_LDAP_QUERY', '(mail=#username)');
-
+define('IMAP_FROM_LDAP_USER', 'cn=zpush,ou=servers,dc=zpush,dc=org');
+define('IMAP_FROM_LDAP_PASSWORD', 'password');
+define('IMAP_FROM_LDAP_BASE', 'dc=zpush,dc=org');
+define('IMAP_FROM_LDAP_QUERY', '(mail=#username@#domain)');
 define('IMAP_FROM_LDAP_FIELDS', serialize(array('givenname', 'sn', 'mail')));
 define('IMAP_FROM_LDAP_FROM', '#givenname #sn <#mail>');
 define('IMAP_FROM_LDAP_FULLNAME', '#givenname #sn');
@@ -231,4 +207,4 @@ define('SYSTEM_MIME_TYPES_MAPPING', '/etc/mime.types');
 
 
 // Use BackendCalDAV for Meetings. You cannot hope to get that functionality working without a caldav backend.
-define('IMAP_MEETING_USE_CALDAV', FLAGTOCHANGE);
+define('IMAP_MEETING_USE_CALDAV', false);
