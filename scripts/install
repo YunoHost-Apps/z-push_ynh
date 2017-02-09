@@ -101,7 +101,7 @@ sudo mkdir -p $final_path
 SFILE=`sudo cat ../sources/source_file`;
 sudo wget -nv -i ../sources/source_url -O $SFILE
 sudo md5sum -c ../sources/source_md5 --status || (echo "Corrupt source" >&2 && false)
-sudo tar xv $SFILE -d ../sources/
+sudo tar xzvf $SFILE -d ../sources/
 sudo cp -R ../sources/$SFILE/* $final_path
 
 # Configuration
