@@ -31,7 +31,7 @@
 define('IMAP_SERVER', 'localhost');
 
 // connecting to default port (143)
-define('IMAP_PORT', 143);
+define('IMAP_PORT', 993);
 
 // best cross-platform compatibility (see http://php.net/imap_open for options)
 define('IMAP_OPTIONS', '/ssl/novalidate-cert');
