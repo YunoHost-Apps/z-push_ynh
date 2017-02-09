@@ -61,7 +61,7 @@
  *           State migration script is available, more informations: https://wiki.z-hub.io/x/xIAa
  */
     define('STATE_MACHINE', 'FILE');
-    define('STATE_DIR', '/var/lib/z-push/');
+    define('STATE_DIR', 'ALIASTOCHANGE/');
 
 /**********************************************************************************
  *  IPC - InterProcessCommunication
@@ -110,7 +110,7 @@
     $specialLogUsers = array();
 
     // Filelog settings
-    define('LOGFILEDIR', '/var/log/z-push/');
+    define('LOGFILEDIR', 'LOGTOCHANGE/');
     define('LOGFILE', LOGFILEDIR . 'z-push.log');
     define('LOGERRORFILE', LOGFILEDIR . 'z-push-error.log');
 
@@ -266,7 +266,7 @@
  *  Backend settings
  */
     // the backend data provider
-    define('BACKEND_PROVIDER', '');
+    define('BACKEND_PROVIDER', 'BACKENDTOCHANGE');
 
 /**********************************************************************************
  *  Search provider settings
@@ -292,21 +292,21 @@
  *  For more information, see: https://wiki.z-hub.io/x/z4Aa
  */
     // Global Address Book functionality
-    define('KOE_CAPABILITY_GAB', true);
+    define('KOE_CAPABILITY_GAB', false);
     // Synchronize mail flags from the server to Outlook/KOE
-    define('KOE_CAPABILITY_RECEIVEFLAGS', true);
+    define('KOE_CAPABILITY_RECEIVEFLAGS', false);
     // Encode flags when sending from Outlook/KOE
-    define('KOE_CAPABILITY_SENDFLAGS', true);
+    define('KOE_CAPABILITY_SENDFLAGS', false);
     // Out-of-office support
-    define('KOE_CAPABILITY_OOF', true);
+    define('KOE_CAPABILITY_OOF', false);
     // Out-of-office support with start & end times (superseeds KOE_CAPABILITY_OOF)
-    define('KOE_CAPABILITY_OOFTIMES', true);
+    define('KOE_CAPABILITY_OOFTIMES', false);
     // Notes support
-    define('KOE_CAPABILITY_NOTES', true);
+    define('KOE_CAPABILITY_NOTES', false);
     // Shared folder support
-    define('KOE_CAPABILITY_SHAREDFOLDER', true);
+    define('KOE_CAPABILITY_SHAREDFOLDER', false);
     // Send-As support for Outlook/KOE and mobiles
-    define('KOE_CAPABILITY_SENDAS', true);
+    define('KOE_CAPABILITY_SENDAS', false);
 
     // To synchronize the GAB KOE, the GAB store and folderid need to be specified.
     // Use the gab-sync script to generate this data. The name needs to
