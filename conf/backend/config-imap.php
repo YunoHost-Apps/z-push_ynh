@@ -34,7 +34,7 @@ define('IMAP_SERVER', 'localhost');
 define('IMAP_PORT', 143);
 
 // best cross-platform compatibility (see http://php.net/imap_open for options)
-define('IMAP_OPTIONS', '/notls/norsh');
+define('IMAP_OPTIONS', '/ssl/novalidate-cert');
 
 
 // Mark messages as read when moving to Trash.
@@ -78,7 +78,7 @@ define('IMAP_AUTOSEEN_ON_DELETE', false);
 
 // Since I know you won't configure this, I will raise an error unless you do.
 // When configured set this to true to remove the error
-define('IMAP_FOLDER_CONFIGURED', false);
+define('IMAP_FOLDER_CONFIGURED', true);
 
 // Folder prefix is the common part in your names (3, 4)
 define('IMAP_FOLDER_PREFIX', '');
@@ -90,19 +90,19 @@ define('IMAP_FOLDER_PREFIX_IN_INBOX', false);
 define('IMAP_FOLDER_INBOX', 'INBOX');
 
 // Sent folder name (case doesn't matter)
-define('IMAP_FOLDER_SENT', 'SENT');
+define('IMAP_FOLDER_SENT', 'Sent');
 
 // Draft folder name (case doesn't matter)
-define('IMAP_FOLDER_DRAFT', 'DRAFTS');
+define('IMAP_FOLDER_DRAFT', 'Drafts');
 
 // Trash folder name (case doesn't matter)
-define('IMAP_FOLDER_TRASH', 'TRASH');
+define('IMAP_FOLDER_TRASH', 'Trash');
 
 // Spam folder name (case doesn't matter). Only showed as special by iOS devices
-define('IMAP_FOLDER_SPAM', 'SPAM');
+define('IMAP_FOLDER_SPAM', 'Junk');
 
 // Archive folder name (case doesn't matter). Only showed as special by iOS devices
-define('IMAP_FOLDER_ARCHIVE', 'ARCHIVE');
+define('IMAP_FOLDER_ARCHIVE', 'Archive');
 
 
 
@@ -123,7 +123,7 @@ define('IMAP_EXCLUDED_FOLDERS', '');
 //        'sql'           - the username will be the result of a sql query. REMEMBER TO INSTALL PHP-PDO AND PHP-DATABASE
 //        'ldap'          - the username will be the result of a ldap query. REMEMBER TO INSTALL PHP-LDAP!!
 //        '@mydomain.com' - the username is used and the given string will be appended
-define('IMAP_DEFAULTFROM', '');
+define('IMAP_DEFAULTFROM', '@DOMAINTOCHANGE');
 
 // DSN: formatted PDO connection string
 //    mysql:host=xxx;port=xxx;dbname=xxx
@@ -138,6 +138,8 @@ define('IMAP_FROM_SQL_USER', '');
 define('IMAP_FROM_SQL_PASSWORD', '');
 define('IMAP_FROM_SQL_OPTIONS', serialize(array(PDO::ATTR_PERSISTENT => true)));
 define('IMAP_FROM_SQL_QUERY', "select first_name, last_name, mail_address from users where mail_address = '#username@#domain'");
+//A tester :
+//define('IMAP_FROM_SQL_QUERY', "select first_name, last_name, mail_address from users where users = '#username@#domain'");
 define('IMAP_FROM_SQL_FIELDS', serialize(array('first_name', 'last_name', 'mail_address')));
 define('IMAP_FROM_SQL_FROM', '#first_name #last_name <#mail_address>');
 define('IMAP_FROM_SQL_FULLNAME', '#first_name #last_name');
@@ -151,10 +153,16 @@ define('IMAP_FROM_SQL_FULLNAME', '#first_name #last_name');
 // FROM: string that will be the from, replacing the field names with the values
 define('IMAP_FROM_LDAP_SERVER', 'localhost');
 define('IMAP_FROM_LDAP_SERVER_PORT', '389');
-define('IMAP_FROM_LDAP_USER', 'cn=zpush,ou=servers,dc=zpush,dc=org');
-define('IMAP_FROM_LDAP_PASSWORD', 'password');
-define('IMAP_FROM_LDAP_BASE', 'dc=zpush,dc=org');
-define('IMAP_FROM_LDAP_QUERY', '(mail=#username@#domain)');
+//define('IMAP_FROM_LDAP_USER', 'cn=zpush,ou=servers,dc=zpush,dc=org');
+//define('IMAP_FROM_LDAP_PASSWORD', 'password');
+//define('IMAP_FROM_LDAP_BASE', 'dc=zpush,dc=org');
+//define('IMAP_FROM_LDAP_QUERY', '(mail=#username@#domain)');
+define('IMAP_FROM_LDAP_USER', '');
+define('IMAP_FROM_LDAP_PASSWORD', '');
+define('IMAP_FROM_LDAP_BASE', 'dc=yunohost,dc=org');
+//a revoir, le mail n'est pas le username ! exemple login : john email john.doe@domain.tld
+define('IMAP_FROM_LDAP_QUERY', '(mail=#username)');
+
 define('IMAP_FROM_LDAP_FIELDS', serialize(array('givenname', 'sn', 'mail')));
 define('IMAP_FROM_LDAP_FROM', '#givenname #sn <#mail>');
 define('IMAP_FROM_LDAP_FULLNAME', '#givenname #sn');
@@ -207,4 +215,4 @@ define('SYSTEM_MIME_TYPES_MAPPING', '/etc/mime.types');
 
 
 // Use BackendCalDAV for Meetings. You cannot hope to get that functionality working without a caldav backend.
-define('IMAP_MEETING_USE_CALDAV', false);
+define('IMAP_MEETING_USE_CALDAV', FLAGTOCHANGE);
