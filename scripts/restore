@@ -23,6 +23,11 @@ sudo mkdir -p $final_logpath
 sudo cp -a ./logs/* $final_logpath/
 sudo chown -R www-data:www-data $final_logpath
 
+# Restore logrotate
+sudo cp -a ./logrotate /etc/logrotate.d/$app
+sudo chmod 644 /etc/logrotate.d/$app
+sudo chown root:root /etc/logrotate.d/$app
+
 # Restore NGINX configuration
 sudo cp -a ./nginx.conf $final_nginxconf
 

@@ -29,6 +29,7 @@ ynh_backup "$final_path" "sources"
 
 # Backup logs
 ynh_backup "$final_logpath" "logs"
+ynh_backup "/etc/logrotate.d/$app" "logrotate"
 
 # Copy NGINX configuration
 ynh_backup "$final_nginxconf" "nginx.conf"
