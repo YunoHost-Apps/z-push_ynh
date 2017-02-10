@@ -6,6 +6,4 @@
 
 * The sources are based on http://download.z-push.org/final/
 
-* tbd : 
-<br/>update sources 
-<br/>download them at installation
+* Use of version 2.3.4 final
