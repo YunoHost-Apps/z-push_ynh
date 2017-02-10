@@ -79,11 +79,23 @@ CHECK_FINALPATH () {    # Vérifie que le dossier de destination n'est pas déj�
 
 CHECK_FINALPATH
 
+statedir="/home/yunohost.app/$app"
+
+CHECK_STATEDIRPATH () {    # Vérifie que le dossier de destination n'est pas déjà utilisé.
+        if [ -e "$statedir" ]
+        then
+                echo "This path already contains a folder" >&2
+                false
+        fi
+}
+
+CHECK_STATEDIRPATH
 
 
 # Define variables and Save app settings
 ynh_app_setting_set "$app" domain "$domain"
 ynh_app_setting_set "$app" final_path "$final_path"
+ynh_app_setting_set "$app" statedir "$statedir"
 
 final_logpath="/var/log/$app"
 ynh_app_setting_set "$app" final_logpath "$final_logpath"
@@ -106,9 +118,14 @@ sudo cp -R ../sources/$SFILE/* $final_path
 
 # Configuration
 sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config.php
-sed -i "s@ALIASTOCHANGE@$final_path@g" ../conf/config.php
 sed -i "s@LOGTOCHANGE@$final_logpath@g" ../conf/config.php
 sed -i "s@LOGTOCHANGE@$final_logpath@g" ../conf/logrotate
+
+# Storage of state_dir in /home/yunohost.app
+# This contains the sync status in between device and z-push
+sed -i "s@STATEDIRTOCHANGE@$statedir@g" ../conf/config.php
+sudo mkdir -p $statedir
+sudo chown -R www:data-www-data $statedir
 
 # Enable caldav carddav support
 if sudo yunohost app list --installed -f baikal | grep -q id ; then

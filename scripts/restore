@@ -9,6 +9,7 @@ source /usr/share/yunohost/helpers
 path=$(ynh_app_setting_get $app path)
 domain=$(ynh_app_setting_get $app domain)
 final_path=$(ynh_app_setting_get $app final_path)
+statedir=$(ynh_app_setting_get $app statedir)
 final_logpath=$(ynh_app_setting_get $app final_logpath)
 final_nginxconf=$(ynh_app_setting_get $app final_nginxconf)
 final_phpconf=$(ynh_app_setting_get $app final_phpconf)
@@ -17,6 +18,11 @@ final_phpconf=$(ynh_app_setting_get $app final_phpconf)
 sudo mkdir -p $final_path
 sudo cp -a ./sources/* $final_path/
 sudo chown -R www-data: $final_path
+
+# Restore statedir
+sudo mkdir -p $statedir
+sudo cp -a ./statedir/* $statedir/
+sudo chown -R www-data:www-data $statedir
 
 # Restore logs, data & permissions
 sudo mkdir -p $final_logpath

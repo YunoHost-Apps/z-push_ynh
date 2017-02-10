@@ -9,6 +9,7 @@ domain=$(ynh_app_setting_get $app domain)
 
 # Cleaning
 sudo rm -rf /var/www/$app
+sudo rm -rf /home/yunohost.app/$app
 sudo rm -rf /var/log/$app
 sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
 sudo rm -f /etc/php5/fpm/pool.d/$app.conf
