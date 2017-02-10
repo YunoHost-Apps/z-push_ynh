@@ -84,7 +84,7 @@ sed -i "s@LOGTOCHANGE@$final_logpath@g" ../conf/logrotate
 # This contains the sync status in between device and z-push
 sed -i "s@STATEDIRTOCHANGE@$statedir@g" ../conf/config.php
 sudo mkdir -p $statedir
-sudo chown -R www:data-www-data $statedir
+sudo chown -R www-data:www-data $statedir
 # Note : there is a "fixstates actions done after the sources have been installed and configured
 
 # Enable caldav carddav support
