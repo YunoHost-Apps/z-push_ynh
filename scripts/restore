@@ -14,6 +14,9 @@ final_logpath=$(ynh_app_setting_get $app final_logpath)
 final_nginxconf=$(ynh_app_setting_get $app final_nginxconf)
 final_phpconf=$(ynh_app_setting_get $app final_phpconf)
 
+# Prereqs
+sudo apt-get install php-soap php5-imap libawl-php php5-xsl
+
 # Restore sources, data and permissions
 sudo mkdir -p $final_path
 sudo cp -a ./sources/* $final_path/
