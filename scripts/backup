@@ -19,6 +19,7 @@ source /usr/share/yunohost/helpers
 path=$(ynh_app_setting_get $app path)
 domain=$(ynh_app_setting_get $app domain)
 final_path=$(ynh_app_setting_get $app final_path)
+statedir=$(ynh_app_setting_get $app statedir)
 final_logpath=$(ynh_app_setting_get $app final_logpath)
 final_nginxconf=$(ynh_app_setting_get $app final_nginxconf)
 final_phpconf=$(ynh_app_setting_get $app final_phpconf)
@@ -27,8 +28,12 @@ final_phpconf=$(ynh_app_setting_get $app final_phpconf)
 # Note: the last argument is where to save this path, see the restore script.
 ynh_backup "$final_path" "sources"
 
+# Backup statedir
+ynh_backup "$statedir" "statedir"
+
 # Backup logs
 ynh_backup "$final_logpath" "logs"
+ynh_backup "/etc/logrotate.d/$app" "logrotate"
 
 # Copy NGINX configuration
 ynh_backup "$final_nginxconf" "nginx.conf"

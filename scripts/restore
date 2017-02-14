@@ -9,19 +9,34 @@ source /usr/share/yunohost/helpers
 path=$(ynh_app_setting_get $app path)
 domain=$(ynh_app_setting_get $app domain)
 final_path=$(ynh_app_setting_get $app final_path)
+statedir=$(ynh_app_setting_get $app statedir)
 final_logpath=$(ynh_app_setting_get $app final_logpath)
 final_nginxconf=$(ynh_app_setting_get $app final_nginxconf)
 final_phpconf=$(ynh_app_setting_get $app final_phpconf)
+
+# Prereqs
+sudo apt-get update -y
+sudo apt-get install php-soap php5-imap libawl-php php5-xsl
 
 # Restore sources, data and permissions
 sudo mkdir -p $final_path
 sudo cp -a ./sources/* $final_path/
 sudo chown -R www-data: $final_path
 
+# Restore statedir
+sudo mkdir -p $statedir
+sudo cp -a ./statedir/* $statedir/
+sudo chown -R www-data:www-data $statedir
+
 # Restore logs, data & permissions
 sudo mkdir -p $final_logpath
 sudo cp -a ./logs/* $final_logpath/
 sudo chown -R www-data:www-data $final_logpath
+
+# Restore logrotate
+sudo cp -a ./logrotate /etc/logrotate.d/$app
+sudo chmod 644 /etc/logrotate.d/$app
+sudo chown root:root /etc/logrotate.d/$app
 
 # Restore NGINX configuration
 sudo cp -a ./nginx.conf $final_nginxconf
