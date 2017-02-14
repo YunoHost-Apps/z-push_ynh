@@ -13,3 +13,4 @@
 - [x] z-push is now configured to use smtp to send emails instead of php_mail() function. This let us have emails signed by dkim for example.
 - [x] The sources are based on http://download.z-push.org/final/
 - [x] Use of version 2.3.4 final
+
