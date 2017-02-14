@@ -11,7 +11,5 @@
 - [x] Logrotate has been activated as z-push can become noisy at times
 - [x] After an upgrade, we now "fixstates" to avoid full resync of devices
 - [x] z-push is now configured to use smtp to send emails instead of php_mail() function. This let us have emails signed by dkim for example.
-YEP 3.3
 - [x] The sources are based on http://download.z-push.org/final/
 - [x] Use of version 2.3.4 final
-
