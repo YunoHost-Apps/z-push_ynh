@@ -16,8 +16,8 @@ sudo rm -f /etc/php5/fpm/pool.d/$app.conf
 sudo rm -f /etc/logrotate.d/$app
 
 # Remove app dependencies
-if ynh_package_is_installed "$DEPS_PKG_NAME"; then
-  ynh_package_autoremove "$DEPS_PKG_NAME"
+if ynh_package_is_installed "z-push-deps"; then
+  ynh_package_autoremove "z-push-deps"
 fi
 
 # Restart of services
