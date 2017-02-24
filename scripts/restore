@@ -24,12 +24,12 @@ final_phpconf=$(ynh_app_setting_get $app final_phpconf)
 
 # Restore sources, data and permissions
 sudo mkdir -p $final_path
-sudo cp -a ./sources/* $final_path/
+sudo cp -a ./sources/. $final_path/
 sudo chown -R www-data: $final_path
 
 # Restore statedir
 sudo mkdir -p $statedir
-sudo cp -a ./statedir/* $statedir/
+sudo cp -a ./statedir/. $statedir/
 sudo chown -R www-data:www-data $statedir
 
 # Restore logs, data & permissions

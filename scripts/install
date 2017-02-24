@@ -119,7 +119,7 @@ SFILE=`sudo cat ../sources/source_file`;
 sudo wget -nv -i ../sources/source_url -O ${SFILE}.tar.gz
 sudo md5sum -c ../sources/source_md5 --status || (echo "Corrupt source" >&2 && false)
 sudo tar xvf ${SFILE}.tar.gz -C ../sources/
-sudo cp -R ../sources/$SFILE/* $final_path
+sudo cp -a ../sources/$SFILE/. $final_path/
 
 # Configuration
 sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config.php
