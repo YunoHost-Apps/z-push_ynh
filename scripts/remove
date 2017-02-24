@@ -15,6 +15,11 @@ sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
 sudo rm -f /etc/php5/fpm/pool.d/$app.conf
 sudo rm -f /etc/logrotate.d/$app
 
+# Remove app dependencies
+if ynh_package_is_installed "$DEPS_PKG_NAME"; then
+  ynh_package_autoremove "$DEPS_PKG_NAME"
+fi
+
 # Restart of services
 sudo service php5-fpm reload
 sudo service nginx reload

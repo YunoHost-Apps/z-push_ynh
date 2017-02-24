@@ -1,0 +1,16 @@
+Section: misc
+Priority: optional
+Homepage: http://z-push.org/
+Standards-Version: 2.3.4
+
+Package: z-push-deps
+Version: 1.2-1
+Depends: php-soap, php5-imap, libawl-php, php5-xsl
+Architecture: all
+Description: meta package for z-push dependencies
+ Z-Push is an open-source application to synchronize 
+ ActiveSync compatible devices such as mobile phones, 
+ tablets and Outlook 2013 and above.
+ .
+ .
+This meta-package is only responsible of installing its dependencies.
