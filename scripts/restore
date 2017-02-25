@@ -35,7 +35,7 @@ sudo chown -R www-data:www-data $statedir
 
 # Restore logs, data & permissions
 sudo mkdir -p $final_logpath
-sudo cp -a ./logs/* $final_logpath/
+sudo cp -a ./logs/. $final_logpath/
 sudo chown -R www-data:www-data $final_logpath
 
 # Restore logrotate
