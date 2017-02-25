@@ -17,7 +17,7 @@ final_phpconf=$(ynh_app_setting_get $app final_phpconf)
 
 # Prereqs
 sudo apt-get update -y
-sudo apt-get install php-soap php5-imap libawl-php php5-xsl
+sudo apt-get install php-soap php5-imap libawl-php php5-xsl -y
 
 # Install dependencies using Helpers
 #ynh_package_install_from_equivs ../conf/z-push-deps.control \
