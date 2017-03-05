@@ -123,7 +123,8 @@ define('IMAP_EXCLUDED_FOLDERS', '');
 //        'sql'           - the username will be the result of a sql query. REMEMBER TO INSTALL PHP-PDO AND PHP-DATABASE
 //        'ldap'          - the username will be the result of a ldap query. REMEMBER TO INSTALL PHP-LDAP!!
 //        '@mydomain.com' - the username is used and the given string will be appended
-define('IMAP_DEFAULTFROM', '@DOMAINTOCHANGE');
+//define('IMAP_DEFAULTFROM', '@DOMAINTOCHANGE');
+define('IMAP_DEFAULTFROM', '');
 
 // DSN: formatted PDO connection string
 //    mysql:host=xxx;port=xxx;dbname=xxx
@@ -133,16 +134,16 @@ define('IMAP_DEFAULTFROM', '@DOMAINTOCHANGE');
 // QUERY: query to execute
 // FIELDS: columns in the query
 // FROM: string that will be the from, replacing the column names with the values
-define('IMAP_FROM_SQL_DSN', '');
-define('IMAP_FROM_SQL_USER', '');
-define('IMAP_FROM_SQL_PASSWORD', '');
-define('IMAP_FROM_SQL_OPTIONS', serialize(array(PDO::ATTR_PERSISTENT => true)));
-define('IMAP_FROM_SQL_QUERY', "select first_name, last_name, mail_address from users where mail_address = '#username@#domain'");
+//define('IMAP_FROM_SQL_DSN', '');
+//define('IMAP_FROM_SQL_USER', '');
+//define('IMAP_FROM_SQL_PASSWORD', '');
+//define('IMAP_FROM_SQL_OPTIONS', serialize(array(PDO::ATTR_PERSISTENT => true)));
+//define('IMAP_FROM_SQL_QUERY', "select first_name, last_name, mail_address from users where mail_address = '#username@#domain'");
 //A tester :
 //define('IMAP_FROM_SQL_QUERY', "select first_name, last_name, mail_address from users where users = '#username@#domain'");
-define('IMAP_FROM_SQL_FIELDS', serialize(array('first_name', 'last_name', 'mail_address')));
-define('IMAP_FROM_SQL_FROM', '#first_name #last_name <#mail_address>');
-define('IMAP_FROM_SQL_FULLNAME', '#first_name #last_name');
+//define('IMAP_FROM_SQL_FIELDS', serialize(array('first_name', 'last_name', 'mail_address')));
+//define('IMAP_FROM_SQL_FROM', '#first_name #last_name <#mail_address>');
+//define('IMAP_FROM_SQL_FULLNAME', '#first_name #last_name');
 
 // SERVER: ldap server
 // SERVER_PORT: ldap port
@@ -151,22 +152,22 @@ define('IMAP_FROM_SQL_FULLNAME', '#first_name #last_name');
 // QUERY: query to execute
 // FIELDS: columns in the query
 // FROM: string that will be the from, replacing the field names with the values
-define('IMAP_FROM_LDAP_SERVER', 'localhost');
-define('IMAP_FROM_LDAP_SERVER_PORT', '389');
+//define('IMAP_FROM_LDAP_SERVER', 'localhost');
+//define('IMAP_FROM_LDAP_SERVER_PORT', '389');
 //define('IMAP_FROM_LDAP_USER', 'cn=zpush,ou=servers,dc=zpush,dc=org');
 //define('IMAP_FROM_LDAP_PASSWORD', 'password');
 //define('IMAP_FROM_LDAP_BASE', 'dc=zpush,dc=org');
 //define('IMAP_FROM_LDAP_QUERY', '(mail=#username@#domain)');
-define('IMAP_FROM_LDAP_USER', '');
-define('IMAP_FROM_LDAP_PASSWORD', '');
-define('IMAP_FROM_LDAP_BASE', 'dc=yunohost,dc=org');
+//define('IMAP_FROM_LDAP_USER', '');
+//define('IMAP_FROM_LDAP_PASSWORD', '');
+//define('IMAP_FROM_LDAP_BASE', 'dc=yunohost,dc=org');
 //a revoir, le mail n'est pas le username ! exemple login : john email john.doe@domain.tld
 //define('IMAP_FROM_LDAP_QUERY', '(mail=#username)');
-define('IMAP_FROM_LDAP_QUERY', '(mail=#mail)');
+//define('IMAP_FROM_LDAP_QUERY', '(mail=#mail)');
 
-define('IMAP_FROM_LDAP_FIELDS', serialize(array('givenname', 'sn', 'mail')));
-define('IMAP_FROM_LDAP_FROM', '#givenname #sn <#mail>');
-define('IMAP_FROM_LDAP_FULLNAME', '#givenname #sn');
+//define('IMAP_FROM_LDAP_FIELDS', serialize(array('givenname', 'sn', 'mail')));
+//define('IMAP_FROM_LDAP_FROM', '#givenname #sn <#mail>');
+//define('IMAP_FROM_LDAP_FULLNAME', '#givenname #sn');
 
 
 
