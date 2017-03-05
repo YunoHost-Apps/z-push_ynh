@@ -153,8 +153,8 @@ sudo cp ../conf/php-fpm.conf $final_phpconf
 sudo chown root: $final_phpconf
 sudo chmod 644 $final_phpconf
 
-# Fixstates to avoid full resync of devices after evrsion upgrades
-sudo $final_path/z-push-admin.php -a fixstates
+# Fixstates to avoid full resync of devices after version upgrades
+#sudo $final_path/z-push-admin.php -a fixstates
 
 # Enable api for client and make the app public
 ynh_app_setting_set $app skipped_uris "/"
