@@ -1,7 +1,8 @@
 # Z-Push For Yunohost
 * * *
 ### Known bug :
-- [ ] z-push seems unable to create mailboxes folders. It means that you must send at least one email from roundcube or rainloop to have the mailboxes created. After than it all works fine.
+- [ ] [Issue 25](https://github.com/YunoHost-Apps/z-push_ynh/issues/25) : z-push seems unable to create mailboxes folders. It means that you must send at least one email from roundcube or rainloop to have the mailboxes created. After than it all works fine. 
+- [ ] [Issue 26](https://github.com/YunoHost-Apps/z-push_ynh/issues/26) : z-push with iOS seems unable to handle emails having a different login name (for example login : jd and email  john.doe@domain.tld)
 
 ### Current status
 - [x] Z-push for Yunohost supports IMAP sync and Carddav/Caldav sync if Baikal is installed
