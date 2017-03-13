@@ -2,11 +2,12 @@
     auto_remove=1
     ; Manifest
         domain="domain.tld"	(DOMAIN)
+        path="/Microsoft-Server-ActiveSync"     (PATH)
     ; Checks
         pkg_linter=1
         setup_sub_dir=1
-        setup_root=1
-        setup_nourl=1
+        setup_root=0
+        setup_nourl=0
         setup_private=0
         setup_public=0
         upgrade=1
@@ -23,7 +24,9 @@
         Level 1=auto
         Level 2=auto
         Level 3=auto
+# ?
         Level 4=1
+# ?
         Level 5=1
         Level 6=auto
         Level 7=auto
