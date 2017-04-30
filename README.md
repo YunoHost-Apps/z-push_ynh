@@ -13,5 +13,5 @@
 - [x] z-push is now configured to use smtp to send emails instead of php_mail() function. This let us have emails signed by dkim for example.
 - [x] The current imap backend configuration seems able to handle email addresses different from login (for example login : john and email john.doe@domain.tld instead of john@domain.tld) - Further testing required !
 - [x] The sources are based on http://download.z-push.org/final/
-- [x] Use of version 2.3.5 final
+- [x] Use of version 2.3.6 final
 
