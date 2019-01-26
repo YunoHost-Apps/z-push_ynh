@@ -1,32 +1,96 @@
 #!/bin/bash
-set -eu
+
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source ../settings/scripts/_common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+ynh_clean_setup () {
+	#### Remove this function if there's nothing to clean before calling the remove script.
+	true
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
 
 app=$YNH_APP_INSTANCE_NAME
 
-# Source YunoHost helpers
-source /usr/share/yunohost/helpers
-
-# Retrieve old app settings
-path=$(ynh_app_setting_get $app path)
 domain=$(ynh_app_setting_get $app domain)
+path_url=$(ynh_app_setting_get $app path)
 final_path=$(ynh_app_setting_get $app final_path)
 statedir=$(ynh_app_setting_get $app statedir)
 final_logpath=$(ynh_app_setting_get $app final_logpath)
-final_nginxconf=$(ynh_app_setting_get $app final_nginxconf)
-final_phpconf=$(ynh_app_setting_get $app final_phpconf)
 
-# Prereqs
-sudo apt-get update -y
-sudo apt-get install php-soap php5-imap libawl-php php5-xsl -y
+#=================================================
+# CHECK IF THE APP CAN BE RESTORED
+#=================================================
 
-# Install dependencies using Helpers
-#ynh_package_install_from_equivs ../conf/z-push-deps.control \
-#|| ynh_die "Unable to install dependencies"
+ynh_webpath_available $domain $path_url \
+	|| ynh_die "Path not available: ${domain}${path_url}"
+test ! -d $final_path \
+	|| ynh_die "There is already a directory: $final_path "
 
-# Restore sources, data and permissions
-sudo mkdir -p $final_path
-sudo cp -a ./sources/. $final_path/
-sudo chown -R www-data: $final_path
+#=================================================
+# STANDARD RESTORATION STEPS
+#=================================================
+# RESTORE THE NGINX CONFIGURATION
+#=================================================
+
+ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
+
+#=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
+
+ynh_restore_file "$final_path"
+
+#=================================================
+# RESTORE THE MYSQL DATABASE
+#=================================================
+
+#db_pwd=$(ynh_app_setting_get $app mysqlpwd)
+#ynh_mysql_setup_db $db_name $db_name $db_pwd
+#ynh_mysql_connect_as $db_name $db_pwd $db_name < ./db.sql
+
+#=================================================
+# RECREATE THE DEDICATED USER
+#=================================================
+
+# Create the dedicated user (if not existing)
+#ynh_system_user_create $app
+
+#=================================================
+# RESTORE USER RIGHTS
+#=================================================
+
+# Restore permissions on app files
+chown -R www-data: $final_path
+
+#=================================================
+# RESTORE THE PHP-FPM CONFIGURATION
+#=================================================
+
+ynh_restore_file "/etc/php5/fpm/pool.d/$app.conf"
+
+#=================================================
+# SPECIFIC RESTORATION
+#=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+
+# Define and install dependencies
+ynh_install_app_dependencies php-soap php5-imap libawl-php php5-xsl
 
 # Restore statedir
 sudo mkdir -p $statedir
@@ -38,25 +102,37 @@ sudo mkdir -p $final_logpath
 sudo cp -a ./logs/. $final_logpath/
 sudo chown -R www-data:www-data $final_logpath
 
-# Restore logrotate
-sudo cp -a ./logrotate /etc/logrotate.d/$app
-sudo chmod 644 /etc/logrotate.d/$app
-sudo chown root:root /etc/logrotate.d/$app
 
-# Restore NGINX configuration
-sudo cp -a ./nginx.conf $final_nginxconf
+#=================================================
+# RESTORE SYSTEMD
+#=================================================
 
-# Restore PHP-FPM configuration
-sudo cp -a ./php-fpm.conf $final_phpconf
-sudo chown root: $final_phpconf
-sudo chmod 644 $final_phpconf
+#ynh_restore_file "/etc/systemd/system/$app.service"
+#systemctl enable $app.service
 
-# Make app public
-ynh_app_setting_set $app skipped_uris "/"
+#=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
 
+#yunohost service add $app --log "/var/log/$app/APP.log"
 
-# Restart webserver
-sudo service nginx reload
-sudo service php5-fpm reload
-sudo yunohost app ssowatconf
+#=================================================
+# RESTORE THE CRON FILE
+#=================================================
 
+#ynh_restore_file "/etc/cron.d/$app"
+
+#=================================================
+# RESTORE THE LOGROTATE CONFIGURATION
+#=================================================
+
+ynh_restore_file "/etc/logrotate.d/$app"
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# RELOAD NGINX AND PHP-FPM
+#=================================================
+
+systemctl reload php5-fpm
+systemctl reload nginx
