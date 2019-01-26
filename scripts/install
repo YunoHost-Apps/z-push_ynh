@@ -261,7 +261,7 @@ if sudo yunohost app list --installed -f baikal | grep -q id ; then
 	#sed -i "s@DOMAINTOCHANGE@$domain@g" /etc/z-push/imap.conf.php
 	ynh_replace_string "//$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');" "$imap_smtp_params = array('host' => 'tcp://$baikaldomain', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '$baikaldomain', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);" /etc/z-push/imap.conf.php
 	#sed -i "s@FLAGTOCHANGE@true@g" /etc/z-push/imap.conf.php
-	ynh_replace_string"define('IMAP_MEETING_USE_CALDAV', false);" "define('IMAP_MEETING_USE_CALDAV', true);" /etc/z-push/imap.conf.php
+	ynh_replace_string "define('IMAP_MEETING_USE_CALDAV', false);" "define('IMAP_MEETING_USE_CALDAV', true);" /etc/z-push/imap.conf.php
 
 else
 	# Configuration of backend
@@ -270,7 +270,12 @@ else
 
 	# Copy config
 	#sed -i "s@DOMAINTOCHANGE@$domain@g" /etc/z-push/imap.conf.php
+	ynh_replace_string "define('IMAP_PORT', 143);" "define('IMAP_PORT', 993);" /etc/z-push/imap.conf.php
+	ynh_replace_string "define('IMAP_OPTIONS', '/notls/norsh');" "define('IMAP_OPTIONS', '/ssl/novalidate-cert');" /etc/z-push/imap.conf.php
+	ynh_replace_string "define('IMAP_FOLDER_CONFIGURED', false);" "define('IMAP_FOLDER_CONFIGURED', true);" /etc/z-push/imap.conf.php
+	ynh_replace_string "define('IMAP_SMTP_METHOD', 'mail');" "define('IMAP_SMTP_METHOD', 'smtp');" /etc/z-push/imap.conf.php
 	ynh_replace_string "//\$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');" "\$imap_smtp_params = array('host' => 'tcp://$domain', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '$domain', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);" /etc/z-push/imap.conf.php
+	
 	
 fi
 
@@ -297,6 +302,8 @@ ynh_store_file_checksum "/etc/z-push/z-push.conf.php"
 
 # Set permissions to app files
 #chown -R www-data: $final_path
+chown -R www-data: "/var/log/z-push"
+chown -R www-data: "/var/lib/z-push/"
 
 #=================================================
 # SETUP LOGROTATE
