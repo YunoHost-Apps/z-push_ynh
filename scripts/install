@@ -305,7 +305,7 @@ sudo ln -s /usr/share/awl/inc/XML* /var/www/$app/include/
 ### you can make a backup of this file before modifying it again if the admin had modified it.
 
 # Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum "$final_path/conf/config.php"
+ynh_store_file_checksum "$final_path/config.php"
 
 #=================================================
 # GENERIC FINALIZATION
