@@ -49,8 +49,8 @@ app=$YNH_APP_INSTANCE_NAME
 
 ### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
 ### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
-final_path=/var/www/$app
-test ! -e "$final_path" || ynh_die "This path already contains a folder"
+#final_path=/var/www/$app
+#test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
 # Normalize the url path syntax
 path_url=$(ynh_normalize_url_path $path_url)
@@ -96,7 +96,11 @@ ynh_app_setting_set $app path $path_url
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
 
-ynh_install_app_dependencies php-soap php5-imap libawl-php php5-xsl
+echo "deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ /" | tee /etc/apt/sources.list.d/z-push.list
+wget -qO - http://repo.z-hub.io/z-push:/final/Debian_8.0/Release.key | sudo apt-key add -
+yunohost tools update
+ynh_install_app_dependencies z-push-common z-push-config-nginx z-push-backend-caldav z-push-backend-carddav z-push-backend-combined z-push-backend-imap z-push-backend-ldap z-push-backend-galsearch-ldap z-push-autodiscover
+ynh_install_app_dependencies php-memcached php-cli php-soap 
 
 #=================================================
 # CREATE A MYSQL DATABASE
@@ -125,24 +129,7 @@ ynh_install_app_dependencies php-soap php5-imap libawl-php php5-xsl
 
 ynh_app_setting_set $app final_path $final_path
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source "$final_path"
-
-statedir="/home/yunohost.app/$app"
-CHECK_STATEDIRPATH () {    # Vérifie que le dossier de destination n'est pas déjà utilisé.
-        if [ -e "$statedir" ]
-        then
-                echo "This path already contains a folder" >&2
-                false
-        fi
-}
-
-CHECK_STATEDIRPATH
-ynh_app_setting_set "$app" statedir "$statedir"
-
-
-
-final_logpath="/var/log/$app"
-ynh_app_setting_set "$app" final_logpath "$final_logpath"
+#ynh_setup_source "$final_path"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -152,10 +139,6 @@ ynh_app_setting_set "$app" final_logpath "$final_logpath"
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
-# Modify Nginx configuration file and copy it to Nginx conf directory
-#sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
-#sudo sed -i "s@NAMETOCHANGE@$app@g" ../conf/nginx.conf
-#sudo cp ../conf/nginx.conf $final_nginxconf
 
 #=================================================
 # CREATE DEDICATED USER
@@ -250,56 +233,46 @@ ynh_add_fpm_config
 #ynh_replace_string "match_string" "replace_string" "$final_path/conf/config.php"
 
 # Configuration
-sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config.php
-sed -i "s@LOGTOCHANGE@$final_logpath@g" ../conf/config.php
+#sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" /etc/z-push/z-push.conf.php
+ynh_replace_string "define('TIMEZONE', '');"  "define('TIMEZONE', '$(cat /etc/timezone)');" /etc/z-push/z-push.conf.php
 
-# Storage of state_dir in /home/yunohost.app
-# This contains the sync status in between device and z-push
-sed -i "s@STATEDIRTOCHANGE@$statedir@g" ../conf/config.php
-sudo mkdir -p $statedir
-sudo chown -R www-data:www-data $statedir
+
 
 # Enable caldav carddav support
 if sudo yunohost app list --installed -f baikal | grep -q id ; then
 	echo "Detected Baikal"
-	caldavdomain=$(ynh_app_setting_get baikal domain)
-	caldavpath=$(ynh_app_setting_get baikal path)
-	caldavpath=${caldavpath%/}
+	baikaldomain=$(ynh_app_setting_get baikal domain)
+	baikalpath=$(ynh_app_setting_get baikal path)
+	baikalpath=${caldavpath%/}
 
 	# Configuration of backend
-	sed -i "s@BACKENDTOCHANGE@BackendCombined@g" ../conf/config.php
+	#sed -i "s@BACKENDTOCHANGE@BackendCombined@g" /etc/z-push/z-push.conf.php
+	ynh_replace_string "define('BACKEND_PROVIDER', '');" "define('BACKEND_PROVIDER', 'BackendCombined');" /etc/z-push/z-push.conf.php
 
 	# Configuration baikal
-	sed -i "s@BAIKALDOMAIN@$caldavdomain@g" ../conf/backend/config*.php
-	sed -i "s@BAIKALPATH@$caldavpath@g" ../conf/backend/config*.php
-	sed -i "s@DOMAINTOCHANGE@$domain@g" ../conf/backend/config-imap.php
-	sed -i "s@FLAGTOCHANGE@true@g" ../conf/backend/config-imap.php
+	#sed -i "s@BAIKALDOMAIN@$caldavdomain@g" /etc/z-push/caldav.conf.php
+	ynh_replace_string "caldavserver.domain.com" $baikaldomain /etc/z-push/caldav.conf.php
+	#sed -i "s@BAIKALPATH@$caldavpath@g" /etc/z-push/caldav.conf.php
+	ynh_replace_string "define('CALDAV_PATH', '/caldav.php/%u/');" "define('CALDAV_PATH', '$baikalpath/cal.php/calendars/%u/');"  /etc/z-push/caldav.conf.php
+	#sed -i "s@BAIKALDOMAIN@$caldavdomain@g" /etc/z-push/carddav.conf.php
+	ynh_replace_string  "define('CARDDAV_SERVER', 'localhost');" "define('CARDDAV_SERVER', '$baikaldomain');" /etc/z-push/carddav.conf.php
+	#sed -i "s@BAIKALPATH@$caldavpath@g" /etc/z-push/carddav.conf.php
+	ynh_replace_string "define('CARDDAV_PATH', '/caldav.php/%u/');" "define('CARDDAV_PATH', '$baikalpath/card.php/addressbooks/%u/');"  /etc/z-push/carddav.conf.php
+	#sed -i "s@DOMAINTOCHANGE@$domain@g" /etc/z-push/imap.conf.php
+	ynh_replace_string "//$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');" "$imap_smtp_params = array('host' => 'tcp://$baikaldomai', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '$baikaldomai', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);" /etc/z-push/imap.conf.php
+	#sed -i "s@FLAGTOCHANGE@true@g" /etc/z-push/imap.conf.php
+	ynh_replace_string"define('IMAP_MEETING_USE_CALDAV', false);" "define('IMAP_MEETING_USE_CALDAV', true);" /etc/z-push/imap.conf.php
 
-	# Copy config
-	sudo cp ../conf/config.php $final_path/config.php
-	sudo cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
-	sudo cp ../conf/backend/config-carddav.php $final_path/backend/carddav/config.php
-	sudo cp ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
-	sudo cp ../conf/backend/config-combined.php $final_path/backend/combined/config.php
 else
 	# Configuration of backend
-	sed -i "s@BACKENDTOCHANGE@BackendIMAP@g" ../conf/config.php
+	#sed -i "s@BACKENDTOCHANGE@BackendIMAP@g" /etc/z-push/z-push.conf.php
+	ynh_replace_string "define('BACKEND_PROVIDER', '');" "define('BACKEND_PROVIDER', 'BackendIMAP');" /etc/z-push/z-push.conf.php
 
 	# Copy config
-	sudo cp ../conf/config.php $final_path/config.php
-	sed -i "s@DOMAINTOCHANGE@$domain@g" ../conf/backend/config-imap.php
-	sed -i "s@FLAGTOCHANGE@false@g" ../conf/backend/config-imap.php
-	sudo cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
-
+	#sed -i "s@DOMAINTOCHANGE@$domain@g" /etc/z-push/imap.conf.php
+	ynh_replace_string "//$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');" "$imap_smtp_params = array('host' => 'tcp://$baikaldomai', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '$baikaldomai', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);" /etc/z-push/imap.conf.php
+	
 fi
-
-#Copy XMLElement.php
-sudo ln -s /usr/share/awl/inc/XML* /var/www/$app/include/
-
-# Create log directory
-sudo mkdir -p $final_logpath
-sudo chmod 750 $final_logpath
-sudo chown www-data:www-data $final_logpath
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
@@ -310,7 +283,7 @@ sudo chown www-data:www-data $final_logpath
 ### you can make a backup of this file before modifying it again if the admin had modified it.
 
 # Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum "$final_path/config.php"
+ynh_store_file_checksum "/etc/z-push/z-push.conf.php"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -323,7 +296,7 @@ ynh_store_file_checksum "$final_path/config.php"
 ### that really need such authorization.
 
 # Set permissions to app files
-chown -R www-data: $final_path
+#chown -R www-data: $final_path
 
 #=================================================
 # SETUP LOGROTATE

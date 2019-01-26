@@ -1,5 +1,5 @@
-SOURCE_URL=http://download.z-push.org/final/2.3/z-push-2.3.6.tar.gz
-SOURCE_SUM=9f86e4f6d822558bffdf05bebce4f1157ed7d8784b52d488935ef6d02efc27d7
+SOURCE_URL=url of app's source
+SOURCE_SUM=sha256 checksum
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true

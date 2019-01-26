@@ -110,6 +110,7 @@ ynh_secure_remove "/var/log/$app/"
 
 # Remove the statedir
 ynh_secure_remove "$statedir"
+ynh_secure_remove /etc/apt/sources.list.d/z-push.list
 
 #=================================================
 # GENERIC FINALIZATION
