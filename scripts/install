@@ -252,7 +252,6 @@ ynh_add_fpm_config
 # Configuration
 sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config.php
 sed -i "s@LOGTOCHANGE@$final_logpath@g" ../conf/config.php
-sed -i "s@LOGTOCHANGE@$final_logpath@g" ../conf/logrotate
 
 # Storage of state_dir in /home/yunohost.app
 # This contains the sync status in between device and z-push
