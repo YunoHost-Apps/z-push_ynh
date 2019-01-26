@@ -296,6 +296,11 @@ fi
 #Copy XMLElement.php
 sudo ln -s /usr/share/awl/inc/XML* /var/www/$app/include/
 
+# Create log directory
+sudo mkdir -p $final_logpath
+sudo chmod 750 $final_logpath
+sudo chown www-data:www-data $final_logpath
+
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
 #=================================================
