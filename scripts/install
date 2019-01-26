@@ -139,6 +139,11 @@ CHECK_STATEDIRPATH () {    # V√©rifie que le dossier de destination n'est pas d√
 CHECK_STATEDIRPATH
 ynh_app_setting_set "$app" statedir "$statedir"
 
+
+
+final_logpath="/var/log/$app"
+ynh_app_setting_set "$app" final_logpath "$final_logpath"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
