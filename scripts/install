@@ -1,91 +1,133 @@
 #!/bin/bash
 
-# Active trap pour arrêter le script si une erreur est détectée.
-EXIT_PROPERLY () {      # Provoque l'arrêt du script en cas d'erreur. Et nettoye les résidus.
-        exit_code=$?
-        if [ "$exit_code" -eq 0 ]; then
-                        exit 0  # Quitte sans erreur si le script se termine correctement.
-        fi
-        trap '' EXIT
-        set +eu
-        echo -e "\e[91m \e[1m"  # Shell in light red bold
-        echo -e "!!\n  $app install's script has encountered an error. Installation was cancelled.\n!!" >&2
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-        if type -t CLEAN_SETUP > /dev/null; then        # Vérifie l'existance de la fonction avant de l'exécuter.
-                CLEAN_SETUP     # Appel la fonction de nettoyage spécifique du script install.
-        fi
-
-        # Compense le bug de ssowat qui ne supprime pas l'entrée de l'app en cas d'erreur d'installation.
-        sudo sed -i "\@\"$domain$path/\":@d" /etc/ssowat/conf.json
-
-        ynh_die
-}
-
-TRAP_ON () {    # Activate signal capture
-        set -eu # Exit if a command fail, and if a variable is used unset.
-        trap EXIT_PROPERLY EXIT # Capturing exit signals on shell script
-}
-
-TRAP_ON
-
-# Source app helpers
+source _common.sh
 source /usr/share/yunohost/helpers
 
-# Retrieve arguments
-app=$YNH_APP_INSTANCE_NAME
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+ynh_clean_setup () {
+	### Remove this function if there's nothing to clean before calling the remove script.
+	true
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# RETRIEVE ARGUMENTS FROM THE MANIFEST
+#=================================================
+
 domain=$YNH_APP_ARG_DOMAIN
-path=$YNH_APP_ARG_PATH
+path_url=$YNH_APP_ARG_PATH
+#admin=$YNH_APP_ARG_ADMIN
+is_public=1
+#language=$YNH_APP_ARG_LANGUAGE
+#password=$YNH_APP_ARG_PASSWORD
 
-# We check variables are not empty
-CHECK_VAR () {  # Vérifie que la variable n'est pas vide.
-# $1 = Variable à vérifier
-# $2 = Texte à afficher en cas d'erreur
-        test -n "$1" || (echo "$2" >&2 && false)
-}
+### If it's a multi-instance app, meaning it can be installed several times independently
+### The id of the app as stated in the manifest is available as $YNH_APP_ID
+### The instance number is available as $YNH_APP_INSTANCE_NUMBER (equals "1", "2", ...)
+### The app instance name is available as $YNH_APP_INSTANCE_NAME
+###    - the first time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample
+###    - the second time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample__2
+###    - ynhexample__{N} for the subsequent installations, with N=3,4, ...
+### The app instance name is probably what interests you most, since this is
+### guaranteed to be unique. This is a good unique identifier to define installation path,
+### db names, ...
+app=$YNH_APP_INSTANCE_NAME
 
-CHECK_VAR "$app" "app name not set"
+#=================================================
+# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
+#=================================================
 
-# Check the path value and correct it (adds / at begining and removes it at the end)
-CHECK_PATH () { # Vérifie la présence du / en début de path. Et son absence à la fin.
-        if [ "${path:0:1}" != "/" ]; then    # Si le premier caractère n'est pas un /
-                path="/$path"    # Ajoute un / en début de path
-        fi
-        if [ "${path:${#path}-1}" == "/" ] && [ ${#path} -gt 1 ]; then    # Si le dernier caractère est un / et que ce n'est pas l$
-                path="${path:0:${#path}-1}"     # Supprime le dernier caractère
-        fi
-}
+### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
+### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
+final_path=/var/www/$app
+test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
-CHECK_PATH;
+# Normalize the url path syntax
+path_url=$(ynh_normalize_url_path $path_url)
 
-# Check domain and path availibility
-CHECK_DOMAINPATH () {   # Vérifie la disponibilité du path et du domaine.
-        sudo yunohost app checkurl $domain$path -a $app
-}
+# Register (book) web path
+ynh_webpath_register $app $domain $path_url
 
-CHECK_DOMAINPATH
+#=================================================
+# STORE SETTINGS FROM MANIFEST
+#=================================================
 
-# Prereqs
-#sudo apt-get install php-soap php5-imap libawl-php php5-xsl -y
+ynh_app_setting_set $app domain $domain
+ynh_app_setting_set $app path $path_url
+#ynh_app_setting_set $app admin $admin
+#ynh_app_setting_set $app is_public $is_public
+#ynh_app_setting_set $app language $language
 
-# Install dependencies using Helpers
-ynh_package_install_from_equivs ../conf/z-push-deps.control \
-|| ynh_die "Unable to install dependencies"
+#=================================================
+# STANDARD MODIFICATIONS
+#=================================================
+# FIND AND OPEN A PORT
+#=================================================
 
+### Use these lines if you have to open a port for the application
+### `ynh_find_port` will find the first available port starting from the given port.
+### If you're not using these lines:
+###		- Remove the section "CLOSE A PORT" in the remove script
 
-final_path="/var/www/$app"
+# Find a free port
+#port=$(ynh_find_port 8095)
+# Open this port
+#yunohost firewall allow --no-upnp TCP $port 2>&1
+#ynh_app_setting_set $app port $port
 
-CHECK_FINALPATH () {    # Vérifie que le dossier de destination n'est pas déjà utilisé.
-        if [ -e "$final_path" ]
-        then
-                echo "This path already contains a folder" >&2
-                false
-        fi
-}
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
 
-CHECK_FINALPATH
+### `ynh_install_app_dependencies` allows you to add any "apt" dependencies to the package.
+### Those deb packages will be installed as dependencies of this package.
+### If you're not using this helper:
+###		- Remove the section "REMOVE DEPENDENCIES" in the remove script
+###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
+###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
+
+ynh_install_app_dependencies php-soap php5-imap libawl-php php5-xsl
+
+#=================================================
+# CREATE A MYSQL DATABASE
+#=================================================
+
+### Use these lines if you need a database for the application.
+### `ynh_mysql_setup_db` will create a database, an associated user and a ramdom password.
+### The password will be stored as 'mysqlpwd' into the app settings,
+### and will be available as $db_pwd
+### If you're not using these lines:
+###		- Remove the section "BACKUP THE MYSQL DATABASE" in the backup script
+###		- Remove also the section "REMOVE THE MYSQL DATABASE" in the remove script
+###		- As well as the section "RESTORE THE MYSQL DATABASE" in the restore script
+
+#db_name=$(ynh_sanitize_dbid $app)
+#ynh_app_setting_set $app db_name $db_name
+#ynh_mysql_setup_db $db_name $db_name
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+
+### `ynh_setup_source` is used to install an app from a zip or tar.gz file,
+### downloaded from an upstream source, like a git repository.
+### `ynh_setup_source` use the file conf/app.src
+
+ynh_app_setting_set $app final_path $final_path
+# Download, check integrity, uncompress and patch the source from app.src
+ynh_setup_source "$final_path"
 
 statedir="/home/yunohost.app/$app"
-
 CHECK_STATEDIRPATH () {    # Vérifie que le dossier de destination n'est pas déjà utilisé.
         if [ -e "$statedir" ]
         then
@@ -95,31 +137,112 @@ CHECK_STATEDIRPATH () {    # Vérifie que le dossier de destination n'est pas d�
 }
 
 CHECK_STATEDIRPATH
-
-
-# Define variables and Save app settings
-ynh_app_setting_set "$app" domain "$domain"
-ynh_app_setting_set "$app" final_path "$final_path"
 ynh_app_setting_set "$app" statedir "$statedir"
 
-final_logpath="/var/log/$app"
-ynh_app_setting_set "$app" final_logpath "$final_logpath"
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
 
-final_nginxconf="/etc/nginx/conf.d/${domain}.d/${app}.conf"
-ynh_app_setting_set "$app" final_nginxconf "$final_nginxconf"
+### `ynh_add_nginx_config` will use the file conf/nginx.conf
 
-final_phpconf="/etc/php5/fpm/pool.d/${app}.conf"
-ynh_app_setting_set "$app" final_phpconf "$final_phpconf"
+# Create a dedicated nginx config
+ynh_add_nginx_config
+# Modify Nginx configuration file and copy it to Nginx conf directory
+#sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
+#sudo sed -i "s@NAMETOCHANGE@$app@g" ../conf/nginx.conf
+#sudo cp ../conf/nginx.conf $final_nginxconf
 
-# Copy files to the right place
-sudo mkdir -p $final_path
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
 
-# We download the sources and check the md5sum
-SFILE=`sudo cat ../sources/source_file`;
-sudo wget -nv -i ../sources/source_url -O ${SFILE}.tar.gz
-sudo md5sum -c ../sources/source_md5 --status || (echo "Corrupt source" >&2 && false)
-sudo tar xvf ${SFILE}.tar.gz -C ../sources/
-sudo cp -a ../sources/$SFILE/. $final_path/
+# Create a system user
+# ynh_system_user_create $app
+
+#=================================================
+# PHP-FPM CONFIGURATION
+#=================================================
+
+### `ynh_add_fpm_config` is used to set up a PHP config.
+### You can remove it if your app doesn't use PHP.
+### `ynh_add_fpm_config` will use the files conf/php-fpm.conf and conf/php-fpm.ini
+### If you're not using these lines:
+###		- You can remove these files in conf/.
+###		- Remove the section "BACKUP THE PHP-FPM CONFIGURATION" in the backup script
+###		- Remove also the section "REMOVE PHP-FPM CONFIGURATION" in the remove script
+###		- As well as the section "RESTORE THE PHP-FPM CONFIGURATION" in the restore script
+###		With the reload at the end of the script.
+###		- And the section "PHP-FPM CONFIGURATION" in the upgrade script
+
+# Create a dedicated php-fpm config
+ynh_add_fpm_config
+# Dedicated php-fpm processes
+#sudo sed -i "s@NAMETOCHANGE@$app@g" ../conf/php-fpm.conf
+#sudo cp ../conf/php-fpm.conf $final_phpconf
+#sudo chown root: $final_phpconf
+#sudo chmod 644 $final_phpconf
+
+#=================================================
+# SPECIFIC SETUP
+#=================================================
+# ...
+#=================================================
+
+#=================================================
+# SETUP SYSTEMD
+#=================================================
+
+### `ynh_systemd_config` is used to configure a systemd script for an app.
+### It can be used for apps that use sysvinit (with adaptation) or systemd.
+### Have a look at the app to be sure this app needs a systemd script.
+### `ynh_systemd_config` will use the file conf/systemd.service
+### If you're not using these lines:
+###		- You can remove those files in conf/.
+###		- Remove the section "BACKUP SYSTEMD" in the backup script
+###		- Remove also the section "STOP AND REMOVE SERVICE" in the remove script
+###		- As well as the section "RESTORE SYSTEMD" in the restore script
+###		- And the section "SETUP SYSTEMD" in the upgrade script
+
+# Create a dedicated systemd config
+#ynh_add_systemd_config
+
+#=================================================
+# SETUP APPLICATION WITH CURL
+#=================================================
+
+### Use these lines only if the app installation needs to be finalized through
+### web forms. We generally don't want to ask the final user,
+### so we're going to use curl to automatically fill the fields and submit the
+### forms.
+
+# Set right permissions for curl install
+#chown -R $app: $final_path
+
+# Set the app as temporarily public for curl call
+#ynh_app_setting_set $app skipped_uris "/"
+# Reload SSOwat config
+#yunohost app ssowatconf
+
+# Reload Nginx
+#systemctl reload nginx
+
+# Installation with curl
+#ynh_local_curl "/INSTALL_PATH" "key1=value1" "key2=value2" "key3=value3"
+
+# Remove the public access
+#if [ $is_public -eq 0 ]
+#then
+#	ynh_app_setting_delete $app skipped_uris
+#fi
+
+#=================================================
+# MODIFY A CONFIG FILE
+#=================================================
+
+### `ynh_replace_string` is used to replace a string in a file.
+### (It's compatible with sed regular expressions syntax)
+
+ynh_replace_string "match_string" "replace_string" "$final_path/conf/config.php"
 
 # Configuration
 sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config.php
@@ -166,37 +289,78 @@ else
 
 fi
 
-# Set permissions to z-push directory
-sudo chown -R www-data: $final_path
-
-# Create log directory
-sudo mkdir -p $final_logpath
-sudo chmod 750 $final_logpath
-sudo chown www-data:www-data $final_logpath
-
-# Activate logrotate
-sudo cp ../conf/logrotate /etc/logrotate.d/$app
-sudo chmod 644 /etc/logrotate.d/$app
-sudo chown root:root /etc/logrotate.d/$app
-
 #Copy XMLElement.php
 sudo ln -s /usr/share/awl/inc/XML* /var/www/$app/include/
 
-# Modify Nginx configuration file and copy it to Nginx conf directory
-sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
-sudo sed -i "s@NAMETOCHANGE@$app@g" ../conf/nginx.conf
-sudo cp ../conf/nginx.conf $final_nginxconf
+#=================================================
+# STORE THE CONFIG FILE CHECKSUM
+#=================================================
 
-# Dedicated php-fpm processes
-sudo sed -i "s@NAMETOCHANGE@$app@g" ../conf/php-fpm.conf
-sudo cp ../conf/php-fpm.conf $final_phpconf
-sudo chown root: $final_phpconf
-sudo chmod 644 $final_phpconf
+### `ynh_store_file_checksum` is used to store the checksum of a file.
+### That way, during the upgrade script, by using `ynh_backup_if_checksum_is_different`,
+### you can make a backup of this file before modifying it again if the admin had modified it.
 
-# Enable api for client and make app public
-ynh_app_setting_set $app skipped_uris "/"
+# Calculate and store the config file checksum into the app settings
+ynh_store_file_checksum "$final_path/conf/config.php"
 
-# Reload Nginx and regenerate SSOwat conf
-sudo service php5-fpm reload
-sudo service nginx reload
-sudo yunohost app ssowatconf
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
+
+### For security reason, any app should set the permissions to root: before anything else.
+### Then, if write authorization is needed, any access should be given only to directories
+### that really need such authorization.
+
+# Set permissions to app files
+chown -R www-data: $final_path
+
+#=================================================
+# SETUP LOGROTATE
+#=================================================
+
+### `ynh_use_logrotate` is used to configure a logrotate configuration for the logs of this app.
+### Use this helper only if there is effectively a log file for this app.
+### If you're not using this helper:
+###		- Remove the section "BACKUP LOGROTATE" in the backup script
+###		- Remove also the section "REMOVE LOGROTATE CONFIGURATION" in the remove script
+###		- As well as the section "RESTORE THE LOGROTATE CONFIGURATION" in the restore script
+###		- And the section "SETUP LOGROTATE" in the upgrade script
+
+# Use logrotate to manage application logfile(s)
+ynh_use_logrotate
+
+#=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
+### `yunohost service add` is a CLI yunohost command to add a service in the admin panel.
+### You'll find the service in the 'services' section of YunoHost admin panel.
+### This CLI command would be useless if the app does not have any services (systemd or sysvinit)
+### If you're not using these lines:
+###		- You can remove these files in conf/.
+###		- Remove the section "REMOVE SERVICE FROM ADMIN PANEL" in the remove script
+###		- As well as the section ADVERTISE SERVICE IN ADMIN PANEL" in the restore script
+
+#yunohost service add $app --log "/var/log/$app/APP.log"
+# if using yunohost version 3.2 or more in the 'manifest.json', a description can be added
+#yunohost service add $app --description "$app daemon for XXX" --log "/var/log/$app/APP.log"
+
+#=================================================
+# SETUP SSOWAT
+#=================================================
+
+# Make app public if necessary
+if [ $is_public -eq 1 ]
+then
+	# unprotected_uris allows SSO credentials to be passed anyway.
+	ynh_app_setting_set $app unprotected_uris "/"
+fi
+
+#=================================================
+# RELOAD NGINX
+#=================================================
+
+systemctl reload nginx
+
