@@ -270,7 +270,7 @@ else
 
 	# Copy config
 	#sed -i "s@DOMAINTOCHANGE@$domain@g" /etc/z-push/imap.conf.php
-	ynh_replace_string "//$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');" "$imap_smtp_params = array('host' => 'tcp://$baikaldomai', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '$baikaldomai', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);" /etc/z-push/imap.conf.php
+	ynh_replace_string "//\$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');" "\$imap_smtp_params = array('host' => 'tcp://$baikaldomai', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '$baikaldomai', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);" /etc/z-push/imap.conf.php
 	
 fi
 
