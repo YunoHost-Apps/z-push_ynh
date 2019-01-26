@@ -8,7 +8,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 ## Overview
 Quick description of this app.
 
-**Shipped version:** 2.4.5
+**Shipped version:** 2.3.6
 
 * * *
 ### Known bug :
