@@ -230,8 +230,8 @@ ynh_use_logrotate --non-append
 
 # Set permissions on app files
 #chown -R root: $final_path
-chown -R www-data:www-data $log_path
-chown -R www-data:www-data $state_path
+#chown -R www-data:www-data $log_path
+#chown -R www-data:www-data $state_path
 
 #=================================================
 # SETUP SSOWAT
