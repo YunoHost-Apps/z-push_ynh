@@ -271,23 +271,24 @@ if sudo yunohost app list --installed -f baikal | grep -q id ; then
 	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "baikalpath/card.php/addressbooks/%u/default" "$config_path/carddav.conf.php"
 	
 	# Configuration of imap
-	sudo cp ../conf/imap.conf.php $config_path/imap.conf.php
-	ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/imap.conf.php"
-	ynh_replace_string "__IMAP_MEETING_USE_CALDAV__" "true" "$config_path/imap.conf.php"
+	#sudo cp ../conf/imap.conf.php $config_path/imap.conf.php
+	#ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/imap.conf.php"
+	#ynh_replace_string "__IMAP_MEETING_USE_CALDAV__" "true" "$config_path/imap.conf.php"
 	
 	# Checksum of config files
 		
 	ynh_store_file_checksum "$config_path/combined.conf.php"
 	ynh_store_file_checksum "$config_path/caldav.conf.php"
 	ynh_store_file_checksum "$config_path/carddav.conf.php"
-	ynh_store_file_checksum "$config_path/imap.conf.php"
+	#ynh_store_file_checksum "$config_path/imap.conf.php"
 
 else
 	# Configuration of backend
 	# Configuration of backend
 	ynh_replace_string "__BACKEND_PROVIDER__" "BackendIMAP" "$config_path/z-push.conf.php"
-	ynh_replace_string "__BACKEND_PROVIDER__" "BackendIMAP" "$config_path/autodiscover.conf.php"
-	
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendIMAP" "$config_path/autodiscover.conf.php"		
+fi
+
 	# Configuration of imap
 	sudo cp ../conf/imap.conf.php $config_path/imap.conf.php
 	ynh_replace_string "__DOMAIN__" "$domain" "$config_path/imap.conf.php"
@@ -295,9 +296,6 @@ else
 	
 	# Checksum of config files
 	ynh_store_file_checksum "$config_path/imap.conf.php"
-
-		
-fi
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
