@@ -358,7 +358,7 @@ ynh_use_logrotate
 
 #yunohost service add $app --log "/var/log/$app/APP.log"
 # if using yunohost version 3.2 or more in the 'manifest.json', a description can be added
-yunohost service add $app --description "$app daemon for XXX" --log "/var/log/$app/$app.log"
+#yunohost service add $app --description "$app daemon for XXX" --log "/var/log/$app/$app.log"
 
 #=================================================
 # SETUP SSOWAT
@@ -368,10 +368,7 @@ yunohost service add $app --description "$app daemon for XXX" --log "/var/log/$a
 if [ $is_public -eq 1 ]
 then
 	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_set $app unprotected_uris "/Microsoft-Server-ActiveSync"
-	ynh_app_setting_set $app unprotected_uris "/AutoDiscover"
-	ynh_app_setting_set $app unprotected_uris "/Autodiscover"
-	ynh_app_setting_set $app unprotected_uris "/autodiscover"
+	ynh_app_setting_set $app unprotected_uris "/"
 fi
 
 #=================================================
