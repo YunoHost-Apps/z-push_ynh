@@ -295,7 +295,7 @@ elif sudo yunohost app list --installed -f nextcloud | grep -q id ; then
 	sudo cp ../conf/carddav.conf.php $config_path/carddav.conf.php
 	ynh_replace_string "__DOMAIN__" "$nextclouddomain" "$config_path/carddav.conf.php"
 	ynh_replace_string "__CARDDAV_PATH__" "$nextcloudpath/remote.php/dav/addressbooks/users/%u/contacts/" "$config_path/carddav.conf.php"
-	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "$nextcloudpath/remote.php/dav/addressbooks/users/%u/contacts/" "$config_path/carddav.conf.php"
+	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "$nextcloudpath/remote.php/dav/addressbooks/users/%u/contacts/" "$config_path/carddav.conf.php"	
 	
 	# Checksum of config files		
 	ynh_store_file_checksum "$config_path/combined.conf.php"
