@@ -23,16 +23,29 @@
     "arguments": {
         "install" : [
             {
-                "name": "domain",
+                "name": "domain_activesync",
                 "type": "domain",
                 "ask": {
-                    "en": "Choose a domain for Z-push",
-                    "fr": "Choisissez un domaine pour Z-push"
+                    "en": "Choose a domain for Z-push ActiveSync",
+                    "fr": "Choisissez un domaine pour Z-push ActiveSync"
                 },
                 "example": "example.com",
                 "help": {
                     "en": "Z-push will be available at domain/Microsoft-Server-ActiveSync.",
                     "fr": "Z-push sera disponible à l'adresse domaine/Microsoft-Server-ActiveSync."
+                }
+            },
+            {
+                "name": "domain_autodiscover",
+                "type": "domain",
+                "ask": {
+                    "en": "Choose a domain for Z-push Autodiscover",
+                    "fr": "Choisissez un domaine pour Z-push Autodiscover"
+                },
+                "example": "example.com",
+                "help": {
+                    "en": "Z-push will be available at domain/Microsoft-Server-Autodiscover.",
+                    "fr": "Z-push sera disponible à l'adresse domaine/Microsoft-Server-Autodiscover."
                 }
             }
         ]
