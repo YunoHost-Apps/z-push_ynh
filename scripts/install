@@ -24,18 +24,16 @@ ynh_abort_if_errors
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
 
-domain=$YNH_APP_ARG_DOMAIN
-path_url="/"
-#admin=$YNH_APP_ARG_ADMIN
-is_public="1"
-#language=$YNH_APP_ARG_LANGUAGE
-#password=$YNH_APP_ARG_PASSWORD
-
+domain_activesync=$YNH_APP_ARG_DOMAIN
+domain_autodiscover=$YNH_APP_ARG_DOMAIN
 path_url_activesync="/Microsoft-Server-ActiveSync"
 path_url_autodiscover1="/AutoDiscover"
 path_url_autodiscover2="/Autodiscover"
 path_url_autodiscover3="/autodiscover"
-
+#admin=$YNH_APP_ARG_ADMIN
+is_public="1"
+#language=$YNH_APP_ARG_LANGUAGE
+#password=$YNH_APP_ARG_PASSWORD
 
 ### If it's a multi-instance app, meaning it can be installed several times independently
 ### The id of the app as stated in the manifest is available as $YNH_APP_ID
@@ -61,10 +59,13 @@ state_path=/var/lib/z-push
 #test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
 # Normalize the url path syntax
-path_url=$(ynh_normalize_url_path $path_url)
+#path_url=$(ynh_normalize_url_path $path_url)
 
 # Register (book) web path
-ynh_webpath_register $app $domain $path_url
+ynh_webpath_register $app $domain_activesync $path_url_activesync
+ynh_webpath_register $app $domain_autodiscover $path_url_autodiscover1
+ynh_webpath_register $app $domain_autodiscover $path_url_autodiscover2
+ynh_webpath_register $app $domain_autodiscover $path_url_autodiscover3
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
