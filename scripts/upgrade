@@ -18,8 +18,9 @@ app=$YNH_APP_INSTANCE_NAME
 domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
 final_path=$(ynh_app_setting_get $app final_path)
-statedir=$(ynh_app_setting_get $app statedir)
-final_logpath=$(ynh_app_setting_get $app final_logpath)
+config_path=$(ynh_app_setting_get $app config_path)
+state_path=$(ynh_app_setting_get $app state_path)
+log_path=$(ynh_app_setting_get $app log_path)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -73,7 +74,7 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source "$final_path"
+#ynh_setup_source "$final_path"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -86,14 +87,19 @@ ynh_add_nginx_config
 # UPGRADE DEPENDENCIES
 #=================================================
 
-ynh_install_app_dependencies php-soap php5-imap libawl-php php5-xsl
+echo "deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ /" | tee /etc/apt/sources.list.d/z-push.list
+wget -qO - http://repo.z-hub.io/z-push:/final/Debian_9.0/Release.key | sudo apt-key add -
+yunohost tools update
+ynh_install_app_dependencies z-push-common z-push-backend-caldav z-push-backend-carddav z-push-backend-combined z-push-backend-imap z-push-backend-ldap z-push-backend-galsearch-ldap z-push-autodiscover
+ynh_install_app_dependencies php-memcached php-cli php-soap 
+
 
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create $app
+#ynh_system_user_create $app
 
 #=================================================
 # PHP-FPM CONFIGURATION
@@ -107,71 +113,100 @@ ynh_add_fpm_config
 #=================================================
 # ...
 #=================================================
-z-push-admin -a fixstates
-# Configuration
-sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config.php
-sed -i "s@LOGTOCHANGE@$final_logpath@g" ../conf/config.php
 
-# Storage of state_dir in /home/yunohost.app
-# This contains the sync status in between device and z-push
-sed -i "s@STATEDIRTOCHANGE@$statedir@g" ../conf/config.php
-sudo mkdir -p $statedir
-sudo chown -R www-data:www-data $statedir
-# Note : there is a "fixstates actions done after the sources have been installed and configured
+sudo cp ../conf/policies.ini $config_path/policies.ini
+sudo cp ../conf/z-push.conf.php $config_path/z-push.conf.php
+sudo cp ../conf/galsearch-ldap.conf.php $config_path/galsearch-ldap.conf.php
+sudo cp ../conf/autodiscover.conf.php $config_path/autodiscover.conf.php
+
+# Configuration of timezone
+ynh_replace_string "__TIMEZONE__" "$(cat /etc/timezone)" "$config_path/z-push.conf.php"
+ynh_replace_string "__TIMEZONE__" "$(cat /etc/timezone)" "$config_path/autodiscover.conf.php"
+
 
 # Enable caldav carddav support
 if sudo yunohost app list --installed -f baikal | grep -q id ; then
-        echo "Detected Baikal"
-        caldavdomain=$(ynh_app_setting_get baikal domain)
-        caldavpath=$(ynh_app_setting_get baikal path)
-        caldavpath=${caldavpath%/}
-
-        # Configuration of backend
-        sed -i "s@BACKENDTOCHANGE@BackendCombined@g" ../conf/config.php
-
-        # Configuration baikal
-        sed -i "s@BAIKALDOMAIN@$caldavdomain@g" ../conf/backend/config*.php
-        sed -i "s@BAIKALPATH@$caldavpath@g" ../conf/backend/config*.php
-        sed -i "s@DOMAINTOCHANGE@$domain@g" ../conf/backend/config-imap.php
-        sed -i "s@FLAGTOCHANGE@true@g" ../conf/backend/config-imap.php
-
-        # Copy config
-        sudo cp ../conf/config.php $final_path/config.php
-        sudo cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
-        sudo cp ../conf/backend/config-carddav.php $final_path/backend/carddav/config.php
-        sudo cp ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
-        sudo cp ../conf/backend/config-combined.php $final_path/backend/combined/config.php
+	echo "Detected Baikal"
+	baikaldomain=$(ynh_app_setting_get baikal domain)
+	baikalpath=$(ynh_app_setting_get baikal path)
+	baikalpath=${baikalpath%/}
+	
+	# Configuration of backend
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/z-push.conf.php"
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/autodiscover.conf.php"
+	sudo cp ../conf/combined.conf.php $config_path/combined.conf.php
+	
+	# Configuration of caldav
+	sudo cp ../conf/caldav.conf.php $config_path/caldav.conf.php
+	ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/caldav.conf.php"
+	ynh_replace_string "__CALDAV_PATH__" "$baikalpath/cal.php/calendars/%u/" "$config_path/caldav.conf.php"
+	
+	# Configuration of carddav
+	sudo cp ../conf/carddav.conf.php $config_path/carddav.conf.php
+	ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/carddav.conf.php"
+	ynh_replace_string "__CARDDAV_PATH__" "$baikalpath/card.php/addressbooks/%u/" "$config_path/carddav.conf.php"
+	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "$baikalpath/card.php/addressbooks/%u/default" "$config_path/carddav.conf.php"
+	
+	# Checksum of config files		
+	ynh_store_file_checksum "$config_path/combined.conf.php"
+	ynh_store_file_checksum "$config_path/caldav.conf.php"
+	ynh_store_file_checksum "$config_path/carddav.conf.php"
+	
+elif sudo yunohost app list --installed -f nextcloud | grep -q id ; then
+	echo "Detected NextCloud"
+	nextclouddomain=$(ynh_app_setting_get nextcloud domain)
+	nextcloudpath=$(ynh_app_setting_get nextcloud path)
+	nextcloudpath=${nextcloudpath%/}
+	
+	# Configuration of backend
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/z-push.conf.php"
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/autodiscover.conf.php"
+	sudo cp ../conf/combined.conf.php $config_path/combined.conf.php
+	
+	# Configuration of caldav
+	sudo cp ../conf/caldav.conf.php $config_path/caldav.conf.php
+	ynh_replace_string "__DOMAIN__" "$nextclouddomain" "$config_path/caldav.conf.php"
+	ynh_replace_string "__CALDAV_PATH__" "$nextcloudpath/remote.php/dav/calendars/%u/personal/" "$config_path/caldav.conf.php"
+	
+	# Configuration of carddav
+	sudo cp ../conf/carddav.conf.php $config_path/carddav.conf.php
+	ynh_replace_string "__DOMAIN__" "$nextclouddomain" "$config_path/carddav.conf.php"
+	ynh_replace_string "__CARDDAV_PATH__" "$nextcloudpath/remote.php/dav/addressbooks/users/%u/contacts/" "$config_path/carddav.conf.php"
+	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "$nextcloudpath/remote.php/dav/addressbooks/users/%u/contacts/" "$config_path/carddav.conf.php"	
+	
+	# Checksum of config files		
+	ynh_store_file_checksum "$config_path/combined.conf.php"
+	ynh_store_file_checksum "$config_path/caldav.conf.php"
+	ynh_store_file_checksum "$config_path/carddav.conf.php"
 else
-        # Configuration of backend
-        sed -i "s@BACKENDTOCHANGE@BackendIMAP@g" ../conf/config.php
-
-        # Copy config
-        sudo cp ../conf/config.php $final_path/config.php
-        sed -i "s@DOMAINTOCHANGE@$domain@g" ../conf/backend/config-imap.php
-        sed -i "s@FLAGTOCHANGE@false@g" ../conf/backend/config-imap.php
-        sudo cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
-
+	# Configuration of backend
+	# Configuration of backend
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendIMAP" "$config_path/z-push.conf.php"
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendIMAP" "$config_path/autodiscover.conf.php"		
 fi
 
-# Set permissions to z-push directory
-sudo chown -R www-data: $final_path
-
-# Create log directory
-sudo mkdir -p $final_logpath
-sudo chmod 750 $final_logpath
-sudo chown www-data:www-data $final_logpath
-
-#Copy XMLElement.php
-sudo ln -s /usr/share/awl/inc/XML* /var/www/z-push/include/
+	# Configuration of imap
+	sudo cp ../conf/imap.conf.php $config_path/imap.conf.php
+	ynh_replace_string "__DOMAIN__" "$domain" "$config_path/imap.conf.php"
+	ynh_replace_string "__IMAP_MEETING_USE_CALDAV__" "false" "$config_path/imap.conf.php"
+	
+	# Checksum of config files
+	ynh_store_file_checksum "$config_path/imap.conf.php"
 
 # Fixstates to avoid full resync of devices after version upgrades
 sudo $final_path/z-push-admin.php -a fixstates
 
 ### Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.
 ### And create a backup of this file if the checksum is different. So the file will be backed up if the admin had modified it.
-ynh_backup_if_checksum_is_different "$final_path/config.php"
+ynh_backup_if_checksum_is_different "$config_path/policies.ini"
+ynh_backup_if_checksum_is_different "$config_path/z-push.conf.php"
+ynh_backup_if_checksum_is_different "$config_path/galsearch-ldap.conf.php"
+ynh_backup_if_checksum_is_different "$config_path/autodiscover.conf.php"
 # Recalculate and store the checksum of the file for the next upgrade.
-ynh_store_file_checksum "$final_path/config.php"
+ynh_store_file_checksum "$config_path/policies.ini"
+ynh_store_file_checksum "$config_path/z-push.conf.php"
+ynh_store_file_checksum "$config_path/galsearch-ldap.conf.php"
+ynh_store_file_checksum "$config_path/autodiscover.conf.php"
 
 #=================================================
 # SETUP LOGROTATE
@@ -195,6 +230,8 @@ ynh_use_logrotate --non-append
 
 # Set permissions on app files
 chown -R root: $final_path
+chown -R www-data: $log_path
+chown -R www-data: $state_path
 
 #=================================================
 # SETUP SSOWAT

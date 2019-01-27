@@ -31,6 +31,7 @@ domain=$(ynh_app_setting_get $app domain)
 #db_name=$(ynh_app_setting_get $app db_name)
 config_path=$(ynh_app_setting_get $app config_path)
 state_path=$(ynh_app_setting_get $app state_path)
+log_path=$(ynh_app_setting_get $app log_path)
 
 #=================================================
 # STANDARD BACKUP STEPS

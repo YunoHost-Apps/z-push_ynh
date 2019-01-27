@@ -58,6 +58,7 @@ app=$YNH_APP_INSTANCE_NAME
 final_path=/usr/share/z-push
 config_path=/etc/z-push
 state_path=/var/lib/z-push
+log_path=/var/log/z-push
 #test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
 # Normalize the url path syntax
@@ -138,6 +139,7 @@ ynh_install_app_dependencies php-memcached php-cli php-soap
 ynh_app_setting_set $app final_path $final_path
 ynh_app_setting_set $app config_path $config_path
 ynh_app_setting_set $app state_path $state_path
+ynh_app_setting_set $app log_path $log_path
 # Download, check integrity, uncompress and patch the source from app.src
 #ynh_setup_source "$final_path"
 
@@ -342,8 +344,8 @@ ynh_store_file_checksum "$config_path/autodiscover.conf.php"
 
 # Set permissions to app files
 #chown -R www-data: $final_path
-chown -R www-data: "/var/log/z-push/"
-chown -R www-data: "/var/lib/z-push/"
+chown -R www-data: $log_path
+chown -R www-data: $state_path
 
 #=================================================
 # SETUP LOGROTATE
