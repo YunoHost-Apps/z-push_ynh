@@ -36,7 +36,7 @@ Quick description of this app.
 
 ## Licence
 
-* License: AGPL-3.0
+* LICENSE: AGPL-3.0
 
 ## Configuration
 
