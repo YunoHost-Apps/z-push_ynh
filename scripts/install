@@ -46,6 +46,12 @@ is_public="1"
 ### guaranteed to be unique. This is a good unique identifier to define installation path,
 ### db names, ...
 app=$YNH_APP_INSTANCE_NAME
+app_activesync=$app
+app_autodiscover=$app
+
+app_activesync+="_activesync"
+app_autodiscover+="_autodiscover"
+
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
@@ -62,10 +68,10 @@ state_path=/var/lib/z-push
 #path_url=$(ynh_normalize_url_path $path_url)
 
 # Register (book) web path
-ynh_webpath_register $app $domain_activesync $path_url_activesync
-ynh_webpath_register $app $domain_autodiscover $path_url_autodiscover1
-ynh_webpath_register $app $domain_autodiscover $path_url_autodiscover2
-ynh_webpath_register $app $domain_autodiscover $path_url_autodiscover3
+ynh_webpath_register $app_activesync $domain_activesync $path_url_activesync
+ynh_webpath_register $app_autodiscover $domain_autodiscover $path_url_autodiscover1
+ynh_webpath_register $app_autodiscover $domain_autodiscover $path_url_autodiscover2
+ynh_webpath_register $app_autodiscover $domain_autodiscover $path_url_autodiscover3
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
