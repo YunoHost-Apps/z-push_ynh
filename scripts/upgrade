@@ -23,6 +23,10 @@ config_path=$(ynh_app_setting_get $app config_path)
 state_path=$(ynh_app_setting_get $app state_path)
 log_path=$(ynh_app_setting_get $app log_path)
 
+config_path=/etc/z-push
+
+ynh_app_setting_set $app config_path $config_path
+
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
