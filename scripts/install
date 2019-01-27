@@ -64,7 +64,10 @@ state_path=/var/lib/z-push
 path_url=$(ynh_normalize_url_path $path_url)
 
 # Register (book) web path
-ynh_webpath_register $app $domain $path_url
+ynh_webpath_register $app $domain $path_url_activesync
+ynh_webpath_register $app $domain $path_url_autodiscover1
+ynh_webpath_register $app $domain $path_url_autodiscover2
+ynh_webpath_register $app $domain $path_url_autodiscover3
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
