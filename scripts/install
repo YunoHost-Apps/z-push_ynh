@@ -305,7 +305,7 @@ ynh_store_file_checksum "/etc/z-push/imap.conf.php"
 
 # Set permissions to app files
 #chown -R www-data: $final_path
-chown -R www-data: "/var/log/z-push"
+chown -R www-data: "/var/log/z-push/"
 chown -R www-data: "/var/lib/z-push/"
 
 #=================================================

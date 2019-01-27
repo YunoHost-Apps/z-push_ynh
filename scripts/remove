@@ -103,6 +103,9 @@ ynh_remove_logrotate
 #ynh_secure_remove "/etc/cron.d/$app"
 
 # Remove a directory securely
+rm -rf /etc/z-push/
+rm -rf /var/log/z-push/
+rm -rf /var/lib/z-push/
 ynh_secure_remove "/etc/$app/"
 
 # Remove the log files
