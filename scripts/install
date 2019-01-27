@@ -25,12 +25,13 @@ ynh_abort_if_errors
 #=================================================
 
 domain=$YNH_APP_ARG_DOMAIN
-path_url="/Microsoft-Server-ActiveSync"
+path_url="/"
 #admin=$YNH_APP_ARG_ADMIN
 is_public="1"
 #language=$YNH_APP_ARG_LANGUAGE
 #password=$YNH_APP_ARG_PASSWORD
 
+path_url_activesync="/Microsoft-Server-ActiveSync"
 path_url_autodiscover1="/AutoDiscover"
 path_url_autodiscover2="/Autodiscover"
 path_url_autodiscover3="/autodiscover"
