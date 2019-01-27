@@ -24,8 +24,12 @@ state_path=$(ynh_app_setting_get $app state_path)
 log_path=$(ynh_app_setting_get $app log_path)
 
 config_path=/etc/z-push
+state_path=/var/lib/z-push
+log_path=/var/log/z-push
 
 ynh_app_setting_set $app config_path $config_path
+ynh_app_setting_set $app state_path $state_path
+ynh_app_setting_set $app log_path $log_path
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -235,8 +239,8 @@ ynh_use_logrotate --non-append
 
 # Set permissions on app files
 #chown -R root: $final_path
-#chown -R www-data:www-data $log_path
-#chown -R www-data:www-data $state_path
+chown -R www-data:www-data $log_path
+chown -R www-data:www-data $state_path
 
 #=================================================
 # SETUP SSOWAT
