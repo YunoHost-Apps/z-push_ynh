@@ -133,15 +133,15 @@ define('IMAP_DEFAULTFROM', '');
 // QUERY: query to execute
 // FIELDS: columns in the query
 // FROM: string that will be the from, replacing the column names with the values
-//define('IMAP_FROM_SQL_DSN', '');
-//define('IMAP_FROM_SQL_USER', '');
-//define('IMAP_FROM_SQL_PASSWORD', '');
-//define('IMAP_FROM_SQL_OPTIONS', serialize(array(PDO::ATTR_PERSISTENT => true)));
-//define('IMAP_FROM_SQL_QUERY', "select first_name, last_name, mail_address from users where mail_address = '#username@#domain'");
-//define('IMAP_FROM_SQL_FIELDS', serialize(array('first_name', 'last_name', 'mail_address')));
-//define('IMAP_FROM_SQL_EMAIL', '#mail_address');
-//define('IMAP_FROM_SQL_FROM', '#first_name #last_name <#mail_address>');
-//define('IMAP_FROM_SQL_FULLNAME', '#first_name #last_name');
+define('IMAP_FROM_SQL_DSN', '');
+define('IMAP_FROM_SQL_USER', '');
+define('IMAP_FROM_SQL_PASSWORD', '');
+define('IMAP_FROM_SQL_OPTIONS', serialize(array(PDO::ATTR_PERSISTENT => true)));
+define('IMAP_FROM_SQL_QUERY', "select first_name, last_name, mail_address from users where mail_address = '#username@#domain'");
+define('IMAP_FROM_SQL_FIELDS', serialize(array('first_name', 'last_name', 'mail_address')));
+define('IMAP_FROM_SQL_EMAIL', '#mail_address');
+define('IMAP_FROM_SQL_FROM', '#first_name #last_name <#mail_address>');
+define('IMAP_FROM_SQL_FULLNAME', '#first_name #last_name');
 
 // SERVER: ldap server
 // SERVER_PORT: ldap port
@@ -150,16 +150,16 @@ define('IMAP_DEFAULTFROM', '');
 // QUERY: query to execute
 // FIELDS: columns in the query
 // FROM: string that will be the from, replacing the field names with the values
-//define('IMAP_FROM_LDAP_SERVER', 'localhost');
-//define('IMAP_FROM_LDAP_SERVER_PORT', '389');
-//define('IMAP_FROM_LDAP_USER', 'cn=zpush,ou=servers,dc=zpush,dc=org');
-//define('IMAP_FROM_LDAP_PASSWORD', 'password');
-//define('IMAP_FROM_LDAP_BASE', 'dc=zpush,dc=org');
-//define('IMAP_FROM_LDAP_QUERY', '(mail=#username@#domain)');
-//define('IMAP_FROM_LDAP_FIELDS', serialize(array('givenname', 'sn', 'mail')));
-//define('IMAP_FROM_LDAP_EMAIL', '#mail');
-//define('IMAP_FROM_LDAP_FROM', '#givenname #sn <#mail>');
-//define('IMAP_FROM_LDAP_FULLNAME', '#givenname #sn');
+define('IMAP_FROM_LDAP_SERVER', 'localhost');
+define('IMAP_FROM_LDAP_SERVER_PORT', '389');
+define('IMAP_FROM_LDAP_USER', 'cn=admin,dc=yunohost,dc=org');
+define('IMAP_FROM_LDAP_PASSWORD', 'password');
+define('IMAP_FROM_LDAP_BASE', 'dc=yunohost,dc=org');
+define('IMAP_FROM_LDAP_QUERY', '(mail=#username@#domain)');
+define('IMAP_FROM_LDAP_FIELDS', serialize(array('givenname', 'sn', 'mail')));
+define('IMAP_FROM_LDAP_EMAIL', '#mail');
+define('IMAP_FROM_LDAP_FROM', '#givenname #sn <#mail>');
+define('IMAP_FROM_LDAP_FULLNAME', '#givenname #sn');
 
 
 
@@ -167,7 +167,7 @@ define('IMAP_DEFAULTFROM', '');
 // mail => mail() php function
 // sendmail => sendmail executable
 // smtp => direct connection against SMTP
-define('IMAP_SMTP_METHOD', 'smtp');
+define('IMAP_SMTP_METHOD', 'mail');
 
 global $imap_smtp_params;
 // SMTP Parameters
@@ -195,7 +195,7 @@ global $imap_smtp_params;
 // IMPORTANT: To use SSL you must use PHP 5.1 or later, install openssl libs and use ssl:// within the host variable
 // IMPORTANT: To use SSL with PHP 5.6 you should set verify_peer, verify_peer_name and allow_self_signed
 //$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');
-$imap_smtp_params = array('host' => 'tcp://__DOMAIN__', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '__DOMAIN__', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);
+//$imap_smtp_params = array('host' => 'tcp://__DOMAIN__', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '__DOMAIN__', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);
 
 
 // If you are using IMAP_SMTP_METHOD = mail or sendmail and your sent messages are not correctly displayed you can change this to "\n".
