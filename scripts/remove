@@ -114,6 +114,8 @@ ynh_secure_remove "$state_path"
 ynh_secure_remove "$config_path"
 ynh_secure_remove /etc/apt/sources.list.d/z-push.list
 
+yunohost service start php7.0-fpm
+
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
