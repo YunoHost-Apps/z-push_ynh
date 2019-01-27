@@ -344,8 +344,8 @@ ynh_store_file_checksum "$config_path/autodiscover.conf.php"
 
 # Set permissions to app files
 #chown -R www-data: $final_path
-chown -R www-data: $log_path
-chown -R www-data: $state_path
+chown -R www-data:www-data $log_path
+chown -R www-data:www-data $state_path
 
 #=================================================
 # SETUP LOGROTATE

@@ -76,7 +76,7 @@ ynh_restore_file "$final_path"
 #=================================================
 
 # Restore permissions on app files
-chown -R www-data: $final_path
+chown -R www-data:www-data $final_path
 
 #=================================================
 # RESTORE THE PHP-FPM CONFIGURATION
