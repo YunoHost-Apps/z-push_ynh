@@ -229,7 +229,7 @@ ynh_use_logrotate --non-append
 #=================================================
 
 # Set permissions on app files
-chown -R root: $final_path
+#chown -R root: $final_path
 chown -R www-data: $log_path
 chown -R www-data: $state_path
 
@@ -248,6 +248,7 @@ fi
 # RELOAD NGINX
 #=================================================
 
+systemctl reload php5-fpm
 systemctl reload nginx
 
 
