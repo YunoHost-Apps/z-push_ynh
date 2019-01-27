@@ -25,11 +25,17 @@ ynh_abort_if_errors
 #=================================================
 
 domain=$YNH_APP_ARG_DOMAIN
-path_url="/Microsoft-Server-ActiveSync"
+path_url="/"
 #admin=$YNH_APP_ARG_ADMIN
 is_public="1"
 #language=$YNH_APP_ARG_LANGUAGE
 #password=$YNH_APP_ARG_PASSWORD
+
+path_url_activesync="/Microsoft-Server-ActiveSync"
+path_url_autodiscover1="/AutoDiscover"
+path_url_autodiscover2="/Autodiscover"
+path_url_autodiscover3="/autodiscover"
+
 
 ### If it's a multi-instance app, meaning it can be installed several times independently
 ### The id of the app as stated in the manifest is available as $YNH_APP_ID
@@ -50,6 +56,8 @@ app=$YNH_APP_INSTANCE_NAME
 ### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
 ### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
 final_path=/usr/share/z-push
+config_path=/etc/z-push/
+state_path=/var/lib/z-push/
 #test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
 # Normalize the url path syntax
@@ -57,6 +65,10 @@ path_url=$(ynh_normalize_url_path $path_url)
 
 # Register (book) web path
 ynh_webpath_register $app $domain $path_url
+ynh_webpath_register $app $domain $path_url_activesync
+ynh_webpath_register $app $domain $path_url_autodiscover1
+ynh_webpath_register $app $domain $path_url_autodiscover2
+ynh_webpath_register $app $domain $path_url_autodiscover3
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
@@ -65,7 +77,7 @@ ynh_webpath_register $app $domain $path_url
 ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app path $path_url
 #ynh_app_setting_set $app admin $admin
-#ynh_app_setting_set $app is_public $is_public
+ynh_app_setting_set $app is_public $is_public
 #ynh_app_setting_set $app language $language
 
 #=================================================
@@ -128,6 +140,8 @@ ynh_install_app_dependencies php-memcached php-cli php-soap
 ### `ynh_setup_source` use the file conf/app.src
 
 ynh_app_setting_set $app final_path $final_path
+ynh_app_setting_set $app config_path $config_path
+ynh_app_setting_set $app state_path $state_path
 # Download, check integrity, uncompress and patch the source from app.src
 #ynh_setup_source "$final_path"
 
@@ -227,10 +241,14 @@ ynh_add_fpm_config
 
 #ynh_replace_string "match_string" "replace_string" "$final_path/conf/config.php"
 
-# Configuration
-#sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" /etc/z-push/z-push.conf.php
-ynh_replace_string "define('TIMEZONE', '');"  "define('TIMEZONE', '$(cat /etc/timezone)');" /etc/z-push/z-push.conf.php
+sudo cp ../conf/policies.ini $config_path/policies.ini
+sudo cp ../conf/z-push.conf.php $config_path/z-push.conf.php
+sudo cp ../conf/galsearch-ldap.conf.php $config_path/galsearch-ldap.conf.php
+sudo cp ../conf/autodiscover.conf.php $config_path/autodiscover.conf.php
 
+# Configuration of timezone
+ynh_replace_string "__TIMEZONE__" "$(cat /etc/timezone)" "$config_path/z-push.conf.php"
+ynh_replace_string "__TIMEZONE__" "$(cat /etc/timezone)" "$config_path/autodiscover.conf.php"
 
 
 # Enable caldav carddav support
@@ -239,45 +257,49 @@ if sudo yunohost app list --installed -f baikal | grep -q id ; then
 	baikaldomain=$(ynh_app_setting_get baikal domain)
 	baikalpath=$(ynh_app_setting_get baikal path)
 	baikalpath=${baikalpath%/}
-
-	# Configuration of backend
-	#sed -i "s@BACKENDTOCHANGE@BackendCombined@g" /etc/z-push/z-push.conf.php
-	ynh_replace_string "define('BACKEND_PROVIDER', '');" "define('BACKEND_PROVIDER', 'BackendCombined');" /etc/z-push/z-push.conf.php
-
-	# Configuration baikal
-	#sed -i "s@BAIKALDOMAIN@$caldavdomain@g" /etc/z-push/caldav.conf.php
-	ynh_replace_string "caldavserver.domain.com" $baikaldomain /etc/z-push/caldav.conf.php
-	#sed -i "s@BAIKALPATH@$caldavpath@g" /etc/z-push/caldav.conf.php
-	ynh_replace_string "define('CALDAV_PATH', '/caldav.php/%u/');" "define('CALDAV_PATH', '$baikalpath/cal.php/calendars/%u/');"  /etc/z-push/caldav.conf.php
-	#sed -i "s@BAIKALDOMAIN@$caldavdomain@g" /etc/z-push/carddav.conf.php
-	ynh_replace_string  "define('CARDDAV_SERVER', 'localhost');" "define('CARDDAV_SERVER', '$baikaldomain');" /etc/z-push/carddav.conf.php
-	#sed -i "s@BAIKALPATH@$caldavpath@g" /etc/z-push/carddav.conf.php
-	ynh_replace_string "define('CARDDAV_PATH', '/caldav.php/%u/');" "define('CARDDAV_PATH', '$baikalpath/card.php/addressbooks/%u/');"  /etc/z-push/carddav.conf.php
-	#sed -i "s@DOMAINTOCHANGE@$domain@g" /etc/z-push/imap.conf.php
-	ynh_replace_string "//\$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');" "\$imap_smtp_params = array('host' => 'tcp://$domain', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '$domain', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);" /etc/z-push/imap.conf.php
-	#sed -i "s@FLAGTOCHANGE@true@g" /etc/z-push/imap.conf.php
-	ynh_replace_string "define('IMAP_MEETING_USE_CALDAV', false);" "define('IMAP_MEETING_USE_CALDAV', true);" /etc/z-push/imap.conf.php
-	ynh_replace_string "define('IMAP_PORT', 143);" "define('IMAP_PORT', 993);" /etc/z-push/imap.conf.php
-	ynh_replace_string "define('IMAP_OPTIONS', '/notls/norsh');" "define('IMAP_OPTIONS', '/ssl/novalidate-cert');" /etc/z-push/imap.conf.php
-	ynh_replace_string "define('IMAP_FOLDER_CONFIGURED', false);" "define('IMAP_FOLDER_CONFIGURED', true);" /etc/z-push/imap.conf.php
-	ynh_replace_string "define('IMAP_SMTP_METHOD', 'mail');" "define('IMAP_SMTP_METHOD', 'smtp');" /etc/z-push/imap.conf.php
 	
-	ynh_store_file_checksum "/etc/z-push/caldav.conf.php"
-	ynh_store_file_checksum "/etc/z-push/carddav.conf.php"
-	ynh_store_file_checksum "/etc/z-push/combined.conf.php"
+	# Configuration of backend
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/z-push.conf.php"
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/autodiscover.conf.php"
+	sudo cp ../conf/combined.conf.php $config_path/combined.conf.php
+	
+	# Configuration of caldav
+	sudo cp ../conf/caldav.conf.php $config_path/caldav.conf.php
+	ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/caldav.conf.php"
+	ynh_replace_string "__CALDAV_PATH__" "$baikalpath/cal.php/calendars/%u/" "$config_path/caldav.conf.php"
+	
+	# Configuration of carddav
+	sudo cp ../conf/carddav.conf.php $config_path/carddav.conf.php
+	ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/carddav.conf.php"
+	ynh_replace_string "__CARDDAV_PATH_" "baikalpath/card.php/addressbooks/%u/" "$config_path/carddav.conf.php"
+	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "baikalpath/card.php/addressbooks/%u/default" "$config_path/carddav.conf.php"
+	
+	# Configuration of imap
+	sudo cp ../conf/imap.conf.php $config_path/imap.conf.php
+	ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/imap.conf.php"
+	ynh_replace_string "__IMAP_MEETING_USE_CALDAV__" "true" "$config_path/imap.conf.php"
+	
+	# Checksum of config files
+		
+	ynh_store_file_checksum "$config_path/combined.conf.php"
+	ynh_store_file_checksum "$config_path/caldav.conf.php"
+	ynh_store_file_checksum "$config_path/carddav.conf.php"
+	ynh_store_file_checksum "$config_path/imap.conf.php"
 
 else
 	# Configuration of backend
-	#sed -i "s@BACKENDTOCHANGE@BackendIMAP@g" /etc/z-push/z-push.conf.php
-	ynh_replace_string "define('BACKEND_PROVIDER', '');" "define('BACKEND_PROVIDER', 'BackendIMAP');" /etc/z-push/z-push.conf.php
+	# Configuration of backend
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendIMAP" "$config_path/z-push.conf.php"
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendIMAP" "$config_path/autodiscover.conf.php"
+	
+	# Configuration of imap
+	sudo cp ../conf/imap.conf.php $config_path/imap.conf.php
+	ynh_replace_string "__DOMAIN__" "$domainn" "$config_path/imap.conf.php"
+	ynh_replace_string "__IMAP_MEETING_USE_CALDAV__" "false" "$config_path/imap.conf.php"
+	
+	# Checksum of config files
+	ynh_store_file_checksum "$config_path/imap.conf.php"
 
-	# Copy config
-	#sed -i "s@DOMAINTOCHANGE@$domain@g" /etc/z-push/imap.conf.php
-	ynh_replace_string "define('IMAP_PORT', 143);" "define('IMAP_PORT', 993);" /etc/z-push/imap.conf.php
-	ynh_replace_string "define('IMAP_OPTIONS', '/notls/norsh');" "define('IMAP_OPTIONS', '/ssl/novalidate-cert');" /etc/z-push/imap.conf.php
-	ynh_replace_string "define('IMAP_FOLDER_CONFIGURED', false);" "define('IMAP_FOLDER_CONFIGURED', true);" /etc/z-push/imap.conf.php
-	ynh_replace_string "define('IMAP_SMTP_METHOD', 'mail');" "define('IMAP_SMTP_METHOD', 'smtp');" /etc/z-push/imap.conf.php
-	ynh_replace_string "//\$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');" "\$imap_smtp_params = array('host' => 'tcp://$domain', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '$domain', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);" /etc/z-push/imap.conf.php
 		
 fi
 
@@ -290,8 +312,10 @@ fi
 ### you can make a backup of this file before modifying it again if the admin had modified it.
 
 # Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum "/etc/z-push/z-push.conf.php"
-ynh_store_file_checksum "/etc/z-push/imap.conf.php"
+ynh_store_file_checksum "$config_path/policies.ini"
+ynh_store_file_checksum "$config_path/z-push.conf.php"
+ynh_store_file_checksum "$config_path/galsearch-ldap.conf.php"
+ynh_store_file_checksum "$config_path/autodiscover.conf.php"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -337,7 +361,7 @@ ynh_use_logrotate
 
 #yunohost service add $app --log "/var/log/$app/APP.log"
 # if using yunohost version 3.2 or more in the 'manifest.json', a description can be added
-#yunohost service add $app --description "$app daemon for XXX" --log "/var/log/$app/APP.log"
+yunohost service add $app --description "$app daemon for XXX" --log "/var/log/$app/$app.log"
 
 #=================================================
 # SETUP SSOWAT
@@ -348,9 +372,10 @@ if [ $is_public -eq 1 ]
 then
 	# unprotected_uris allows SSO credentials to be passed anyway.
 	ynh_app_setting_set $app unprotected_uris "/"
-	ynh_app_setting_set $app unprotected_uris "/AutoDiscover"
-	ynh_app_setting_set $app unprotected_uris "/Autodiscover"
-	ynh_app_setting_set $app unprotected_uris "/autodiscover"
+	ynh_app_setting_set $app unprotected_uris $path_url_activesync
+	ynh_app_setting_set $app unprotected_uris $path_url_autodiscover1
+	ynh_app_setting_set $app unprotected_uris $path_url_autodiscover2
+	ynh_app_setting_set $app unprotected_uris $path_url_autodiscover3
 fi
 
 #=================================================

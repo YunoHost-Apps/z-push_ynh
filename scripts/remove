@@ -20,7 +20,8 @@ domain=$(ynh_app_setting_get $app domain)
 #db_name=$(ynh_app_setting_get $app db_name)
 #db_user=$db_name
 final_path=$(ynh_app_setting_get $app final_path)
-statedir=$(ynh_app_setting_get $app statedir)
+config_path=$(ynh_app_setting_get $app config_path)
+state_path=$(ynh_app_setting_get $app state_path)
 
 #=================================================
 # STANDARD REMOVE
@@ -103,16 +104,14 @@ ynh_remove_logrotate
 #ynh_secure_remove "/etc/cron.d/$app"
 
 # Remove a directory securely
-rm -rf /etc/z-push/
-rm -rf /var/log/z-push/
-rm -rf /var/lib/z-push/
 ynh_secure_remove "/etc/$app/"
 
 # Remove the log files
 ynh_secure_remove "/var/log/$app/"
 
 # Remove the statedir
-ynh_secure_remove "$statedir"
+ynh_secure_remove "$state_path"
+ynh_secure_remove "$config_path"
 ynh_secure_remove /etc/apt/sources.list.d/z-push.list
 
 #=================================================
