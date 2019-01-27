@@ -238,7 +238,7 @@ if sudo yunohost app list --installed -f baikal | grep -q id ; then
 	echo "Detected Baikal"
 	baikaldomain=$(ynh_app_setting_get baikal domain)
 	baikalpath=$(ynh_app_setting_get baikal path)
-	baikalpath=${caldavpath%/}
+	baikalpath=${baikalpath%/}
 
 	# Configuration of backend
 	#sed -i "s@BACKENDTOCHANGE@BackendCombined@g" /etc/z-push/z-push.conf.php
