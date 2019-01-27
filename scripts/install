@@ -24,8 +24,8 @@ ynh_abort_if_errors
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
 
-domain_activesync=$YNH_APP_ARG_DOMAIN
-domain_autodiscover=$YNH_APP_ARG_DOMAIN
+domain_activesync=$YNH_APP_ARG_DOMAIN_ACTIVESYNC
+domain_autodiscover=$YNH_APP_ARG_DOMAIN_AUTODISCOVER
 path_url_activesync="/Microsoft-Server-ActiveSync"
 path_url_autodiscover1="/AutoDiscover"
 path_url_autodiscover2="/Autodiscover"

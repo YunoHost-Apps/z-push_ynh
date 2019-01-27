@@ -29,10 +29,10 @@
                     "en": "Choose a domain for Z-push ActiveSync",
                     "fr": "Choisissez un domaine pour Z-push ActiveSync"
                 },
-                "example": "example.com",
+                "example": "mail.example.com",
                 "help": {
-                    "en": "Z-push will be available at domain/Microsoft-Server-ActiveSync.",
-                    "fr": "Z-push sera disponible à l'adresse domaine/Microsoft-Server-ActiveSync."
+                    "en": "Z-push ActiveSync will be available at domain/Microsoft-Server-ActiveSync.",
+                    "fr": "Z-push ActiveSync sera disponible à l'adresse domaine/Microsoft-Server-ActiveSync."
                 }
             },
             {
@@ -42,10 +42,10 @@
                     "en": "Choose a domain for Z-push Autodiscover",
                     "fr": "Choisissez un domaine pour Z-push Autodiscover"
                 },
-                "example": "example.com",
+                "example": "autodiscover.example.com",
                 "help": {
-                    "en": "Z-push will be available at domain/Microsoft-Server-Autodiscover.",
-                    "fr": "Z-push sera disponible à l'adresse domaine/Microsoft-Server-Autodiscover."
+                    "en": "Z-push Autodiscover will be available at domain/AutoDiscover/AutoDiscover.xml. Better to use autodiscover.example.org.",
+                    "fr": "Z-push Autodiscover sera disponible à l'adresse domaine/AutoDiscover/AutoDiscover.xml. Il est préférable d'utiliser le nom de domaine autodiscover.example.org."
                 }
             }
         ]
