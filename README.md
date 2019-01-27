@@ -34,6 +34,10 @@ Quick description of this app.
 
 * [Official demo](Link to a demo site for this app)
 
+## Licence
+
+* License: AGPL-3.0
+
 ## Configuration
 
 How to configure this app: by an admin panel, a plain file with SSH, or any other way.
