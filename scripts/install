@@ -56,8 +56,8 @@ app=$YNH_APP_INSTANCE_NAME
 ### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
 ### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
 final_path=/usr/share/z-push
-config_path=/etc/z-push/
-state_path=/var/lib/z-push/
+config_path=/etc/z-push
+state_path=/var/lib/z-push
 #test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
 # Normalize the url path syntax
@@ -290,7 +290,7 @@ else
 	
 	# Configuration of imap
 	sudo cp ../conf/imap.conf.php $config_path/imap.conf.php
-	ynh_replace_string "__DOMAIN__" "$domainn" "$config_path/imap.conf.php"
+	ynh_replace_string "__DOMAIN__" "$domain" "$config_path/imap.conf.php"
 	ynh_replace_string "__IMAP_MEETING_USE_CALDAV__" "false" "$config_path/imap.conf.php"
 	
 	# Checksum of config files
