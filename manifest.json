@@ -26,8 +26,8 @@
                 "name": "domain",
                 "type": "domain",
                 "ask": {
-                    "en": "Choose a domain for Z-push",
-                    "fr": "Choisissez un domaine pour Z-push"
+                    "en": "Choose a domain for Z-push, better to use the root domain.",
+                    "fr": "Choisissez un domaine pour Z-push, il est préférable d'utiliser le domaine principal"
                 },
                 "example": "example.com",
                 "help": {
