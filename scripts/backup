@@ -27,8 +27,10 @@ ynh_abort_if_errors
 app=$YNH_APP_INSTANCE_NAME
 
 final_path=$(ynh_app_setting_get $app final_path)
-statedir=$(ynh_app_setting_get $app statedir)
-final_logpath=$(ynh_app_setting_get $app final_logpath)
+domain=$(ynh_app_setting_get $app domain)
+#db_name=$(ynh_app_setting_get $app db_name)
+config_path=$(ynh_app_setting_get $app config_path)
+state_path=$(ynh_app_setting_get $app state_path)
 
 #=================================================
 # STANDARD BACKUP STEPS
@@ -38,11 +40,11 @@ final_logpath=$(ynh_app_setting_get $app final_logpath)
 
 ynh_backup "$final_path"
 
-# Backup statedir
-ynh_backup "$statedir"
+# Backup config
+ynh_backup "$config_path"
 
-# Backup logs
-ynh_backup "$final_logpath"
+# Backup statedir
+ynh_backup "$state_path"
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
