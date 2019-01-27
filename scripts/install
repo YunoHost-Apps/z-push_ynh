@@ -270,18 +270,37 @@ if sudo yunohost app list --installed -f baikal | grep -q id ; then
 	ynh_replace_string "__CARDDAV_PATH__" "$baikalpath/card.php/addressbooks/%u/" "$config_path/carddav.conf.php"
 	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "$baikalpath/card.php/addressbooks/%u/default" "$config_path/carddav.conf.php"
 	
-	# Configuration of imap
-	#sudo cp ../conf/imap.conf.php $config_path/imap.conf.php
-	#ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/imap.conf.php"
-	#ynh_replace_string "__IMAP_MEETING_USE_CALDAV__" "true" "$config_path/imap.conf.php"
-	
-	# Checksum of config files
-		
+	# Checksum of config files		
 	ynh_store_file_checksum "$config_path/combined.conf.php"
 	ynh_store_file_checksum "$config_path/caldav.conf.php"
 	ynh_store_file_checksum "$config_path/carddav.conf.php"
-	#ynh_store_file_checksum "$config_path/imap.conf.php"
-
+	
+elif sudo yunohost app list --installed -f nextcloud | grep -q id ; then
+	echo "Detected NextCloud"
+	nextclouddomain=$(ynh_app_setting_get nextcloud domain)
+	nextcloudpath=$(ynh_app_setting_get nextcloud path)
+	nextcloudpath=${nextcloudpath%/}
+	
+	# Configuration of backend
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/z-push.conf.php"
+	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/autodiscover.conf.php"
+	sudo cp ../conf/combined.conf.php $config_path/combined.conf.php
+	
+	# Configuration of caldav
+	sudo cp ../conf/caldav.conf.php $config_path/caldav.conf.php
+	ynh_replace_string "__DOMAIN__" "$nextclouddomain" "$config_path/caldav.conf.php"
+	ynh_replace_string "__CALDAV_PATH__" "$nextcloudpath/remote.php/dav/calendars/%u/personal/" "$config_path/caldav.conf.php"
+	
+	# Configuration of carddav
+	sudo cp ../conf/carddav.conf.php $config_path/carddav.conf.php
+	ynh_replace_string "__DOMAIN__" "$nextclouddomain" "$config_path/carddav.conf.php"
+	ynh_replace_string "__CARDDAV_PATH__" "$nextcloudpath/remote.php/dav/addressbooks/users/%u/contacts/" "$config_path/carddav.conf.php"
+	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "$nextcloudpath/remote.php/dav/addressbooks/users/%u/contacts/" "$config_path/carddav.conf.php"
+	
+	# Checksum of config files		
+	ynh_store_file_checksum "$config_path/combined.conf.php"
+	ynh_store_file_checksum "$config_path/caldav.conf.php"
+	ynh_store_file_checksum "$config_path/carddav.conf.php"
 else
 	# Configuration of backend
 	# Configuration of backend
