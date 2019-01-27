@@ -267,8 +267,8 @@ if sudo yunohost app list --installed -f baikal | grep -q id ; then
 	# Configuration of carddav
 	sudo cp ../conf/carddav.conf.php $config_path/carddav.conf.php
 	ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/carddav.conf.php"
-	ynh_replace_string "__CARDDAV_PATH_" "baikalpath/card.php/addressbooks/%u/" "$config_path/carddav.conf.php"
-	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "baikalpath/card.php/addressbooks/%u/default" "$config_path/carddav.conf.php"
+	ynh_replace_string "__CARDDAV_PATH_" "$baikalpath/card.php/addressbooks/%u/" "$config_path/carddav.conf.php"
+	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "$baikalpath/card.php/addressbooks/%u/default" "$config_path/carddav.conf.php"
 	
 	# Configuration of imap
 	#sudo cp ../conf/imap.conf.php $config_path/imap.conf.php
