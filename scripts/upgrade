@@ -107,7 +107,7 @@ ynh_add_fpm_config
 #=================================================
 # ...
 #=================================================
-
+z-push-admin -a fixstates
 # Configuration
 sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config.php
 sed -i "s@LOGTOCHANGE@$final_logpath@g" ../conf/config.php
