@@ -367,8 +367,8 @@ ynh_use_logrotate
 if [ $is_public -eq 1 ]
 then
 	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_set $app unprotected_uris "/"
-	ynh_app_setting_set $app skipped_uris "$path_url_autodiscover1,$path_url_autodiscover2,$path_url_autodiscover1"
+	#ynh_app_setting_set $app unprotected_uris "/"
+	ynh_app_setting_set $app skipped_uris "path_url_activesync,$path_url_autodiscover1,$path_url_autodiscover2,$path_url_autodiscover1"
 fi
 
 #=================================================
