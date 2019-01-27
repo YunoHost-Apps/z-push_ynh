@@ -49,7 +49,7 @@ app=$YNH_APP_INSTANCE_NAME
 
 ### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
 ### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
-final_path=/usr/share/z-push
+#final_path=/usr/share/z-push
 #test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
 # Normalize the url path syntax
@@ -97,7 +97,7 @@ ynh_app_setting_set $app path $path_url
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
 
 echo "deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ /" | tee /etc/apt/sources.list.d/z-push.list
-wget -qO - http://repo.z-hub.io/z-push:/final/Debian_8.0/Release.key | sudo apt-key add -
+wget -qO - http://repo.z-hub.io/z-push:/final/Debian_9.0/Release.key | sudo apt-key add -
 yunohost tools update
 ynh_install_app_dependencies z-push-common z-push-backend-caldav z-push-backend-carddav z-push-backend-combined z-push-backend-imap z-push-backend-ldap z-push-backend-galsearch-ldap z-push-autodiscover
 ynh_install_app_dependencies php-memcached php-cli php-soap 
@@ -127,7 +127,7 @@ ynh_install_app_dependencies php-memcached php-cli php-soap
 ### downloaded from an upstream source, like a git repository.
 ### `ynh_setup_source` use the file conf/app.src
 
-#ynh_app_setting_set $app final_path $final_path
+ynh_app_setting_set $app final_path $final_path
 # Download, check integrity, uncompress and patch the source from app.src
 #ynh_setup_source "$final_path"
 
@@ -164,11 +164,6 @@ ynh_add_nginx_config
 
 # Create a dedicated php-fpm config
 ynh_add_fpm_config
-# Dedicated php-fpm processes
-#sudo sed -i "s@NAMETOCHANGE@$app@g" ../conf/php-fpm.conf
-#sudo cp ../conf/php-fpm.conf $final_phpconf
-#sudo chown root: $final_phpconf
-#sudo chmod 644 $final_phpconf
 
 #=================================================
 # SPECIFIC SETUP
@@ -262,6 +257,14 @@ if sudo yunohost app list --installed -f baikal | grep -q id ; then
 	ynh_replace_string "//$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');" "$imap_smtp_params = array('host' => 'tcp://$baikaldomain', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '$baikaldomain', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);" /etc/z-push/imap.conf.php
 	#sed -i "s@FLAGTOCHANGE@true@g" /etc/z-push/imap.conf.php
 	ynh_replace_string "define('IMAP_MEETING_USE_CALDAV', false);" "define('IMAP_MEETING_USE_CALDAV', true);" /etc/z-push/imap.conf.php
+	ynh_replace_string "define('IMAP_PORT', 143);" "define('IMAP_PORT', 993);" /etc/z-push/imap.conf.php
+	ynh_replace_string "define('IMAP_OPTIONS', '/notls/norsh');" "define('IMAP_OPTIONS', '/ssl/novalidate-cert');" /etc/z-push/imap.conf.php
+	ynh_replace_string "define('IMAP_FOLDER_CONFIGURED', false);" "define('IMAP_FOLDER_CONFIGURED', true);" /etc/z-push/imap.conf.php
+	ynh_replace_string "define('IMAP_SMTP_METHOD', 'mail');" "define('IMAP_SMTP_METHOD', 'smtp');" /etc/z-push/imap.conf.php
+	
+	ynh_store_file_checksum "/etc/z-push/caldav.conf.php"
+	ynh_store_file_checksum "/etc/z-push/carddav.conf.php"
+	ynh_store_file_checksum "/etc/z-push/combined.conf.php"
 
 else
 	# Configuration of backend
@@ -275,8 +278,7 @@ else
 	ynh_replace_string "define('IMAP_FOLDER_CONFIGURED', false);" "define('IMAP_FOLDER_CONFIGURED', true);" /etc/z-push/imap.conf.php
 	ynh_replace_string "define('IMAP_SMTP_METHOD', 'mail');" "define('IMAP_SMTP_METHOD', 'smtp');" /etc/z-push/imap.conf.php
 	ynh_replace_string "//\$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');" "\$imap_smtp_params = array('host' => 'tcp://$domain', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '$domain', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);" /etc/z-push/imap.conf.php
-	
-	
+		
 fi
 
 #=================================================
@@ -289,6 +291,7 @@ fi
 
 # Calculate and store the config file checksum into the app settings
 ynh_store_file_checksum "/etc/z-push/z-push.conf.php"
+ynh_store_file_checksum "/etc/z-push/imap.conf.php"
 
 #=================================================
 # GENERIC FINALIZATION
