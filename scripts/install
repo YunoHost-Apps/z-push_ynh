@@ -254,7 +254,7 @@ if sudo yunohost app list --installed -f baikal | grep -q id ; then
 	#sed -i "s@BAIKALPATH@$caldavpath@g" /etc/z-push/carddav.conf.php
 	ynh_replace_string "define('CARDDAV_PATH', '/caldav.php/%u/');" "define('CARDDAV_PATH', '$baikalpath/card.php/addressbooks/%u/');"  /etc/z-push/carddav.conf.php
 	#sed -i "s@DOMAINTOCHANGE@$domain@g" /etc/z-push/imap.conf.php
-	ynh_replace_string "//$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');" "$imap_smtp_params = array('host' => 'tcp://$baikaldomain', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '$baikaldomain', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);" /etc/z-push/imap.conf.php
+	ynh_replace_string "//$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');" "\$imap_smtp_params = array('host' => 'tcp://$baikaldomain', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '$baikaldomain', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);" /etc/z-push/imap.conf.php
 	#sed -i "s@FLAGTOCHANGE@true@g" /etc/z-push/imap.conf.php
 	ynh_replace_string "define('IMAP_MEETING_USE_CALDAV', false);" "define('IMAP_MEETING_USE_CALDAV', true);" /etc/z-push/imap.conf.php
 	ynh_replace_string "define('IMAP_PORT', 143);" "define('IMAP_PORT', 993);" /etc/z-push/imap.conf.php
