@@ -12,6 +12,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info "Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -23,17 +24,10 @@ config_path=$(ynh_app_setting_get $app config_path)
 state_path=$(ynh_app_setting_get $app state_path)
 log_path=$(ynh_app_setting_get $app log_path)
 
-config_path=/etc/z-push
-state_path=/var/lib/z-push
-log_path=/var/log/z-push
-
-ynh_app_setting_set $app config_path $config_path
-ynh_app_setting_set $app state_path $state_path
-ynh_app_setting_set $app log_path $log_path
-
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
+ynh_print_info "Ensuring downward compatibility..."
 
 # Fix is_public as a boolean value
 if [ "$is_public" = "Yes" ]; then
@@ -56,9 +50,20 @@ if [ -z $final_path ]; then
 	ynh_app_setting_set $app final_path $final_path
 fi
 
+
+config_path=/etc/z-push
+state_path=/var/lib/z-push
+log_path=/var/log/z-push
+
+ynh_app_setting_set $app config_path $config_path
+ynh_app_setting_set $app state_path $state_path
+ynh_app_setting_set $app log_path $log_path
+
+
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
+ynh_print_info "Backing up the app before upgrading (may take a while)..."
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
@@ -79,15 +84,9 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
-# DOWNLOAD, CHECK AND UNPACK SOURCE
-#=================================================
-
-# Download, check integrity, uncompress and patch the source from app.src
-#ynh_setup_source "$final_path"
-
-#=================================================
 # NGINX CONFIGURATION
 #=================================================
+ynh_print_info "Upgrading nginx web server configuration..."
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
@@ -95,6 +94,7 @@ ynh_add_nginx_config
 #=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
+ynh_print_info "Upgrading dependencies..."
 
 echo "deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ /" | tee /etc/apt/sources.list.d/z-push.list
 wget -qO - http://repo.z-hub.io/z-push:/final/Debian_9.0/Release.key | sudo apt-key add -
@@ -104,15 +104,9 @@ ynh_install_app_dependencies php-memcached php-cli php-soap
 
 
 #=================================================
-# CREATE DEDICATED USER
-#=================================================
-
-# Create a dedicated user (if not existing)
-#ynh_system_user_create $app
-
-#=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
+ynh_print_info "Upgrading php-fpm configuration..."
 
 # Create a dedicated php-fpm config
 ynh_add_fpm_config
@@ -120,7 +114,7 @@ ynh_add_fpm_config
 #=================================================
 # SPECIFIC UPGRADE
 #=================================================
-# ...
+# MODIFY A CONFIG FILE
 #=================================================
 
 sudo cp ../conf/policies.ini $config_path/policies.ini
@@ -205,12 +199,11 @@ fi
 # Fixstates to avoid full resync of devices after version upgrades
 sudo $final_path/z-push-admin.php -a fixstates
 
-### Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.
-### And create a backup of this file if the checksum is different. So the file will be backed up if the admin had modified it.
 ynh_backup_if_checksum_is_different "$config_path/policies.ini"
 ynh_backup_if_checksum_is_different "$config_path/z-push.conf.php"
 ynh_backup_if_checksum_is_different "$config_path/galsearch-ldap.conf.php"
 ynh_backup_if_checksum_is_different "$config_path/autodiscover.conf.php"
+
 # Recalculate and store the checksum of the file for the next upgrade.
 ynh_store_file_checksum "$config_path/policies.ini"
 ynh_store_file_checksum "$config_path/z-push.conf.php"
@@ -220,16 +213,10 @@ ynh_store_file_checksum "$config_path/autodiscover.conf.php"
 #=================================================
 # SETUP LOGROTATE
 #=================================================
+ynh_print_info "Upgrading logrotate configuration..."
 
 # Use logrotate to manage app-specific logfile(s)
 ynh_use_logrotate --non-append
-
-#=================================================
-# SETUP SYSTEMD
-#=================================================
-
-# Create a dedicated systemd config
-#ynh_add_systemd_config
 
 #=================================================
 # GENERIC FINALIZATION
@@ -238,13 +225,14 @@ ynh_use_logrotate --non-append
 #=================================================
 
 # Set permissions on app files
-#chown -R root: $final_path
+chown -R www-data:www-data $final_path
 chown -R www-data:www-data $log_path
 chown -R www-data:www-data $state_path
 
 #=================================================
 # SETUP SSOWAT
 #=================================================
+ynh_print_info "Upgrading SSOwat configuration..."
 
 # Make app public if necessary
 if [ $is_public -eq 1 ]
@@ -256,9 +244,12 @@ fi
 #=================================================
 # RELOAD NGINX
 #=================================================
+ynh_print_info "Reloading nginx web server..."
 
-systemctl reload php5-fpm
 systemctl reload nginx
 
+#=================================================
+# END OF SCRIPT
+#=================================================
 
-
+ynh_print_info "Upgrade of $app completed"

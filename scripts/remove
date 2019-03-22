@@ -12,39 +12,22 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info "Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get $app domain)
-#port=$(ynh_app_setting_get $app port)
-#db_name=$(ynh_app_setting_get $app db_name)
-#db_user=$db_name
 final_path=$(ynh_app_setting_get $app final_path)
 config_path=$(ynh_app_setting_get $app config_path)
 state_path=$(ynh_app_setting_get $app state_path)
+log_path=$(ynh_app_setting_get $app log_path)
 
 #=================================================
 # STANDARD REMOVE
 #=================================================
-# REMOVE SERVICE FROM ADMIN PANEL
-#=================================================
-
-# Remove a service from the admin panel, added by `yunohost service add`
-#if yunohost service status | grep -q $app
-#then
-#	echo "Remove $app service"
-#	yunohost service remove $app
-#fi
-#=================================================
-# STOP AND REMOVE SERVICE
-#=================================================
-
-# Remove the dedicated systemd config
-#ynh_remove_systemd_config
-
-#=================================================
 # REMOVE DEPENDENCIES
 #=================================================
+ynh_print_info "Removing dependencies"
 
 # Remove metapackage and its dependencies
 ynh_remove_app_dependencies
@@ -52,15 +35,9 @@ ynh_remove_app_dependencies
 ynh_secure_remove "/etc/apt/sources.list.d/z-push.list"
 
 #=================================================
-# REMOVE THE MYSQL DATABASE
-#=================================================
-
-# Remove a database if it exists, along with the associated user
-#ynh_mysql_remove_db $db_user $db_name
-
-#=================================================
 # REMOVE APP MAIN DIR
 #=================================================
+ynh_print_info "Removing app main directory"
 
 # Remove the app directory securely
 ynh_secure_remove "$final_path"
@@ -68,6 +45,7 @@ ynh_secure_remove "$final_path"
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
+ynh_print_info "Removing nginx web server configuration"
 
 # Remove the dedicated nginx config
 ynh_remove_nginx_config
@@ -75,6 +53,7 @@ ynh_remove_nginx_config
 #=================================================
 # REMOVE PHP-FPM CONFIGURATION
 #=================================================
+ynh_print_info "Removing php-fpm configuration"
 
 # Remove the dedicated php-fpm config
 ynh_remove_fpm_config
@@ -82,19 +61,10 @@ ynh_remove_fpm_config
 #=================================================
 # REMOVE LOGROTATE CONFIGURATION
 #=================================================
+ynh_print_info "Removing logrotate configuration"
 
 # Remove the app-specific logrotate config
 ynh_remove_logrotate
-
-#=================================================
-# CLOSE A PORT
-#=================================================
-
-#if yunohost firewall list | grep -q "\- $port$"
-#then
-#	echo "Close port $port" >&2
-#	yunohost firewall disallow TCP $port 2>&1
-#fi
 
 #=================================================
 # SPECIFIC REMOVE
@@ -102,27 +72,19 @@ ynh_remove_logrotate
 # REMOVE THE CRON FILE
 #=================================================
 
-# Remove a cron file
-#ynh_secure_remove "/etc/cron.d/$app"
-
 # Remove a directory securely
-ynh_secure_remove "/etc/$app/"
+ynh_secure_remove "$config_path"
 
 # Remove the log files
-ynh_secure_remove "/var/log/$app/"
+ynh_secure_remove "$log_path"
 
 # Remove the statedir
 ynh_secure_remove "$state_path"
-ynh_secure_remove "$config_path"
-ynh_secure_remove /etc/apt/sources.list.d/z-push.list
-
-yunohost service start php7.0-fpm
 
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
-# REMOVE DEDICATED USER
+# END OF SCRIPT
 #=================================================
 
-# Delete a system user
-#ynh_system_user_delete $app
+ynh_print_info "Removal of $app completed"

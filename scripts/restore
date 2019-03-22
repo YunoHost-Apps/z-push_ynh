@@ -23,6 +23,7 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info "Loading settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -36,6 +37,7 @@ log_path=$(ynh_app_setting_get $app log_path)
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
+ynh_print_info "Validating restoration parameters..."
 
 ynh_webpath_available $domain $path_url \
 	|| ynh_die "Path not available: ${domain}${path_url}"
@@ -53,23 +55,15 @@ ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
+ynh_print_info "Restoring the app main directory..."
 
 ynh_restore_file "$final_path"
 
-#=================================================
-# RESTORE THE MYSQL DATABASE
-#=================================================
+# Restore config
+ynh_restore_file "$config_path"
 
-#db_pwd=$(ynh_app_setting_get $app mysqlpwd)
-#ynh_mysql_setup_db $db_name $db_name $db_pwd
-#ynh_mysql_connect_as $db_name $db_pwd $db_name < ./db.sql
-
-#=================================================
-# RECREATE THE DEDICATED USER
-#=================================================
-
-# Create the dedicated user (if not existing)
-#ynh_system_user_create $app
+# Restore state
+ynh_restore_file "$state_path"
 
 #=================================================
 # RESTORE USER RIGHTS
@@ -77,12 +71,14 @@ ynh_restore_file "$final_path"
 
 # Restore permissions on app files
 chown -R www-data:www-data $final_path
+chown -R www-data:www-data $log_path
+chown -R www-data:www-data $state_path
 
 #=================================================
 # RESTORE THE PHP-FPM CONFIGURATION
 #=================================================
 
-ynh_restore_file "/etc/php5/fpm/pool.d/$app.conf"
+ynh_restore_file "/etc/php/7.0/fpm/pool.d/$app.conf"
 
 #=================================================
 # SPECIFIC RESTORATION
@@ -97,32 +93,6 @@ yunohost tools update
 ynh_install_app_dependencies z-push-common z-push-backend-caldav z-push-backend-carddav z-push-backend-combined z-push-backend-imap z-push-backend-ldap z-push-backend-galsearch-ldap z-push-autodiscover
 ynh_install_app_dependencies php-memcached php-cli php-soap 
 
-# Restore statedir
-ynh_restore_file "$config_path"
-
-# Restore logs, data & permissions
-ynh_restore_file "$state_path"
-
-
-#=================================================
-# RESTORE SYSTEMD
-#=================================================
-
-#ynh_restore_file "/etc/systemd/system/$app.service"
-#systemctl enable $app.service
-
-#=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
-#=================================================
-
-#yunohost service add $app --log "/var/log/$app/APP.log"
-
-#=================================================
-# RESTORE THE CRON FILE
-#=================================================
-
-#ynh_restore_file "/etc/cron.d/$app"
-
 #=================================================
 # RESTORE THE LOGROTATE CONFIGURATION
 #=================================================
@@ -134,6 +104,13 @@ ynh_restore_file "/etc/logrotate.d/$app"
 #=================================================
 # RELOAD NGINX AND PHP-FPM
 #=================================================
+ynh_print_info "Reloading nginx web server and php-fpm..."
 
-systemctl reload php5-fpm
+systemctl reload php7.0-fpm
 systemctl reload nginx
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info "Restoration completed for $app"
