@@ -78,7 +78,7 @@ ynh_secure_remove "$config_path"
 # Remove the log files
 ynh_secure_remove "$log_path"
 
-# Remove the statedir
+# Remove the state
 ynh_secure_remove "$state_path"
 
 #=================================================

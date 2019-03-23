@@ -41,7 +41,7 @@ ynh_backup "$final_path"
 # Backup config
 ynh_backup "$config_path"
 
-# Backup statedir
+# Backup state
 ynh_backup "$state_path"
 
 #=================================================
