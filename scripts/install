@@ -8,15 +8,12 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
+source ynh_add_secure_repos__2
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-ynh_clean_setup () {
-	### Remove this function if there's nothing to clean before calling the remove script.
-	true
-}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -182,10 +179,6 @@ fi
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
 #=================================================
-
-### `ynh_store_file_checksum` is used to store the checksum of a file.
-### That way, during the upgrade script, by using `ynh_backup_if_checksum_is_different`,
-### you can make a backup of this file before modifying it again if the admin had modified it.
 
 # Calculate and store the config file checksum into the app settings
 ynh_store_file_checksum "$config_path/policies.ini"
