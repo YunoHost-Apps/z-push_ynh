@@ -71,7 +71,8 @@ ynh_app_setting_set $app log_path $log_path
 #=================================================
 ynh_print_info "Installing dependencies..."
 
-ynh_install_extra_repo --repo="deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ /"
+echo "deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ /" | tee /etc/apt/sources.list.d/z-push.list
+wget -qO - http://repo.z-hub.io/z-push:/final/Debian_9.0/Release.key | sudo apt-key add -
 ynh_package_update
 ynh_install_app_dependencies z-push-common z-push-backend-caldav z-push-backend-carddav z-push-backend-combined z-push-backend-imap z-push-backend-ldap z-push-backend-galsearch-ldap z-push-autodiscover php-memcached php-cli php-soap 
 
