@@ -63,15 +63,6 @@ ynh_restore_file "$config_path"
 ynh_restore_file "$state_path"
 
 #=================================================
-# RESTORE USER RIGHTS
-#=================================================
-
-# Restore permissions on app files
-chown -R www-data:www-data $final_path
-chown -R www-data:www-data $log_path
-chown -R www-data:www-data $state_path
-
-#=================================================
 # RESTORE THE PHP-FPM CONFIGURATION
 #=================================================
 
@@ -92,6 +83,15 @@ ynh_install_app_dependencies z-push-common z-push-backend-caldav z-push-backend-
 #=================================================
 
 ynh_restore_file "/etc/logrotate.d/$app"
+
+#=================================================
+# RESTORE USER RIGHTS
+#=================================================
+
+# Restore permissions on app files
+chown -R www-data:www-data $final_path
+chown -R www-data:www-data $log_path
+chown -R www-data:www-data $state_path
 
 #=================================================
 # GENERIC FINALIZATION
