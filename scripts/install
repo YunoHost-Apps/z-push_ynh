@@ -76,7 +76,7 @@ ynh_print_info "Installing dependencies..."
 
 #ynh_install_extra_repo --repo="deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ stretch stable"
 ynh_add_repo --uri="http://repo.z-hub.io/z-push:/final/Debian_9.0/" --suite="/" --component="" --name="$app"
-ynh_pin_repo --package="*" --pin="origin \"repo.z-hub.io\"" --name="$app" $append
+ynh_pin_repo --package="*" --pin="origin \"repo.z-hub.io\"" --name="$app"
 
 ynh_install_app_dependencies $pkg_dependencies
 
