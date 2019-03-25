@@ -74,7 +74,7 @@ ynh_app_setting_set $app log_path $log_path
 #=================================================
 ynh_print_info "Installing dependencies..."
 
-ynh_install_extra_repo --repo="deb http://repo.z-hub.io/z-push:/final/Debian_9.0/"
+ynh_install_extra_repo --repo="deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ stretch stable"
 
 ynh_install_app_dependencies $pkg_dependencies
 
