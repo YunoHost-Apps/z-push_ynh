@@ -28,7 +28,6 @@ ynh_abort_if_errors
 
 domain=$YNH_APP_ARG_DOMAIN
 path_url="/"
-is_public="1"
 
 path_url_activesync="/Microsoft-Server-ActiveSync"
 path_url_autodiscover1="/AutoDiscover"
@@ -63,7 +62,6 @@ ynh_print_info "Storing installation settings..."
 
 ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app path $path_url
-ynh_app_setting_set $app is_public $is_public
 ynh_app_setting_set $app final_path $final_path
 ynh_app_setting_set $app config_path $config_path
 ynh_app_setting_set $app state_path $state_path
@@ -76,7 +74,7 @@ ynh_app_setting_set $app log_path $log_path
 #=================================================
 ynh_print_info "Installing dependencies..."
 
-ynh_install_extra_repo --repo="deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ /" --key="http://repo.z-hub.io/z-push:/final/Debian_9.0/Release.key"
+ynh_install_extra_repo --repo="deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ " --key="http://repo.z-hub.io/z-push:/final/Debian_9.0/Release.key"
 
 ynh_install_app_dependencies $pkg_dependencies
 
@@ -213,12 +211,8 @@ ynh_use_logrotate
 #=================================================
 ynh_print_info "Configuring SSOwat..."
 
-# Make app public if necessary
-if [ $is_public -eq 1 ]
-then
-	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_set $app unprotected_uris "/"
-fi
+# Make app public
+ynh_app_setting_set $app unprotected_uris "/"
 
 #=================================================
 # RELOAD NGINX

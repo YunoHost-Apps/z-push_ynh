@@ -19,7 +19,6 @@ app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
-is_public=$(ynh_app_setting_get $is_public)
 final_path=$(ynh_app_setting_get $app final_path)
 config_path=$(ynh_app_setting_get $app config_path)
 state_path=$(ynh_app_setting_get $app state_path)
@@ -30,27 +29,11 @@ log_path=$(ynh_app_setting_get $app log_path)
 #=================================================
 ynh_print_info "Ensuring downward compatibility..."
 
-# Fix is_public as a boolean value
-if [ "$is_public" = "Yes" ]; then
-	ynh_app_setting_set $app is_public 1
-	is_public=1
-elif [ "$is_public" = "No" ]; then
-	ynh_app_setting_set $app is_public 0
-	is_public=0
-fi
-
-# If db_name doesn't exist, create it
-if [ -z $db_name ]; then
-	db_name=$(ynh_sanitize_dbid $app)
-	ynh_app_setting_set $app db_name $db_name
-fi
-
 # If final_path doesn't exist, create it
 if [ -z $final_path ]; then
-	final_path=/var/www/$app
+	final_path=/usr/share/z-push
 	ynh_app_setting_set $app final_path $final_path
 fi
-
 
 config_path=/etc/z-push
 state_path=/var/lib/z-push
@@ -232,12 +215,8 @@ chown -R www-data:www-data $state_path
 #=================================================
 ynh_print_info "Upgrading SSOwat configuration..."
 
-# Make app public if necessary
-if [ $is_public -eq 1 ]
-then
-	# unprotected_uris allows SSO credentials to be passed anyway
-	ynh_app_setting_set $app unprotected_uris "/"
-fi
+# Make app public
+ynh_app_setting_set $app unprotected_uris "/"
 
 #=================================================
 # RELOAD NGINX
