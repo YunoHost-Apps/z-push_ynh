@@ -8,6 +8,7 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
+source ynh_add_secure_repos__2
 
 #=================================================
 # LOAD SETTINGS
@@ -32,7 +33,7 @@ ynh_print_info "Removing dependencies"
 # Remove metapackage and its dependencies
 ynh_remove_app_dependencies
 
-ynh_remove_extra_repo --name=z-push
+ynh_remove_extra_repo
 
 #=================================================
 # REMOVE APP MAIN DIR

@@ -26,18 +26,6 @@ Quick description of this app.
 - [x] The sources are based on http://download.z-push.org/final/
 - [x] Use of version 2.4.5 final
 
-## Screenshots
-
-![](Link to an screenshot for this app)
-
-## Demo
-
-* [Official demo](Link to a demo site for this app)
-
-## Licence
-
-* LICENSE: AGPL-3.0
-
 ## Configuration
 
 How to configure this app: by an admin panel, a plain file with SSH, or any other way.
@@ -74,7 +62,7 @@ https://yunohost.org/packaging_apps
 ## Links
 
  * Report a bug: https://github.com/YunoHost-Apps/z-push_ynh/issues
- * App website: Link to the official website of this app
+ * App website: http://z-push.org/
  * YunoHost website: https://yunohost.org/
 
 ---
