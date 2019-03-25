@@ -14,6 +14,11 @@ source ynh_add_secure_repos__2
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	### Remove this function if there's nothing to clean before calling the remove script.
+	read -p "Press any key..."
+	true
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -73,7 +78,7 @@ ynh_print_info "Installing dependencies..."
 
 ynh_install_extra_repo --repo="deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ /" --key="http://repo.z-hub.io/z-push:/final/Debian_9.0/Release.key"
 
-ynh_install_app_dependencies z-push-common z-push-backend-caldav z-push-backend-carddav z-push-backend-combined z-push-backend-imap z-push-backend-ldap z-push-backend-galsearch-ldap z-push-autodiscover php-memcached php-cli php-soap 
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # NGINX CONFIGURATION
@@ -106,7 +111,7 @@ ynh_replace_string "__TIMEZONE__" "$(cat /etc/timezone)" "$config_path/autodisco
 
 
 # Enable caldav carddav support
-if sudo yunohost app list --installed -f baikal | grep -q id ; then
+if yunohost app list --installed -f baikal | grep -q id ; then
 	echo "Detected Baikal"
 	baikaldomain=$(ynh_app_setting_get baikal domain)
 	baikalpath=$(ynh_app_setting_get baikal path)
@@ -133,7 +138,7 @@ if sudo yunohost app list --installed -f baikal | grep -q id ; then
 	ynh_store_file_checksum "$config_path/caldav.conf.php"
 	ynh_store_file_checksum "$config_path/carddav.conf.php"
 	
-elif sudo yunohost app list --installed -f nextcloud | grep -q id ; then
+elif yunohost app list --installed -f nextcloud | grep -q id ; then
 	echo "Detected NextCloud"
 	nextclouddomain=$(ynh_app_setting_get nextcloud domain)
 	nextcloudpath=$(ynh_app_setting_get nextcloud path)
@@ -202,14 +207,6 @@ ynh_print_info "Configuring log rotation..."
 
 # Use logrotate to manage application logfile(s)
 ynh_use_logrotate
-
-#=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
-#=================================================
-
-#yunohost service add $app --log "/var/log/$app/APP.log"
-# if using yunohost version 3.2 or more in the 'manifest.json', a description can be added
-#yunohost service add $app --description "$app daemon for XXX" --log "/var/log/$app/$app.log"
 
 #=================================================
 # SETUP SSOWAT
