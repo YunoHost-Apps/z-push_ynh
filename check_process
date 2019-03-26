@@ -1,6 +1,7 @@
 ;; Test complet
     ; Manifest
         domain="domain.tld"	(DOMAIN)
+        path="/Microsoft-Server-ActiveSync" (PATH)
     ; Checks
         pkg_linter=1
         setup_sub_dir=1
