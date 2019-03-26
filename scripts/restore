@@ -77,6 +77,9 @@ ynh_print_info "Reinstalling dependencies..."
 
 ynh_add_repo --uri="http://repo.z-hub.io/z-push:/final/Debian_9.0/" --suite="/" --component="" --name="$app"
 ynh_pin_repo --package="*" --pin="origin \"repo.z-hub.io\"" --name="$app"
+mkdir -p "/etc/apt/trusted.gpg.d"
+wget -qO - http://repo.z-hub.io/z-push:/final/Debian_9.0/Release.key | apt-key --keyring /etc/apt/trusted.gpg.d/$app.gpg add -
+ynh_package_update
 
 ynh_install_app_dependencies $pkg_dependencies
 
