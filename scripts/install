@@ -14,11 +14,6 @@ source ynh_add_secure_repos__2
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-ynh_clean_setup () {
-	### Remove this function if there's nothing to clean before calling the remove script.
-	read -p "Press any key..."
-	true
-}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -27,13 +22,7 @@ ynh_abort_if_errors
 #=================================================
 
 domain=$YNH_APP_ARG_DOMAIN
-path_url="/"
-
-path_url_activesync="/Microsoft-Server-ActiveSync"
-path_url_autodiscover1="/AutoDiscover"
-path_url_autodiscover2="/Autodiscover"
-path_url_autodiscover3="/autodiscover"
-
+path_url="/Microsoft-Server-ActiveSync"
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -44,16 +33,13 @@ ynh_print_info "Validating installation parameters..."
 
 final_path=/usr/share/z-push
 config_path=/etc/z-push
-state_path=/var/lib/z-push
-log_path=/var/log/z-push
+final_logpath=/var/log/z-push
+statedir=/var/lib/z-push
 
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
-# Normalize the url path syntax
-path_url=$(ynh_normalize_url_path $path_url)
-
 # Register (book) web path
-ynh_webpath_register $app $domain $path_url_activesync
+ynh_webpath_register $app $domain $path_url
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
@@ -64,8 +50,8 @@ ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app path $path_url
 ynh_app_setting_set $app final_path $final_path
 ynh_app_setting_set $app config_path $config_path
-ynh_app_setting_set $app state_path $state_path
-ynh_app_setting_set $app log_path $log_path
+ynh_app_setting_set $app final_logpath $final_logpath
+ynh_app_setting_set $app statedir $statedir
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -74,7 +60,6 @@ ynh_app_setting_set $app log_path $log_path
 #=================================================
 ynh_print_info "Installing dependencies..."
 
-#ynh_install_extra_repo --repo="deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ stretch stable"
 ynh_add_repo --uri="http://repo.z-hub.io/z-push:/final/Debian_9.0/" --suite="/" --component="" --name="$app"
 ynh_pin_repo --package="*" --pin="origin \"repo.z-hub.io\"" --name="$app"
 
@@ -100,10 +85,10 @@ ynh_add_fpm_config
 # MODIFY A CONFIG FILE
 #=================================================
 
-sudo cp ../conf/policies.ini $config_path/policies.ini
-sudo cp ../conf/z-push.conf.php $config_path/z-push.conf.php
-sudo cp ../conf/galsearch-ldap.conf.php $config_path/galsearch-ldap.conf.php
-sudo cp ../conf/autodiscover.conf.php $config_path/autodiscover.conf.php
+cp ../conf/policies.ini $config_path/policies.ini
+cp ../conf/z-push.conf.php $config_path/z-push.conf.php
+cp ../conf/galsearch-ldap.conf.php $config_path/galsearch-ldap.conf.php
+cp ../conf/autodiscover.conf.php $config_path/autodiscover.conf.php
 
 # Configuration of timezone
 ynh_replace_string "__TIMEZONE__" "$(cat /etc/timezone)" "$config_path/z-push.conf.php"
@@ -120,15 +105,15 @@ if yunohost app list --installed -f baikal | grep -q id ; then
 	# Configuration of backend
 	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/z-push.conf.php"
 	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/autodiscover.conf.php"
-	sudo cp ../conf/combined.conf.php $config_path/combined.conf.php
+	cp ../conf/combined.conf.php $config_path/combined.conf.php
 	
 	# Configuration of caldav
-	sudo cp ../conf/caldav.conf.php $config_path/caldav.conf.php
+	cp ../conf/caldav.conf.php $config_path/caldav.conf.php
 	ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/caldav.conf.php"
 	ynh_replace_string "__CALDAV_PATH__" "$baikalpath/cal.php/calendars/%u/" "$config_path/caldav.conf.php"
 	
 	# Configuration of carddav
-	sudo cp ../conf/carddav.conf.php $config_path/carddav.conf.php
+	cp ../conf/carddav.conf.php $config_path/carddav.conf.php
 	ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/carddav.conf.php"
 	ynh_replace_string "__CARDDAV_PATH__" "$baikalpath/card.php/addressbooks/%u/" "$config_path/carddav.conf.php"
 	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "$baikalpath/card.php/addressbooks/%u/default" "$config_path/carddav.conf.php"
@@ -147,15 +132,15 @@ elif yunohost app list --installed -f nextcloud | grep -q id ; then
 	# Configuration of backend
 	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/z-push.conf.php"
 	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/autodiscover.conf.php"
-	sudo cp ../conf/combined.conf.php $config_path/combined.conf.php
+	cp ../conf/combined.conf.php $config_path/combined.conf.php
 	
 	# Configuration of caldav
-	sudo cp ../conf/caldav.conf.php $config_path/caldav.conf.php
+	cp ../conf/caldav.conf.php $config_path/caldav.conf.php
 	ynh_replace_string "__DOMAIN__" "$nextclouddomain" "$config_path/caldav.conf.php"
 	ynh_replace_string "__CALDAV_PATH__" "$nextcloudpath/remote.php/dav/calendars/%u/personal/" "$config_path/caldav.conf.php"
 	
 	# Configuration of carddav
-	sudo cp ../conf/carddav.conf.php $config_path/carddav.conf.php
+	cp ../conf/carddav.conf.php $config_path/carddav.conf.php
 	ynh_replace_string "__DOMAIN__" "$nextclouddomain" "$config_path/carddav.conf.php"
 	ynh_replace_string "__CARDDAV_PATH__" "$nextcloudpath/remote.php/dav/addressbooks/users/%u/contacts/" "$config_path/carddav.conf.php"
 	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "$nextcloudpath/remote.php/dav/addressbooks/users/%u/contacts/" "$config_path/carddav.conf.php"	
@@ -172,7 +157,7 @@ else
 fi
 
 	# Configuration of imap
-	sudo cp ../conf/imap.conf.php $config_path/imap.conf.php
+	cp ../conf/imap.conf.php $config_path/imap.conf.php
 	ynh_replace_string "__DOMAIN__" "$domain" "$config_path/imap.conf.php"
 	ynh_replace_string "__IMAP_MEETING_USE_CALDAV__" "false" "$config_path/imap.conf.php"
 	
@@ -197,8 +182,8 @@ ynh_store_file_checksum "$config_path/autodiscover.conf.php"
 
 # Set permissions to app files
 chown -R www-data:www-data $final_path
-chown -R www-data:www-data $log_path
-chown -R www-data:www-data $state_path
+chown -R www-data:www-data $final_logpath
+chown -R www-data:www-data $statedir
 
 #=================================================
 # SETUP LOGROTATE

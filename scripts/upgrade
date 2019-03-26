@@ -21,28 +21,13 @@ domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
 final_path=$(ynh_app_setting_get $app final_path)
 config_path=$(ynh_app_setting_get $app config_path)
-state_path=$(ynh_app_setting_get $app state_path)
-log_path=$(ynh_app_setting_get $app log_path)
+statedir=$(ynh_app_setting_get $app statedir)
+final_logpath=$(ynh_app_setting_get $app final_logpath)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 ynh_print_info "Ensuring downward compatibility..."
-
-# If final_path doesn't exist, create it
-if [ -z $final_path ]; then
-	final_path=/usr/share/z-push
-	ynh_app_setting_set $app final_path $final_path
-fi
-
-config_path=/etc/z-push
-state_path=/var/lib/z-push
-log_path=/var/log/z-push
-
-ynh_app_setting_set $app config_path $config_path
-ynh_app_setting_set $app state_path $state_path
-ynh_app_setting_set $app log_path $log_path
-
 
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
@@ -66,6 +51,23 @@ ynh_abort_if_errors
 path_url=$(ynh_normalize_url_path $path_url)
 
 #=================================================
+# REMOVE OLD VERSION
+#=================================================
+
+# If final_path doesn't exist, create it
+if [ $final_path == "/var/www/$app" ]; then
+    ynh_secure_remove "$final_path"
+	final_path=/usr/share/z-push
+	config_path=/etc/z-push
+	statedir=/var/lib/z-push
+	final_logpath=/var/log/z-push
+	ynh_app_setting_set $app final_path $final_path
+    ynh_app_setting_set $app config_path $config_path
+    ynh_app_setting_set $app statedir $statedir
+    ynh_app_setting_set $app final_logpath $final_logpath
+fi
+
+#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # NGINX CONFIGURATION
@@ -80,7 +82,8 @@ ynh_add_nginx_config
 #=================================================
 ynh_print_info "Upgrading dependencies..."
 
-ynh_install_extra_repo --repo="deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ /" --key="http://repo.z-hub.io/z-push:/final/Debian_9.0/Release.key"
+ynh_add_repo --uri="http://repo.z-hub.io/z-push:/final/Debian_9.0/" --suite="/" --component="" --name="$app"
+ynh_pin_repo --package="*" --pin="origin \"repo.z-hub.io\"" --name="$app"
 
 ynh_install_app_dependencies $pkg_dependencies
 
@@ -98,10 +101,10 @@ ynh_add_fpm_config
 # MODIFY A CONFIG FILE
 #=================================================
 
-sudo cp ../conf/policies.ini $config_path/policies.ini
-sudo cp ../conf/z-push.conf.php $config_path/z-push.conf.php
-sudo cp ../conf/galsearch-ldap.conf.php $config_path/galsearch-ldap.conf.php
-sudo cp ../conf/autodiscover.conf.php $config_path/autodiscover.conf.php
+cp ../conf/policies.ini $config_path/policies.ini
+cp ../conf/z-push.conf.php $config_path/z-push.conf.php
+cp ../conf/galsearch-ldap.conf.php $config_path/galsearch-ldap.conf.php
+cp ../conf/autodiscover.conf.php $config_path/autodiscover.conf.php
 
 # Configuration of timezone
 ynh_replace_string "__TIMEZONE__" "$(cat /etc/timezone)" "$config_path/z-push.conf.php"
@@ -109,7 +112,7 @@ ynh_replace_string "__TIMEZONE__" "$(cat /etc/timezone)" "$config_path/autodisco
 
 
 # Enable caldav carddav support
-if sudo yunohost app list --installed -f baikal | grep -q id ; then
+if yunohost app list --installed -f baikal | grep -q id ; then
 	echo "Detected Baikal"
 	baikaldomain=$(ynh_app_setting_get baikal domain)
 	baikalpath=$(ynh_app_setting_get baikal path)
@@ -118,15 +121,15 @@ if sudo yunohost app list --installed -f baikal | grep -q id ; then
 	# Configuration of backend
 	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/z-push.conf.php"
 	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/autodiscover.conf.php"
-	sudo cp ../conf/combined.conf.php $config_path/combined.conf.php
+	cp ../conf/combined.conf.php $config_path/combined.conf.php
 	
 	# Configuration of caldav
-	sudo cp ../conf/caldav.conf.php $config_path/caldav.conf.php
+	cp ../conf/caldav.conf.php $config_path/caldav.conf.php
 	ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/caldav.conf.php"
 	ynh_replace_string "__CALDAV_PATH__" "$baikalpath/cal.php/calendars/%u/" "$config_path/caldav.conf.php"
 	
 	# Configuration of carddav
-	sudo cp ../conf/carddav.conf.php $config_path/carddav.conf.php
+	cp ../conf/carddav.conf.php $config_path/carddav.conf.php
 	ynh_replace_string "__DOMAIN__" "$baikaldomain" "$config_path/carddav.conf.php"
 	ynh_replace_string "__CARDDAV_PATH__" "$baikalpath/card.php/addressbooks/%u/" "$config_path/carddav.conf.php"
 	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "$baikalpath/card.php/addressbooks/%u/default" "$config_path/carddav.conf.php"
@@ -136,7 +139,7 @@ if sudo yunohost app list --installed -f baikal | grep -q id ; then
 	ynh_store_file_checksum "$config_path/caldav.conf.php"
 	ynh_store_file_checksum "$config_path/carddav.conf.php"
 	
-elif sudo yunohost app list --installed -f nextcloud | grep -q id ; then
+elif yunohost app list --installed -f nextcloud | grep -q id ; then
 	echo "Detected NextCloud"
 	nextclouddomain=$(ynh_app_setting_get nextcloud domain)
 	nextcloudpath=$(ynh_app_setting_get nextcloud path)
@@ -145,15 +148,15 @@ elif sudo yunohost app list --installed -f nextcloud | grep -q id ; then
 	# Configuration of backend
 	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/z-push.conf.php"
 	ynh_replace_string "__BACKEND_PROVIDER__" "BackendCombined" "$config_path/autodiscover.conf.php"
-	sudo cp ../conf/combined.conf.php $config_path/combined.conf.php
+	cp ../conf/combined.conf.php $config_path/combined.conf.php
 	
 	# Configuration of caldav
-	sudo cp ../conf/caldav.conf.php $config_path/caldav.conf.php
+	cp ../conf/caldav.conf.php $config_path/caldav.conf.php
 	ynh_replace_string "__DOMAIN__" "$nextclouddomain" "$config_path/caldav.conf.php"
 	ynh_replace_string "__CALDAV_PATH__" "$nextcloudpath/remote.php/dav/calendars/%u/personal/" "$config_path/caldav.conf.php"
 	
 	# Configuration of carddav
-	sudo cp ../conf/carddav.conf.php $config_path/carddav.conf.php
+	cp ../conf/carddav.conf.php $config_path/carddav.conf.php
 	ynh_replace_string "__DOMAIN__" "$nextclouddomain" "$config_path/carddav.conf.php"
 	ynh_replace_string "__CARDDAV_PATH__" "$nextcloudpath/remote.php/dav/addressbooks/users/%u/contacts/" "$config_path/carddav.conf.php"
 	ynh_replace_string "__CARDDAV_DEFAULT_PATH__" "$nextcloudpath/remote.php/dav/addressbooks/users/%u/contacts/" "$config_path/carddav.conf.php"	
@@ -170,15 +173,32 @@ else
 fi
 
 	# Configuration of imap
-	sudo cp ../conf/imap.conf.php $config_path/imap.conf.php
+	cp ../conf/imap.conf.php $config_path/imap.conf.php
 	ynh_replace_string "__DOMAIN__" "$domain" "$config_path/imap.conf.php"
 	ynh_replace_string "__IMAP_MEETING_USE_CALDAV__" "false" "$config_path/imap.conf.php"
 	
 	# Checksum of config files
 	ynh_store_file_checksum "$config_path/imap.conf.php"
 
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
+
+# Set permissions on app files
+chown -R www-data:www-data $final_path
+chown -R www-data:www-data $final_logpath
+chown -R www-data:www-data $statedir
+
+#=================================================
+# FIX STATES
+#=================================================
+
 # Fixstates to avoid full resync of devices after version upgrades
-sudo $final_path/z-push-admin.php -a fixstates
+$final_path/z-push-admin.php -a fixstates
+
+#=================================================
+# STORE THE CONFIG FILE CHECKSUM
+#=================================================
 
 ynh_backup_if_checksum_is_different "$config_path/policies.ini"
 ynh_backup_if_checksum_is_different "$config_path/z-push.conf.php"
@@ -201,15 +221,6 @@ ynh_use_logrotate --non-append
 
 #=================================================
 # GENERIC FINALIZATION
-#=================================================
-# SECURE FILES AND DIRECTORIES
-#=================================================
-
-# Set permissions on app files
-chown -R www-data:www-data $final_path
-chown -R www-data:www-data $log_path
-chown -R www-data:www-data $state_path
-
 #=================================================
 # SETUP SSOWAT
 #=================================================

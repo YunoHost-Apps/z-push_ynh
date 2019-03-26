@@ -26,8 +26,8 @@ app=$YNH_APP_INSTANCE_NAME
 final_path=$(ynh_app_setting_get $app final_path)
 domain=$(ynh_app_setting_get $app domain)
 config_path=$(ynh_app_setting_get $app config_path)
-state_path=$(ynh_app_setting_get $app state_path)
-log_path=$(ynh_app_setting_get $app log_path)
+final_logpath=$(ynh_app_setting_get $app final_logpath)
+statedir=$(ynh_app_setting_get $app statedir)
 
 #=================================================
 # STANDARD BACKUP STEPS
@@ -42,7 +42,7 @@ ynh_backup "$final_path"
 ynh_backup "$config_path"
 
 # Backup state
-ynh_backup "$state_path"
+ynh_backup "$statedir"
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
@@ -56,7 +56,7 @@ ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 ynh_print_info "Backing up php-fpm configuration..."
 
-ynh_backup "/etc/php5/fpm/pool.d/$app.conf"
+ynh_backup "/etc/php/7.0/fpm/pool.d/$app.conf"
 
 #=================================================
 # SPECIFIC BACKUP

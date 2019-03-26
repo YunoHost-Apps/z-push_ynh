@@ -8,7 +8,7 @@
     },
     "version": "2.4.5~ynh1",
     "url": "https://z-push.org",
-    "license": "free",
+    "license": "AGPL-3.0-or-later",
     "maintainer": {
         "name": "beudbeud, polytan02"
     },

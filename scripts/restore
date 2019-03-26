@@ -28,8 +28,8 @@ domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
 final_path=$(ynh_app_setting_get $app final_path)
 config_path=$(ynh_app_setting_get $app config_path)
-state_path=$(ynh_app_setting_get $app state_path)
-log_path=$(ynh_app_setting_get $app log_path)
+final_logpath=$(ynh_app_setting_get $app final_logpath)
+statedir=$(ynh_app_setting_get $app statedir)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
@@ -60,7 +60,7 @@ ynh_restore_file "$final_path"
 ynh_restore_file "$config_path"
 
 # Restore state
-ynh_restore_file "$state_path"
+ynh_restore_file "$statedir"
 
 #=================================================
 # RESTORE THE PHP-FPM CONFIGURATION
@@ -73,8 +73,10 @@ ynh_restore_file "/etc/php/7.0/fpm/pool.d/$app.conf"
 #=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
+ynh_print_info "Reinstalling dependencies..."
 
-ynh_install_extra_repo --repo="deb http://repo.z-hub.io/z-push:/final/Debian_9.0/ /" --key="http://repo.z-hub.io/z-push:/final/Debian_9.0/Release.key"
+ynh_add_repo --uri="http://repo.z-hub.io/z-push:/final/Debian_9.0/" --suite="/" --component="" --name="$app"
+ynh_pin_repo --package="*" --pin="origin \"repo.z-hub.io\"" --name="$app"
 
 ynh_install_app_dependencies $pkg_dependencies
 
@@ -90,8 +92,8 @@ ynh_restore_file "/etc/logrotate.d/$app"
 
 # Restore permissions on app files
 chown -R www-data:www-data $final_path
-chown -R www-data:www-data $log_path
-chown -R www-data:www-data $state_path
+chown -R www-data:www-data $final_logpath
+chown -R www-data:www-data $statedir
 
 #=================================================
 # GENERIC FINALIZATION
