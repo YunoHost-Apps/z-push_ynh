@@ -1,7 +1,12 @@
 #!/bin/bash
-set -eu
 
-# Source app helpers
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
 source /usr/share/yunohost/helpers
 
 # Retrieve arguments
@@ -22,6 +27,20 @@ then
 else
    echo "${final_path} exists, we don't create it."
 fi
+
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+ynh_print_info "Backing up the app before upgrading (may take a while)..."
+
+# Backup the current version of the app
+ynh_backup_before_upgrade
+ynh_clean_setup () {
+	# restore it if the upgrade fails
+	ynh_restore_upgradebackup
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
 
 if [ -z "$statedir" ];
 then
@@ -64,8 +83,8 @@ ynh_package_install_from_equivs ../conf/z-push-deps.control \
 
 
 # Cleaning
-sudo rm -rf $final_path
-sudo rm -rf $final_logpath
+ynh_secure_remove "$final_path"
+ynh_secure_remove "$final_logpath"
 sudo rm -f $final_nginxconf
 sudo rm -f $final_phpconf
 sudo rm -f /etc/logrotate.d/$app
