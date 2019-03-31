@@ -9,23 +9,37 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
-# Retrieve arguments
+#=================================================
+# LOAD SETTINGS
+#=================================================
+ynh_print_info "Loading installation settings..."
+
 app=$YNH_APP_INSTANCE_NAME
+
 domain=$(ynh_app_setting_get $app domain)
 path=$(ynh_app_setting_get $app path)
 final_path=$(ynh_app_setting_get $app final_path)
 statedir=$(ynh_app_setting_get $app statedir)
 final_logpath=$(ynh_app_setting_get $app final_logpath)
-final_nginxconf=$(ynh_app_setting_get $app final_nginxconf)
-final_phpconf=$(ynh_app_setting_get $app final_phpconf)
 
-# We make the app retro-compatible with previous versions
-if [ -z "$final_path" ];
-then
-   final_path="/var/www/$app"
-   ynh_app_setting_set "$app" final_path "$final_path"
-else
-   echo "${final_path} exists, we don't create it."
+#=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+ynh_print_info "Ensuring downward compatibility..."
+
+# Fix is_public as a boolean value
+if [ "$is_public" = "Yes" ]; then
+	ynh_app_setting_set $app is_public 1
+	is_public=1
+elif [ "$is_public" = "No" ]; then
+	ynh_app_setting_set $app is_public 0
+	is_public=0
+fi
+
+# If final_path doesn't exist, create it
+if [ -z $final_path ]; then
+	final_path=/var/www/$app
+	ynh_app_setting_set $app final_path $final_path
 fi
 
 #=================================================
@@ -58,127 +72,144 @@ else
    echo "${final_logpath} exists, we don't create it."
 fi
 
-if [ -z "$final_nginxconf" ];
-then
-   final_nginxconf="/etc/nginx/conf.d/${domain}.d/${app}.conf"
-   ynh_app_setting_set "$app" final_nginxconf "$final_nginxconf"
-else
-   echo "${final_nginxconf} exists, we don't create it."
-fi
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+ynh_print_info "Backing up the app before upgrading (may take a while)..."
 
-if [ -z "$final_phpconf" ];
-then
-   final_phpconf=/etc/php5/fpm/pool.d/$app.conf
-   ynh_app_setting_set "$app" final_phpconf "$final_phpconf"
-else
-   echo "${final_phpconf} exists, we don't create it."
-fi
+# Backup the current version of the app
+ynh_backup_before_upgrade
+ynh_clean_setup () {
+	# restore it if the upgrade fails
+	ynh_restore_upgradebackup
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
 
 
-# Prereqs
-#sudo apt-get install php-soap php5-imap libawl-php php5-xsl
-# Install dependencies using Helpers
-ynh_package_install_from_equivs ../conf/z-push-deps.control \
-|| ynh_die "Unable to install dependencies"
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+ynh_print_info "Upgrading source files..."
 
+# Download, check integrity, uncompress and patch the source from app.src
+ynh_setup_source "$final_path"
 
-# Cleaning
-ynh_secure_remove "$final_path"
-ynh_secure_remove "$final_logpath"
-sudo rm -f $final_nginxconf
-sudo rm -f $final_phpconf
-sudo rm -f /etc/logrotate.d/$app
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_print_info "Upgrading nginx web server configuration..."
 
-# Copy files to the right place
-sudo mkdir -p $final_path
+# Create a dedicated nginx config
+ynh_add_nginx_config
 
-# We download the sources and check the md5sum
-SFILE=`sudo cat ../sources/source_file`;
-sudo wget -nv -i ../sources/source_url -O ${SFILE}.tar.gz
-sudo md5sum -c ../sources/source_md5 --status || (echo "Corrupt source" >&2 && false)
-sudo tar xvf ${SFILE}.tar.gz -C ../sources/
-sudo cp -a ../sources/$SFILE/. $final_path/
+#=================================================
+# UPGRADE DEPENDENCIES
+#=================================================
+ynh_print_info "Upgrading dependencies..."
+
+ynh_install_app_dependencies $pkg_dependencies
+
+#=================================================
+# PHP-FPM CONFIGURATION
+#=================================================
+ynh_print_info "Upgrading php-fpm configuration..."
+
+# Create a dedicated php-fpm config
+ynh_add_fpm_config
+
+#=================================================
+# SPECIFIC UPGRADE
+#=================================================
+# MODIFY A CONFIG FILE
+#=================================================
 
 # Configuration
-sed -i "s^define('TIMEZONE', .*^define('TIMEZONE', '$(cat /etc/timezone)');^" ../conf/config.php
-sed -i "s@LOGTOCHANGE@$final_logpath@g" ../conf/config.php
-sed -i "s@LOGTOCHANGE@$final_logpath@g" ../conf/logrotate
+ynh_replace_string __TIMEZONE__ $(cat /etc/timezone) ../conf/config.php
+ynh_replace_string __FINAL_LOGPATH__ $final_logpath ../conf/config.php
 
 # Storage of state_dir in /home/yunohost.app
 # This contains the sync status in between device and z-push
-sed -i "s@STATEDIRTOCHANGE@$statedir@g" ../conf/config.php
-sudo mkdir -p $statedir
-sudo chown -R www-data:www-data $statedir
-# Note : there is a "fixstates actions done after the sources have been installed and configured
+ynh_replace_string __STATEDIR__ $statedir ../conf/config.php
 
 # Enable caldav carddav support
-if sudo yunohost app list --installed -f baikal | grep -q id ; then
-        echo "Detected Baikal"
-        caldavdomain=$(ynh_app_setting_get baikal domain)
-        caldavpath=$(ynh_app_setting_get baikal path)
-        caldavpath=${caldavpath%/}
+if yunohost app list --installed -f baikal | grep -q id ; then
+	echo "Detected Baikal"
+	caldavdomain=$(ynh_app_setting_get baikal domain)
+	caldavpath=$(ynh_app_setting_get baikal path)
+	caldavpath=${caldavpath%/}
 
-        # Configuration of backend
-        sed -i "s@BACKENDTOCHANGE@BackendCombined@g" ../conf/config.php
+	# Configuration of backend
+	ynh_replace_string __BACKEND__ BackendCombined ../conf/config.php
 
-        # Configuration baikal
-        sed -i "s@BAIKALDOMAIN@$caldavdomain@g" ../conf/backend/config*.php
-        sed -i "s@BAIKALPATH@$caldavpath@g" ../conf/backend/config*.php
-        sed -i "s@DOMAINTOCHANGE@$domain@g" ../conf/backend/config-imap.php
-        sed -i "s@FLAGTOCHANGE@true@g" ../conf/backend/config-imap.php
+	# Configuration baikal
+	ynh_replace_string __BAIKALDOMAIN__ $caldavdomain ../conf/backend/config*.php
+	ynh_replace_string __BAIKALPATH__ $caldavpath ../conf/backend/config*.php
+	ynh_replace_string __DOMAINTOCHANGE__ $domain ../conf/backend/config-imap.php
+	ynh_replace_string __FLAGTOCHANGE__ true ../conf/backend/config-imap.php
 
-        # Copy config
-        sudo cp ../conf/config.php $final_path/config.php
-        sudo cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
-        sudo cp ../conf/backend/config-carddav.php $final_path/backend/carddav/config.php
-        sudo cp ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
-        sudo cp ../conf/backend/config-combined.php $final_path/backend/combined/config.php
+	# Copy config
+	cp ../conf/config.php $final_path/config.php
+	cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
+	cp ../conf/backend/config-carddav.php $final_path/backend/carddav/config.php
+	cp ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
+	cp ../conf/backend/config-combined.php $final_path/backend/combined/config.php
 else
-        # Configuration of backend
-        sed -i "s@BACKENDTOCHANGE@BackendIMAP@g" ../conf/config.php
+	# Configuration of backend
+	ynh_replace_string __BACKEND__ BackendIMAP ../conf/config.php
 
-        # Copy config
-        sudo cp ../conf/config.php $final_path/config.php
-        sed -i "s@DOMAINTOCHANGE@$domain@g" ../conf/backend/config-imap.php
-        sed -i "s@FLAGTOCHANGE@false@g" ../conf/backend/config-imap.php
-        sudo cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
-
+	# Copy config
+	cp ../conf/config.php $final_path/config.php
+	ynh_replace_string __DOMAINTOCHANGE__ $domain ../conf/backend/config-imap.php
+	ynh_replace_string __FLAGTOCHANGE__ false ../conf/backend/config-imap.php
+	cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
 fi
 
-# Set permissions to z-push directory
-sudo chown -R www-data: $final_path
-
-# Create log directory
-sudo mkdir -p $final_logpath
-sudo chmod 750 $final_logpath
-sudo chown www-data:www-data $final_logpath
-
-# Activate logrotate
-sudo cp ../conf/logrotate /etc/logrotate.d/$app
-sudo chmod 644 /etc/logrotate.d/$app
-sudo chown root:root /etc/logrotate.d/$app
-
-#Copy XMLElement.php
-sudo ln -s /usr/share/awl/inc/XML* /var/www/z-push/include/
-
-# Modify Nginx configuration file and copy it to Nginx conf directory
-sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
-sudo sed -i "s@NAMETOCHANGE@$app@g" ../conf/nginx.conf
-sudo cp ../conf/nginx.conf $final_nginxconf
-
-# Dedicated php-fpm processes
-sudo sed -i "s@NAMETOCHANGE@$app@g" ../conf/php-fpm.conf
-sudo cp ../conf/php-fpm.conf $final_phpconf
-sudo chown root: $final_phpconf
-sudo chmod 644 $final_phpconf
-
 # Fixstates to avoid full resync of devices after version upgrades
-sudo $final_path/z-push-admin.php -a fixstates
+$final_path/z-push-admin.php -a fixstates
 
-# Enable api for client and make the app public
+#=================================================
+# SETUP LOGROTATE
+#=================================================
+ynh_print_info "Upgrading logrotate configuration..."
+
+# Use logrotate to manage app-specific logfile(s)
+ynh_use_logrotate --non-append
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
+
+# Set permissions on app files
+chown -R www-data: $final_path
+
+
+
+
+
+
+
+
+#=================================================
+# SETUP SSOWAT
+#=================================================
+ynh_print_info "Upgrading SSOwat configuration..."
+
 ynh_app_setting_set $app skipped_uris "/"
 
-# Restart of services
-sudo service php5-fpm reload
-sudo service nginx reload
-sudo yunohost app ssowatconf
+#=================================================
+# RELOAD NGINX
+#=================================================
+ynh_print_info "Reloading nginx web server..."
+
+systemctl reload nginx
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info "Upgrade of $app completed"

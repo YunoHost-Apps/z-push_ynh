@@ -5,7 +5,7 @@
 #=================================================
 
 # dependencies used by the app
-pkg_dependencies="deb1 deb2"
+pkg_dependencies="php-soap php5-imap libawl-php php5-xsl"
 
 #=================================================
 # PERSONAL HELPERS

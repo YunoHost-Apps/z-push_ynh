@@ -33,13 +33,13 @@
 define('CALDAV_PROTOCOL', 'https');
 
 // Server name
-define('CALDAV_SERVER', 'BAIKALDOMAIN');
+define('CALDAV_SERVER', '__BAIKALDOMAIN__');
 
 // Server port
 define('CALDAV_PORT', '443');
 
 // Path
-define('CALDAV_PATH', 'BAIKALPATH/cal.php/calendars/%u/');
+define('CALDAV_PATH', '__BAIKALPATH__/cal.php/calendars/%u/');
 
 // Default CalDAV folder (calendar folder/principal). This will be marked as the default calendar in the mobile
 define('CALDAV_PERSONAL', 'default');

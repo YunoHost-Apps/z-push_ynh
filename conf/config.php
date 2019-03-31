@@ -27,7 +27,7 @@
  *  Default settings
  */
     // Defines the default time zone, change e.g. to "Europe/London" if necessary
-    define('TIMEZONE', '');
+    define('TIMEZONE', '__TIMEZONE__');
 
     // Defines the base path on the server
     define('BASE_PATH', dirname($_SERVER['SCRIPT_FILENAME']). '/');
@@ -61,7 +61,7 @@
  *           State migration script is available, more informations: https://wiki.z-hub.io/x/xIAa
  */
     define('STATE_MACHINE', 'FILE');
-    define('STATE_DIR', 'STATEDIRTOCHANGE/');
+    define('STATE_DIR', '__STATEDIR__/');
 
 /**********************************************************************************
  *  IPC - InterProcessCommunication
@@ -110,7 +110,7 @@
     $specialLogUsers = array();
 
     // Filelog settings
-    define('LOGFILEDIR', 'LOGTOCHANGE/');
+    define('LOGFILEDIR', '__FINAL_LOGPATH__/');
     define('LOGFILE', LOGFILEDIR . 'z-push.log');
     define('LOGERRORFILE', LOGFILEDIR . 'z-push-error.log');
 
@@ -266,7 +266,7 @@
  *  Backend settings
  */
     // the backend data provider
-    define('BACKEND_PROVIDER', 'BACKENDTOCHANGE');
+    define('BACKEND_PROVIDER', '__BACKEND__');
 
 /**********************************************************************************
  *  Search provider settings

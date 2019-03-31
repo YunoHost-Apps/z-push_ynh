@@ -31,7 +31,7 @@
 define('CARDDAV_PROTOCOL', 'https');
 
 // Server name
-define('CARDDAV_SERVER', 'BAIKALDOMAIN');
+define('CARDDAV_SERVER', '__BAIKALDOMAIN__');
 
 // Server port
 define('CARDDAV_PORT', '443');
@@ -45,7 +45,7 @@ define('CARDDAV_PORT', '443');
 // %u: replaced with the username
 // %d: replaced with the domain
 //   Add the trailing /
-define('CARDDAV_PATH', 'BAIKALPATH/card.php/addressbooks/%u/');
+define('CARDDAV_PATH', '__BAIKALPATH__/card.php/addressbooks/%u/');
 
 
 // Server path to the default addressbook
