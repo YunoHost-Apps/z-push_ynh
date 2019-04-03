@@ -1,5 +1,5 @@
-SOURCE_URL=http://download.z-push.org/final/2.3/z-push-2.3.6.tar.gz
-SOURCE_SUM=9f86e4f6d822558bffdf05bebce4f1157ed7d8784b52d488935ef6d02efc27d7
+SOURCE_URL=https://github.com/Z-Hub/Z-Push/archive/3b937fb5c79068553198347ffad1f39f2e9d1b51.tar.gz
+SOURCE_SUM=d4d341946a6a2d24c4f9ceebeef8d0c3724c09ed5ad8c905fd1b4c44b25fe6fa
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true

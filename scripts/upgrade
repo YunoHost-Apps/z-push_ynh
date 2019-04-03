@@ -95,7 +95,10 @@ ynh_abort_if_errors
 ynh_print_info "Upgrading source files..."
 
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source "$final_path"
+mkdir "$final_path/tmp"
+ynh_setup_source "$final_path/tmp"
+cp -a "$final_path/tmp/src/." "$final_path/."
+rm -r "$final_path/tmp"
 
 #=================================================
 # NGINX CONFIGURATION
