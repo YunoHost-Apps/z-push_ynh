@@ -86,7 +86,6 @@ ynh_clean_setup () {
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
-
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
@@ -131,7 +130,9 @@ ynh_add_fpm_config
 
 # Configuration
 ynh_replace_string __TIMEZONE__ $(cat /etc/timezone) ../conf/config.php
+ynh_replace_string __TIMEZONE__ $(cat /etc/timezone) ../conf/backend/config-autodiscover.php
 ynh_replace_string __FINAL_LOGPATH__ $final_logpath ../conf/config.php
+ynh_replace_string __FINAL_LOGPATH__ $final_logpath ../conf/backend/config-autodiscover.php
 
 # Storage of state_dir in /home/yunohost.app
 # This contains the sync status in between device and z-push
@@ -146,10 +147,13 @@ if yunohost app list --installed -f baikal | grep -q id ; then
 
 	# Configuration of backend
 	ynh_replace_string __BACKEND__ BackendCombined ../conf/config.php
+	ynh_replace_string __BACKEND__ BackendCombined ../conf/backend/config-autodiscover.php
 
 	# Configuration baikal
-	ynh_replace_string __BAIKALDOMAIN__ $caldavdomain ../conf/backend/config*.php
-	ynh_replace_string __BAIKALPATH__ $caldavpath ../conf/backend/config*.php
+	ynh_replace_string __BAIKALDOMAIN__ $caldavdomain ../conf/backend/config-caldav.php
+	ynh_replace_string __BAIKALDOMAIN__ $caldavdomain ../conf/backend/config-carddav.php
+	ynh_replace_string __BAIKALPATH__ $caldavpath ../conf/backend/config-caldav.php
+	ynh_replace_string __BAIKALPATH__ $caldavpath ../conf/backend/config-carddav.php
 	ynh_replace_string __DOMAINTOCHANGE__ $domain ../conf/backend/config-imap.php
 	ynh_replace_string __FLAGTOCHANGE__ true ../conf/backend/config-imap.php
 
@@ -159,15 +163,18 @@ if yunohost app list --installed -f baikal | grep -q id ; then
 	cp ../conf/backend/config-carddav.php $final_path/backend/carddav/config.php
 	cp ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
 	cp ../conf/backend/config-combined.php $final_path/backend/combined/config.php
+	cp ../conf/backend/config-autodiscover.php $final_path/autodiscover/config.php
 else
 	# Configuration of backend
 	ynh_replace_string __BACKEND__ BackendIMAP ../conf/config.php
+	ynh_replace_string __BACKEND__ BackendIMAP ../conf/backend/config-autodiscover.php
 
 	# Copy config
 	cp ../conf/config.php $final_path/config.php
 	ynh_replace_string __DOMAINTOCHANGE__ $domain ../conf/backend/config-imap.php
 	ynh_replace_string __FLAGTOCHANGE__ false ../conf/backend/config-imap.php
 	cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
+	cp ../conf/backend/config-autodiscover.php $final_path/autodiscover/config.php
 fi
 
 # Fixstates to avoid full resync of devices after version upgrades
@@ -190,19 +197,14 @@ ynh_use_logrotate --non-append
 # Set permissions on app files
 chown -R www-data: $final_path
 
-
-
-
-
-
-
-
 #=================================================
 # SETUP SSOWAT
 #=================================================
 ynh_print_info "Upgrading SSOwat configuration..."
 
-ynh_app_setting_set $app skipped_uris "/"
+# Make app public
+ynh_app_setting_set $app unprotected_uris "/"
+ynh_app_setting_set $app skipped_regex "^[^/]*/[Aa]uto[Dd]iscover.*"
 
 #=================================================
 # RELOAD NGINX

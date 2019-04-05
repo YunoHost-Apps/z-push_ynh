@@ -100,10 +100,8 @@ ynh_print_info "Creating statedir and final_logpath..."
 mkdir -p $statedir
 chown -R www-data:www-data $statedir
 
-
 mkdir -p $final_logpath
 chown -R www-data:www-data $final_logpath
-
 
 #=================================================
 # MODIFY A CONFIG FILE
@@ -111,12 +109,13 @@ chown -R www-data:www-data $final_logpath
 
 # Configuration
 ynh_replace_string __TIMEZONE__ $(cat /etc/timezone) ../conf/config.php
+ynh_replace_string __TIMEZONE__ $(cat /etc/timezone) ../conf/backend/config-autodiscover.php
 ynh_replace_string __FINAL_LOGPATH__ $final_logpath ../conf/config.php
+ynh_replace_string __FINAL_LOGPATH__ $final_logpath ../conf/backend/config-autodiscover.php
 
 # Storage of state_dir in /home/yunohost.app
 # This contains the sync status in between device and z-push
 ynh_replace_string __STATEDIR__ $statedir ../conf/config.php
-
 
 # Enable caldav carddav support
 if yunohost app list --installed -f baikal | grep -q id ; then
@@ -127,10 +126,13 @@ if yunohost app list --installed -f baikal | grep -q id ; then
 
 	# Configuration of backend
 	ynh_replace_string __BACKEND__ BackendCombined ../conf/config.php
+	ynh_replace_string __BACKEND__ BackendCombined ../conf/backend/config-autodiscover.php
 
 	# Configuration baikal
-	ynh_replace_string __BAIKALDOMAIN__ $caldavdomain ../conf/backend/config*.php
-	ynh_replace_string __BAIKALPATH__ $caldavpath ../conf/backend/config*.php
+	ynh_replace_string __BAIKALDOMAIN__ $caldavdomain ../conf/backend/config-caldav.php
+	ynh_replace_string __BAIKALDOMAIN__ $caldavdomain ../conf/backend/config-carddav.php
+	ynh_replace_string __BAIKALPATH__ $caldavpath ../conf/backend/config-caldav.php
+	ynh_replace_string __BAIKALPATH__ $caldavpath ../conf/backend/config-carddav.php
 	ynh_replace_string __DOMAINTOCHANGE__ $domain ../conf/backend/config-imap.php
 	ynh_replace_string __FLAGTOCHANGE__ true ../conf/backend/config-imap.php
 
@@ -140,15 +142,18 @@ if yunohost app list --installed -f baikal | grep -q id ; then
 	cp ../conf/backend/config-carddav.php $final_path/backend/carddav/config.php
 	cp ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
 	cp ../conf/backend/config-combined.php $final_path/backend/combined/config.php
+	cp ../conf/backend/config-autodiscover.php $final_path/autodiscover/config.php
 else
 	# Configuration of backend
 	ynh_replace_string __BACKEND__ BackendIMAP ../conf/config.php
+	ynh_replace_string __BACKEND__ BackendIMAP ../conf/backend/config-autodiscover.php
 
 	# Copy config
 	cp ../conf/config.php $final_path/config.php
 	ynh_replace_string __DOMAINTOCHANGE__ $domain ../conf/backend/config-imap.php
 	ynh_replace_string __FLAGTOCHANGE__ false ../conf/backend/config-imap.php
 	cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
+	cp ../conf/backend/config-autodiscover.php $final_path/autodiscover/config.php
 fi
 
 #Copy XMLElement.php
@@ -168,7 +173,6 @@ chown -R www-data: $final_path
 #=================================================
 ynh_print_info "Configuring log rotation..."
 
-
 # Use logrotate to manage application logfile(s)
 ynh_use_logrotate
 
@@ -178,7 +182,8 @@ ynh_use_logrotate
 ynh_print_info "Configuring SSOwat..."
 
 # Make app public
-ynh_app_setting_set $app skipped_uris "/"
+ynh_app_setting_set $app unprotected_uris "/"
+ynh_app_setting_set $app skipped_regex "^[^/]*/[Aa]uto[Dd]iscover.*"
 
 #=================================================
 # RELOAD NGINX
