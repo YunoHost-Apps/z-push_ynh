@@ -210,6 +210,7 @@ fi
 # Copy config
 cp ../conf/config.php $final_path/config.php
 cp ../conf/backend/config-autodiscover.php $final_path/autodiscover/config.php
+cp ../conf/backend/config-searchldap.php $final_path/backend/searchldap/config.php
 
 # Fixstates to avoid full resync of devices after version upgrades
 $final_path/z-push-admin.php -a fixstates
