@@ -189,6 +189,7 @@ fi
 # Copy config
 cp ../conf/config.php $final_path/config.php
 cp ../conf/backend/config-autodiscover.php $final_path/autodiscover/config.php
+cp ../conf/backend/config-searchldap.php $final_path/backend/searchldap/config.php
 
 #Copy XMLElement.php
 ln -s /usr/share/awl/inc/XML* /var/www/$app/include/
