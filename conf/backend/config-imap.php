@@ -203,7 +203,7 @@ global $imap_smtp_params;
 // IMPORTANT: To use SSL you must use PHP 5.1 or later, install openssl libs and use ssl:// within the host variable
 // IMPORTANT: To use SSL with PHP 5.6 you should set verify_peer, verify_peer_name and allow_self_signed
 //$imap_smtp_params = array('host' => 'ssl://localhost', 'port' => 465, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password');
-$imap_smtp_params = array('host' => 'tcp://__DOMAINTOCHANGE__', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '__DOMAINTOCHANGE__', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);
+$imap_smtp_params = array('host' => 'tcp://__IMAP_SERVER__', 'port' => 587, 'auth' => true, 'username' => 'imap_username', 'password' => 'imap_password', 'localhost' => '__IMAP_SERVER__', 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true);
 
 
 

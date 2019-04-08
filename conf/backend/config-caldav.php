@@ -33,16 +33,16 @@
 define('CALDAV_PROTOCOL', 'https');
 
 // Server name
-define('CALDAV_SERVER', '__BAIKALDOMAIN__');
+define('CALDAV_SERVER', '__CALDAV_SERVER__');
 
 // Server port
 define('CALDAV_PORT', '443');
 
 // Path
-define('CALDAV_PATH', '__BAIKALPATH__/cal.php/calendars/%u/');
+define('CALDAV_PATH', '__CALDAV_PATH__');
 
 // Default CalDAV folder (calendar folder/principal). This will be marked as the default calendar in the mobile
-define('CALDAV_PERSONAL', 'default');
+define('CALDAV_PERSONAL', '__CALDAV_PERSONAL__');
 
 // If the CalDAV server supports the sync-collection operation
 // DAViCal, SOGo and SabreDav support it
