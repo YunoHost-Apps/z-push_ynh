@@ -46,16 +46,18 @@ if [ -z "$statedir" ];
 then
    statedir="/home/yunohost.app/$app"
    ynh_app_setting_set "$app" statedir "$statedir"
+   mkdir -p $statedir
 else
-   echo "${statedir} exists, we don't create it."
+   ynh_print_info "${statedir} exists, we don't create it."
 fi
 
 if [ -z "$final_logpath" ];
 then
    final_logpath="/var/log/$app"
    ynh_app_setting_set "$app" final_logpath "$final_logpath"
+   mkdir -p $final_logpath
 else
-   echo "${final_logpath} exists, we don't create it."
+   ynh_print_info "${final_logpath} exists, we don't create it."
 fi
 
 #=================================================
@@ -99,6 +101,14 @@ ynh_add_nginx_config
 ynh_print_info "Upgrading dependencies..."
 
 ynh_install_app_dependencies $pkg_dependencies
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_print_info "Making sure dedicated system user exists..."
+
+# Create a dedicated user (if not existing)
+ynh_system_user_create $app
 
 #=================================================
 # PHP-FPM CONFIGURATION
@@ -216,7 +226,10 @@ ynh_use_logrotate --non-append
 #=================================================
 
 # Set permissions on app files
-chown -R www-data: $final_path
+chown -R $app: $final_path
+
+chown -R $app: $statedir
+chown -R $app: $final_logpath
 
 #=================================================
 # SETUP SSOWAT
