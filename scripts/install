@@ -22,7 +22,7 @@ ynh_abort_if_errors
 
 domain=$YNH_APP_ARG_DOMAIN
 
-path="/Microsoft-Server-ActiveSync"
+path_url="/Microsoft-Server-ActiveSync"
 app=$YNH_APP_INSTANCE_NAME
 
 #=================================================
@@ -39,7 +39,7 @@ test ! -e "$statedir" || ynh_die "This path already contains a folder"
 final_logpath="/var/log/$app"
 
 # Register (book) web path
-ynh_webpath_register $app $domain $path
+ynh_webpath_register $app $domain $path_url
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
@@ -47,7 +47,7 @@ ynh_webpath_register $app $domain $path
 ynh_print_info "Storing installation settings..."
 
 ynh_app_setting_set $app domain $domain
-ynh_app_setting_set $app path $path
+ynh_app_setting_set $app path $path_url
 
 ynh_app_setting_set $app statedir "$statedir"
 ynh_app_setting_set $app final_logpath "$final_logpath"

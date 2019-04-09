@@ -17,7 +17,7 @@ ynh_print_info "Loading installation settings..."
 app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get $app domain)
-path=$(ynh_app_setting_get $app path)
+path_url=$(ynh_app_setting_get $app path)
 final_path=$(ynh_app_setting_get $app final_path)
 statedir=$(ynh_app_setting_get $app statedir)
 final_logpath=$(ynh_app_setting_get $app final_logpath)
