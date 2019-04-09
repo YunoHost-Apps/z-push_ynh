@@ -83,6 +83,14 @@ ynh_print_info "Configuring nginx web server..."
 ynh_add_nginx_config
 
 #=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_print_info "Configuring system user..."
+
+# Create a system user
+ynh_system_user_create $app
+
+#=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
 ynh_print_info "Configuring php-fpm..."
@@ -98,10 +106,10 @@ ynh_add_fpm_config
 ynh_print_info "Creating statedir and final_logpath..."
 
 mkdir -p $statedir
-chown -R www-data:www-data $statedir
+chown -R $app: $statedir
 
 mkdir -p $final_logpath
-chown -R www-data:www-data $final_logpath
+chown -R $app: $final_logpath
 
 #=================================================
 # MODIFY A CONFIG FILE
@@ -201,7 +209,7 @@ ln -s /usr/share/awl/inc/XML* /var/www/$app/include/
 #=================================================
 
 # Set permissions to app files
-chown -R www-data: $final_path
+chown -R $app: $final_path
 
 #=================================================
 # SETUP LOGROTATE
