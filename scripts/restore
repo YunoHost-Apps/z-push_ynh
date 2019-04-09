@@ -25,7 +25,7 @@ ynh_print_info "Loading settings..."
 app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get $app domain)
-path=$(ynh_app_setting_get $app path)
+path_url=$(ynh_app_setting_get $app path)
 final_path=$(ynh_app_setting_get $app final_path)
 statedir=$(ynh_app_setting_get $app statedir)
 final_logpath=$(ynh_app_setting_get $app final_logpath)
@@ -35,8 +35,8 @@ final_logpath=$(ynh_app_setting_get $app final_logpath)
 #=================================================
 ynh_print_info "Validating restoration parameters..."
 
-ynh_webpath_available $domain $path \
-	|| ynh_die "Path not available: ${domain}${path}"
+ynh_webpath_available $domain $path_url \
+	|| ynh_die "Path not available: ${domain}${path_url}"
 test ! -d $final_path \
 	|| ynh_die "There is already a directory: $final_path "
 
