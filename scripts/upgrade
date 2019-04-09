@@ -97,7 +97,7 @@ ynh_print_info "Upgrading source files..."
 mkdir "$final_path/tmp"
 ynh_setup_source "$final_path/tmp"
 cp -a "$final_path/tmp/src/." "$final_path/."
-rm -r "$final_path/tmp"
+ynh_secure_remove "$final_path/tmp"
 
 #=================================================
 # NGINX CONFIGURATION
