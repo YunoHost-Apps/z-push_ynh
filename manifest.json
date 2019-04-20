@@ -6,17 +6,18 @@
         "en": "Z-Push is an Exchange ActiveSync fronted written in php which lets you synchronize emails (imap/smtp backend) and calendar/contacts (carddav and caldav backend)",
         "fr": "Z-Push est un fronted Exchange ActiveSync écrit en php qui permet de synchroniser vos email (backend imap/smtp) et vos contacts/calendrier (backend carddav et caldav)"
     },
+    "version": "2.4.5~ynh1",
     "url": "https://z-push.org",
-    "license": "free",
+    "license": "AGPL-3.0-or-later",
     "maintainer": {
         "name": "beudbeud, polytan02"
     },
     "requirements": {
-        "yunohost": ">=2.4.0"
+        "yunohost": ">= 3.4"
     },
     "services": [
         "nginx",
-        "php5-fpm"
+        "php7.0-fpm"
     ],
     "multi_instance": true,
     "arguments": {
@@ -29,16 +30,6 @@
                     "fr": "Choisissez un domaine pour Z-push"
                 },
                 "example": "domain.org"
-            },
-            {
-                "name": "path",
-                "type": "path",
-                "ask": {
-                    "en": "No choice, it must be /Microsoft-Server-ActiveSync",
-                    "fr": "Pas de choix, cela doit être /Microsoft-Server-ActiveSync"
-                },
-                "choices": ["/Microsoft-Server-ActiveSync"],
-                "default": "/Microsoft-Server-ActiveSync"
             }
         ]
     }

@@ -27,7 +27,7 @@
  *  Default settings
  */
     // Defines the default time zone, change e.g. to "Europe/London" if necessary
-    define('TIMEZONE', '');
+    define('TIMEZONE', '__TIMEZONE__');
 
     // Defines the base path on the server
     define('BASE_PATH', dirname($_SERVER['SCRIPT_FILENAME']). '/');
@@ -50,7 +50,7 @@
      *   false - use the username only.
      *   true  - string the mobile sends as username, e.g. full email address (default).
      */
-    define('USE_FULLEMAIL_FOR_LOGIN', true);
+    define('USE_FULLEMAIL_FOR_LOGIN', false);
 
 /**********************************************************************************
  * StateMachine setting
@@ -61,7 +61,7 @@
  *           State migration script is available, more informations: https://wiki.z-hub.io/x/xIAa
  */
     define('STATE_MACHINE', 'FILE');
-    define('STATE_DIR', 'STATEDIRTOCHANGE/');
+    define('STATE_DIR', '__STATEDIR__/');
 
 /**********************************************************************************
  *  IPC - InterProcessCommunication
@@ -110,7 +110,7 @@
     $specialLogUsers = array();
 
     // Filelog settings
-    define('LOGFILEDIR', 'LOGTOCHANGE/');
+    define('LOGFILEDIR', '__FINAL_LOGPATH__/');
     define('LOGFILE', LOGFILEDIR . 'z-push.log');
     define('LOGERRORFILE', LOGFILEDIR . 'z-push-error.log');
 
@@ -266,7 +266,7 @@
  *  Backend settings
  */
     // the backend data provider
-    define('BACKEND_PROVIDER', 'BACKENDTOCHANGE');
+    define('BACKEND_PROVIDER', '__BACKEND__');
 
 /**********************************************************************************
  *  Search provider settings
@@ -276,7 +276,7 @@
  *  If set, the Search Provider will always be preferred.
  *  Use 'BackendSearchLDAP' to search in a LDAP directory (see backend/searchldap/config.php)
  */
-    define('SEARCH_PROVIDER', '');
+    define('SEARCH_PROVIDER', 'BackendSearchLDAP');
     // Time in seconds for the server search. Setting it too high might result in timeout.
     // Setting it too low might not return all results. Default is 10.
     define('SEARCH_WAIT', 10);

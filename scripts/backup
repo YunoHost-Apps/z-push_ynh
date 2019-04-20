@@ -1,30 +1,72 @@
 #!/bin/bash
-set -eu
+
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+#Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
+source ../settings/scripts/_common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+ynh_print_info "Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
-# Source YunoHost helpers
-source /usr/share/yunohost/helpers
-
 final_path=$(ynh_app_setting_get $app final_path)
+domain=$(ynh_app_setting_get $app domain)
 statedir=$(ynh_app_setting_get $app statedir)
 final_logpath=$(ynh_app_setting_get $app final_logpath)
-final_nginxconf=$(ynh_app_setting_get $app final_nginxconf)
-final_phpconf=$(ynh_app_setting_get $app final_phpconf)
 
-# Backup sources & data
-# Note: the last argument is where to save this path, see the restore script.
-ynh_backup "$final_path" "sources"
+#=================================================
+# STANDARD BACKUP STEPS
+#=================================================
+# BACKUP THE APP MAIN DIR
+#=================================================
+ynh_print_info "Backing up the main app directory..."
+
+ynh_backup "$final_path"
 
 # Backup statedir
-ynh_backup "$statedir" "statedir"
+ynh_backup "$statedir"
 
 # Backup logs
-ynh_backup "$final_logpath" "logs"
-ynh_backup "/etc/logrotate.d/$app" "logrotate"
+ynh_backup "$final_logpath"
 
-# Copy NGINX configuration
-ynh_backup "$final_nginxconf" "nginx.conf"
+#=================================================
+# BACKUP THE NGINX CONFIGURATION
+#=================================================
+ynh_print_info "Backing up nginx web server configuration..."
 
-# Copy PHP-FPM configuration
-ynh_backup "$final_phpconf" "php-fpm.conf"
+ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+
+#=================================================
+# BACKUP THE PHP-FPM CONFIGURATION
+#=================================================
+ynh_print_info "Backing up php-fpm configuration..."
+
+ynh_backup "/etc/php/7.0/fpm/pool.d/$app.conf"
+
+#=================================================
+# BACKUP LOGROTATE
+#=================================================
+ynh_print_info "Backing up logrotate configuration..."
+
+ynh_backup "/etc/logrotate.d/$app"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info "Backup script completed for $app. (YunoHost will then actually copy those files to the archive)."
