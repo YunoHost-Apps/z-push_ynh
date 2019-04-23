@@ -10,8 +10,16 @@
     "url": "https://z-push.org",
     "license": "AGPL-3.0-or-later",
     "maintainer": {
-        "name": "beudbeud, polytan02"
+        "name": "yalh76"
     },
+    "previous_maintainer": [
+        {
+            "name": "beudbeud"
+        },
+        {
+            "name": "polytan02"
+        }
+    ],
     "requirements": {
         "yunohost": ">= 3.4"
     },
