@@ -3,8 +3,8 @@
     "id": "z-push",
     "packaging_format": 1,
     "description": {
-        "en": "Z-Push is an Exchange ActiveSync fronted written in php which lets you synchronize emails (imap/smtp backend) and calendar/contacts (carddav and caldav backend)",
-        "fr": "Z-Push est un fronted Exchange ActiveSync écrit en php qui permet de synchroniser vos email (backend imap/smtp) et vos contacts/calendrier (backend carddav et caldav)"
+        "en": "Z-Push is an ActiveSync frontend that help your synchronize emails, calendar and contacts",
+        "fr": "Z-Push est un frontend ActiveSync qui permet de synchroniser emails, calendrier et contacts"
     },
     "version": "2.4.5~ynh1",
     "url": "https://z-push.org",
