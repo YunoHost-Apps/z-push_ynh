@@ -3,7 +3,7 @@
     "id": "z-push",
     "packaging_format": 1,
     "description": {
-        "en": "Z-Push is an ActiveSync frontend that help your synchronize emails, calendar and contacts",
+        "en": "Z-Push is an ActiveSync frontend that helps you synchronize emails, calendar and contacts",
         "fr": "Z-Push est un frontend ActiveSync qui permet de synchroniser emails, calendrier et contacts"
     },
     "version": "2.4.5~ynh1",
