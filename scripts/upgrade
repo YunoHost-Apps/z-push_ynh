@@ -12,58 +12,60 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_print_info "Loading installation settings..."
+ynh_print_info --message="Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get $app domain)
-path_url=$(ynh_app_setting_get $app path)
-final_path=$(ynh_app_setting_get $app final_path)
-statedir=$(ynh_app_setting_get $app statedir)
-final_logpath=$(ynh_app_setting_get $app final_logpath)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+path_url=$(ynh_app_setting_get --app=$app --key=path)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+statedir=$(ynh_app_setting_get --app=$app --key=statedir)
+final_logpath=$(ynh_app_setting_get --app=$app --key=final_logpath)
+
+#=================================================
+# CHECK VERSION
+#=================================================
+
+upgrade_type=$(ynh_check_app_version_changed)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
-ynh_print_info "Ensuring downward compatibility..."
+ynh_print_info --message="Ensuring downward compatibility..."
 
 # Fix is_public as a boolean value
 if [ "$is_public" = "Yes" ]; then
-	ynh_app_setting_set $app is_public 1
+	ynh_app_setting_set --app=$app --key=is_public --value=1
 	is_public=1
 elif [ "$is_public" = "No" ]; then
-	ynh_app_setting_set $app is_public 0
+	ynh_app_setting_set --app=$app --key=is_public --value=0
 	is_public=0
 fi
 
 # If final_path doesn't exist, create it
-if [ -z $final_path ]; then
+if [ -z "$final_path" ]; then
 	final_path=/var/www/$app
-	ynh_app_setting_set $app final_path $final_path
+	ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 fi
 
 if [ -z "$statedir" ];
 then
    statedir="/home/yunohost.app/$app"
-   ynh_app_setting_set "$app" statedir "$statedir"
+   ynh_app_setting_set --app=$app --key=statedir --value=$statedir
    mkdir -p $statedir
-else
-   ynh_print_info "${statedir} exists, we don't create it."
 fi
 
 if [ -z "$final_logpath" ];
 then
    final_logpath="/var/log/$app"
-   ynh_app_setting_set "$app" final_logpath "$final_logpath"
+   ynh_app_setting_set --app=$app --key=final_logpath --value=$final_logpath
    mkdir -p $final_logpath
-else
-   ynh_print_info "${final_logpath} exists, we don't create it."
 fi
 
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
-ynh_print_info "Backing up the app before upgrading (may take a while)..."
+ynh_print_info --message="Backing up the app before upgrading (may take a while)..."
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
@@ -75,22 +77,32 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
+# CHECK THE PATH
+#=================================================
+
+path_url=$(ynh_normalize_url_path --path_url=$path_url)
+
+#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_print_info "Upgrading source files..."
 
-# Download, check integrity, uncompress and patch the source from app.src
-mkdir "$final_path/tmp"
-ynh_setup_source "$final_path/tmp"
-cp -a "$final_path/tmp/src/." "$final_path/."
-ynh_secure_remove "$final_path/tmp"
+if [ "$upgrade_type" == "UPGRADE_APP" ]
+then
+	ynh_script_progression --message="Upgrading source files..." --time --weight=1
+
+	# Download, check integrity, uncompress and patch the source from app.src
+	mkdir "$final_path/tmp"
+	ynh_setup_source --dest_dir="$final_path/tmp"
+	cp -a "$final_path/tmp/src/." "$final_path/."
+	ynh_secure_remove --file="$final_path/tmp"
+fi
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_print_info "Upgrading nginx web server configuration..."
+ynh_print_info --message="Upgrading nginx web server configuration..."
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
@@ -98,22 +110,22 @@ ynh_add_nginx_config
 #=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
-ynh_print_info "Upgrading dependencies..."
+ynh_print_info --message="Upgrading dependencies..."
 
 ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_print_info "Making sure dedicated system user exists..."
+ynh_print_info --message="Making sure dedicated system user exists..."
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create $app
+ynh_system_user_create --username=$app
 
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-ynh_print_info "Upgrading php-fpm configuration..."
+ynh_print_info --message="Upgrading php-fpm configuration..."
 
 # Create a dedicated php-fpm config
 ynh_add_fpm_config
@@ -125,10 +137,10 @@ ynh_add_fpm_config
 #=================================================
 
 # Configuration
-ynh_replace_string __TIMEZONE__ $(cat /etc/timezone) ../conf/config.php
-ynh_replace_string __TIMEZONE__ $(cat /etc/timezone) ../conf/backend/config-autodiscover.php
-ynh_replace_string __FINAL_LOGPATH__ $final_logpath ../conf/config.php
-ynh_replace_string __FINAL_LOGPATH__ $final_logpath ../conf/backend/config-autodiscover.php
+ynh_replace_string --match_string="__TIMEZONE__" --replace_string="$(cat /etc/timezone)" --target_file="../conf/config.php"
+ynh_replace_string --match_string="__TIMEZONE__" --replace_string="$(cat /etc/timezone)" --target_file="../conf/backend/config-autodiscover.php"
+ynh_replace_string --match_string="__FINAL_LOGPATH__" --replace_string="$final_logpath" --target_file="../conf/config.php"
+ynh_replace_string --match_string="__FINAL_LOGPATH__" --replace_string="$final_logpath" --target_file="../conf/backend/config-autodiscover.php"
 
 # Storage of state_dir in /home/yunohost.app
 # This contains the sync status in between device and z-push
@@ -137,25 +149,25 @@ ynh_replace_string __STATEDIR__ $statedir ../conf/config.php
 # Enable caldav carddav support
 if yunohost app list --installed -f baikal | grep -q id ; then
 	echo "Detected Baikal"
-	bailkaldomain=$(ynh_app_setting_get baikal domain)
-	bailkalpath=$(ynh_app_setting_get baikal path)
+	bailkaldomain=$(ynh_app_setting_get --app=baikal --key=domain)
+	bailkalpath=$(ynh_app_setting_get --app=baikal --key=path)
 	bailkalpath=${bailkalpath%/}
 
 	# Configuration of backend
-	ynh_replace_string __BACKEND__ BackendCombined ../conf/config.php
-	ynh_replace_string __BACKEND__ BackendCombined ../conf/backend/config-autodiscover.php
+	ynh_replace_string --match_string="__BACKEND__" --replace_string="BackendCombined" --target_file="../conf/config.php"
+	ynh_replace_string --match_string="__BACKEND__" --replace_string="BackendCombined" --target_file="../conf/backend/config-autodiscover.php"
 
 	# Configuration baikal
-	ynh_replace_string __CALDAV_SERVER__ "${bailkaldomain}" ../conf/backend/config-caldav.php
-	ynh_replace_string __CALDAV_PATH__ "${bailkalpath}/cal.php/calendars/%u/" ../conf/backend/config-caldav.php
-	ynh_replace_string __CALDAV_PERSONAL__ "default" ../conf/backend/config-caldav.php
+	ynh_replace_string --match_string="__CALDAV_SERVER__" --replace_string="${bailkaldomain}" --target_file="../conf/backend/config-caldav.php"
+	ynh_replace_string --match_string="__CALDAV_PATH__" --replace_string="${bailkalpath}/cal.php/calendars/%u/" --target_file="../conf/backend/config-caldav.php"
+	ynh_replace_string --match_string="__CALDAV_PERSONAL__" --replace_string="default" --target_file="../conf/backend/config-caldav.php"
 
-	ynh_replace_string __CARDDAV_SERVER__ "${bailkaldomain}" ../conf/backend/config-carddav.php
-	ynh_replace_string __CARDDAV_PATH__ "${bailkalpath}/card.php/addressbooks/%u/" ../conf/backend/config-carddav.php
-	ynh_replace_string __CARDDAV_DEFAULT_PATH__ "${bailkalpath}/card.php/addressbooks/%u/default" ../conf/backend/config-carddav.php
+	ynh_replace_string --match_string="__CARDDAV_SERVER__" --replace_string="${bailkaldomain}" --target_file="../conf/backend/config-carddav.php"
+	ynh_replace_string --match_string="__CARDDAV_PATH__" --replace_string="${bailkalpath}/card.php/addressbooks/%u/" --target_file="../conf/backend/config-carddav.php"
+	ynh_replace_string --match_string="__CARDDAV_DEFAULT_PATH__" --replace_string="${bailkalpath}/card.php/addressbooks/%u/default" --target_file="../conf/backend/config-carddav.php"
 
-	ynh_replace_string __IMAP_SERVER__ "${domain}" ../conf/backend/config-imap.php
-	ynh_replace_string __FLAGTOCHANGE__ true ../conf/backend/config-imap.php
+	ynh_replace_string --match_string="__IMAP_SERVER__" --replace_string="${domain}" --target_file="../conf/backend/config-imap.php"
+	ynh_replace_string --match_string="__FLAGTOCHANGE__" --replace_string="true" --target_file="../conf/backend/config-imap.php"
 
 	# Copy config
 	cp ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
@@ -165,25 +177,25 @@ if yunohost app list --installed -f baikal | grep -q id ; then
 
 elif yunohost app list --installed -f nextcloud | grep -q id ; then
 	echo "Detected NextCloud"
-	nextclouddomain=$(ynh_app_setting_get nextcloud domain)
-	nextcloudpath=$(ynh_app_setting_get nextcloud path)
+	nextclouddomain=$(ynh_app_setting_get --app=nextcloud --key=domain)
+	nextcloudpath=$(ynh_app_setting_get --app=nextcloud --key=path)
 	nextcloudpath=${nextcloudpath%/}
 
 	# Configuration of backend
-	ynh_replace_string __BACKEND__ BackendCombined ../conf/config.php
-	ynh_replace_string __BACKEND__ BackendCombined ../conf/backend/config-autodiscover.php
+	ynh_replace_string --match_string="__BACKEND__" --replace_string="BackendCombined" --target_file="../conf/config.php"
+	ynh_replace_string --match_string="__BACKEND__" --replace_string="BackendCombined" --target_file="../conf/backend/config-autodiscover.php"
 
 	# Configuration nextcloud
-	ynh_replace_string __CALDAV_SERVER__ "${nextclouddomain}" ../conf/backend/config-caldav.php
-	ynh_replace_string __CALDAV_PATH__ "${nextcloudpath}/remote.php/dav/calendars/%u/" ../conf/backend/config-caldav.php
-	ynh_replace_string __CALDAV_PERSONAL__ "personal" ../conf/backend/config-caldav.php
+	ynh_replace_string --match_string="__CALDAV_SERVER__" --replace_string="${nextclouddomain}" --target_file="../conf/backend/config-caldav.php"
+	ynh_replace_string --match_string="__CALDAV_PATH__" --replace_string="${nextcloudpath}/remote.php/dav/calendars/%u/" --target_file="../conf/backend/config-caldav.php"
+	ynh_replace_string --match_string="__CALDAV_PERSONAL__" --replace_string="personal" --target_file="../conf/backend/config-caldav.php"
 
-	ynh_replace_string __CARDDAV_SERVER__ "${nextclouddomain}" ../conf/backend/config-carddav.php
-	ynh_replace_string __CARDDAV_PATH__ "${nextcloudpath}/remote.php/dav/addressbooks/users/%u/contacts/" ../conf/backend/config-carddav.php
-	ynh_replace_string __CARDDAV_DEFAULT_PATH__ "${nextcloudpath}/remote.php/dav/addressbooks/users/%u/contacts/" ../conf/backend/config-carddav.php
+	ynh_replace_string --match_string="__CARDDAV_SERVER__" --replace_string="${nextclouddomain}" --target_file="../conf/backend/config-carddav.php"
+	ynh_replace_string --match_string="__CARDDAV_PATH__" --replace_string="${nextcloudpath}/remote.php/dav/addressbooks/users/%u/contacts/" --target_file="../conf/backend/config-carddav.php"
+	ynh_replace_string --match_string="__CARDDAV_DEFAULT_PATH__" --replace_string="${nextcloudpath}/remote.php/dav/addressbooks/users/%u/contacts/" --target_file="../conf/backend/config-carddav.php"
 
-	ynh_replace_string __IMAP_SERVER__ "${domain}" ../conf/backend/config-imap.php
-	ynh_replace_string __FLAGTOCHANGE__ true ../conf/backend/config-imap.php
+	ynh_replace_string --match_string="__IMAP_SERVER__" --replace_string="${domain}" --target_file="../conf/backend/config-imap.php"
+	ynh_replace_string --match_string="__FLAGTOCHANGE__" --replace_string="true" --target_file="../conf/backend/config-imap.php"
 
 	# Copy config
 	cp ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
@@ -192,12 +204,12 @@ elif yunohost app list --installed -f nextcloud | grep -q id ; then
 	cp ../conf/backend/config-combined.php $final_path/backend/combined/config.php
 else
 	# Configuration of backend
-	ynh_replace_string __BACKEND__ BackendIMAP ../conf/config.php
-	ynh_replace_string __BACKEND__ BackendIMAP ../conf/backend/config-autodiscover.php
+	ynh_replace_string --match_string="__BACKEND__" --replace_string="BackendIMAP" --target_file="../conf/config.php"
+	ynh_replace_string --match_string="__BACKEND__" --replace_string="BackendIMAP" --target_file="../conf/backend/config-autodiscover.php"
 
 	# Configuration imap
-	ynh_replace_string __IMAP_SERVER__ "${domain}" ../conf/backend/config-imap.php
-	ynh_replace_string __FLAGTOCHANGE__ false ../conf/backend/config-imap.php
+	ynh_replace_string --match_string="__IMAP_SERVER__" --replace_string="${domain}" --target_file="../conf/backend/config-imap.php"
+	ynh_replace_string --match_string="__FLAGTOCHANGE__" --replace_string="false" --target_file="../conf/backend/config-imap.php"
 
 	# Copy config
 	cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php	
@@ -214,7 +226,7 @@ $final_path/z-push-admin.php -a fixstates
 #=================================================
 # SETUP LOGROTATE
 #=================================================
-ynh_print_info "Upgrading logrotate configuration..."
+ynh_print_info --message="Upgrading logrotate configuration..."
 
 # Use logrotate to manage app-specific logfile(s)
 ynh_use_logrotate --non-append
@@ -234,22 +246,22 @@ chown -R $app: $final_logpath
 #=================================================
 # SETUP SSOWAT
 #=================================================
-ynh_print_info "Upgrading SSOwat configuration..."
+ynh_print_info --message="Upgrading SSOwat configuration..."
 
 # Make app public
-ynh_app_setting_set $app unprotected_uris "/"
+ynh_app_setting_set --app=$app --key=unprotected_uris --value="/"
 domain_regex=$(echo "$domain" | sed 's@-@.@g')
-ynh_app_setting_set $app skipped_regex "$domain_regex/[Aa]uto[Dd]iscover/.*"
+ynh_app_setting_set --app=$app --key=skipped_regex --value="$domain_regex/[Aa]uto[Dd]iscover/.*"
 
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_print_info "Reloading nginx web server..."
+ynh_print_info --message="Reloading nginx web server..."
 
-systemctl reload nginx
+ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info "Upgrade of $app completed"
+ynh_print_info --message="Upgrade of $app completed"

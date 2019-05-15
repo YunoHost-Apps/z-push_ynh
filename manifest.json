@@ -21,7 +21,7 @@
         }
     ],
     "requirements": {
-        "yunohost": ">= 3.4"
+        "yunohost": ">= 3.5"
     },
     "services": [
         "nginx",
