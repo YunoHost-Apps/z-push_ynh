@@ -28,16 +28,16 @@ Z-Push is an Exchange ActiveSync fronted written in php which lets you synchroni
 
 #### Supported architectures
 
-* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/z-push%20%28Community%29.svg)](https://ci-apps.yunohost.org/ci/apps/z-push/)
-* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/z-push%20%28Community%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/z-push/)
-* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/ci/logs/z-push%20%28Community%29.svg)](https://ci-stretch.nohost.me/ci/apps/z-push/)
+* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/z-push%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/z-push/)
+* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/z-push%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/z-push/)
+* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/ci/logs/z-push%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/z-push/)
 
 
 ## Links
 
  * Report a bug: https://github.com/YunoHost-Apps/z-push_ynh/issues
  * App website: http://z-push.org/
- * App github website: https://github.com/Z-Hub/Z-Push
+ * Upstream app repository: https://github.com/Z-Hub/Z-Push
  * YunoHost website: https://yunohost.org/
 
 ---

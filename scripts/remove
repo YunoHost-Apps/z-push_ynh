@@ -12,20 +12,22 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_print_info "Loading installation settings..."
+ynh_print_info --message="Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get $app domain)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
 
-final_path=$(ynh_app_setting_get $app final_path)
-statedir=$(ynh_app_setting_get $app statedir)
-final_logpath=$(ynh_app_setting_get $app final_logpath)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+statedir=$(ynh_app_setting_get --app=$app --key=statedir)
+final_logpath=$(ynh_app_setting_get --app=$app --key=final_logpath)
 
+#=================================================
+# STANDARD REMOVE
 #=================================================
 # REMOVE DEPENDENCIES
 #=================================================
-ynh_print_info "Removing dependencies"
+ynh_print_info --message="Removing dependencies..."
 
 # Remove metapackage and its dependencies
 ynh_remove_app_dependencies
@@ -33,15 +35,15 @@ ynh_remove_app_dependencies
 #=================================================
 # REMOVE APP MAIN DIR
 #=================================================
-ynh_print_info "Removing app main directory"
+ynh_print_info --message="Removing app main directory..."
 
 # Remove the app directory securely
-ynh_secure_remove "$final_path"
+ynh_secure_remove --file="$final_path"
 
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
-ynh_print_info "Removing nginx web server configuration"
+ynh_print_info --message="Removing nginx web server configuration..."
 
 # Remove the dedicated nginx config
 ynh_remove_nginx_config
@@ -49,7 +51,7 @@ ynh_remove_nginx_config
 #=================================================
 # REMOVE PHP-FPM CONFIGURATION
 #=================================================
-ynh_print_info "Removing php-fpm configuration"
+ynh_print_info --message="Removing php-fpm configuration..."
 
 # Remove the dedicated php-fpm config
 ynh_remove_fpm_config
@@ -57,7 +59,7 @@ ynh_remove_fpm_config
 #=================================================
 # REMOVE LOGROTATE CONFIGURATION
 #=================================================
-ynh_print_info "Removing logrotate configuration"
+ynh_print_info --message="Removing logrotate configuration..."
 
 # Remove the app-specific logrotate config
 ynh_remove_logrotate
@@ -68,11 +70,11 @@ ynh_remove_logrotate
 # REMOVE STATEDIR AND FINAL_LOGPATH
 #=================================================
 
-ynh_secure_remove "$statedir"
-ynh_secure_remove "$final_logpath"
+ynh_secure_remove --file="$statedir"
+ynh_secure_remove --file="$final_logpath"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info "Removal of $app completed"
+ynh_print_info --message="Removal of $app completed"
