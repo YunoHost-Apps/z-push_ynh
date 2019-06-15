@@ -8,7 +8,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 ## Overview
 Z-Push is an Exchange ActiveSync fronted written in php which lets you synchronize emails (imap/smtp backend) and calendar/contacts (carddav and caldav backend)
 
-**Shipped version:** 2.4.5
+**Shipped version:** 2.5.0
 
 ## Current status
 - [x] Z-push for Yunohost supports IMAP sync and Carddav/Caldav sync if Baikal or Nextcloud is installed
@@ -20,7 +20,7 @@ Z-Push is an Exchange ActiveSync fronted written in php which lets you synchroni
 - [x] The current imap backend configuration seems able to handle email addresses different from login (for example login : john and email john.doe@domain.tld instead of john@domain.tld) - Further testing required !
 - [x] The sources are based on http://download.z-push.org/final/
 - [x] Autodiscover implemented
-- [x] Use of version 2.4.5 final
+- [x] Use of version 2.5.0 final
 
 ## Documentation
 
