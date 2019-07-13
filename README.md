@@ -32,7 +32,6 @@ Z-Push is an Exchange ActiveSync fronted written in php which lets you synchroni
 * ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/z-push%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/z-push/)
 * Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/ci/logs/z-push%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/z-push/)
 
-
 ## Links
 
  * Report a bug: https://github.com/YunoHost-Apps/z-push_ynh/issues
@@ -45,7 +44,6 @@ Z-Push is an Exchange ActiveSync fronted written in php which lets you synchroni
 Developers info
 ----------------
 
-**Only if you want to use a testing branch for coding, instead of merging directly into master.**
 Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/z-push_ynh/tree/testing).
 
 To try the testing branch, please proceed like that.
