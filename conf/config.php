@@ -74,6 +74,12 @@
  *  using the memcache provider for multi-host environments.
  *  When another implementation should be used, the class can be set here explicitly.
  *  If empty Z-Push will try to use available providers.
+
+ *  Possible values:
+ *  IpcSharedMemoryProvider - default. Requires z-push-ipc-sharedmemory package.
+ *  IpcMemcachedProvider    - requires z-push-ipc-memcached package. It is necessary to set up
+ *                            memcached server before (it won't be installed by z-push-ipc-memcached).
+ *  IpcWincacheProvider     - for windows systems.
  */
     define('IPC_PROVIDER', '');
 
@@ -103,7 +109,7 @@
  *  LOGAUTHFAIL is logged to the LOGBACKEND.
  */
     define('LOGBACKEND', 'filelog');
-    define('LOGLEVEL', LOGLEVEL_INFO);
+    define('LOGLEVEL', LOGLEVEL_WBXML);
     define('LOGAUTHFAIL', false);
 
     // To save e.g. WBXML data only for selected users, add the usernames to the array
