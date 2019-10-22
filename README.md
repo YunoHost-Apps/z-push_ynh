@@ -8,7 +8,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 ## Overview
 Z-Push is an Exchange ActiveSync fronted written in php which lets you synchronize emails (imap/smtp backend) and calendar/contacts (carddav and caldav backend)
 
-**Shipped version:** 2.5.0
+**Shipped version:** 2.5.1
 
 ## Current status
 - [x] Z-push for Yunohost supports IMAP sync and Carddav/Caldav sync if Baikal or Nextcloud is installed
@@ -20,7 +20,7 @@ Z-Push is an Exchange ActiveSync fronted written in php which lets you synchroni
 - [x] The current imap backend configuration seems able to handle email addresses different from login (for example login : john and email john.doe@domain.tld instead of john@domain.tld) - Further testing required !
 - [x] The sources are based on http://download.z-push.org/final/
 - [x] Autodiscover implemented
-- [x] Use of version 2.5.0 final
+- [x] Use of version 2.5.1 final
 
 ## Documentation
 
@@ -31,7 +31,6 @@ Z-Push is an Exchange ActiveSync fronted written in php which lets you synchroni
 * x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/z-push%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/z-push/)
 * ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/z-push%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/z-push/)
 * Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/ci/logs/z-push%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/z-push/)
-
 
 ## Links
 
@@ -45,7 +44,6 @@ Z-Push is an Exchange ActiveSync fronted written in php which lets you synchroni
 Developers info
 ----------------
 
-**Only if you want to use a testing branch for coding, instead of merging directly into master.**
 Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/z-push_ynh/tree/testing).
 
 To try the testing branch, please proceed like that.
