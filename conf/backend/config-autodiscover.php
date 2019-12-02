@@ -90,7 +90,7 @@
     define('LOGFILEDIR', '__FINAL_LOGPATH__/');
     define('LOGFILE', LOGFILEDIR . 'autodiscover.log');
     define('LOGERRORFILE', LOGFILEDIR . 'autodiscover-error.log');
-    define('LOGLEVEL', LOGLEVEL_INFO);
+    define('LOGLEVEL', LOGLEVEL_ERROR);
     define('LOGUSERLEVEL', LOGLEVEL);
     $specialLogUsers = array();
 
