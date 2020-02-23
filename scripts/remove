@@ -69,6 +69,7 @@ ynh_remove_logrotate
 #=================================================
 # REMOVE STATEDIR AND FINAL_LOGPATH
 #=================================================
+ynh_print_info --message="Removing statedir and final_logpath..."
 
 ynh_secure_remove --file="$statedir"
 ynh_secure_remove --file="$final_logpath"

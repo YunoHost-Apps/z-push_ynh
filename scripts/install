@@ -12,17 +12,22 @@ source /usr/share/yunohost/helpers
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
+ynh_print_info --message="Managing script failure..."
 
+ynh_clean_setup () {
+	true
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
+ynh_print_info --message="Retrieving arguments from the manifest..."
 
 domain=$YNH_APP_ARG_DOMAIN
-
 path_url="/Microsoft-Server-ActiveSync"
+
 app=$YNH_APP_INSTANCE_NAME
 
 #=================================================
@@ -79,8 +84,6 @@ ynh_secure_remove "$final_path/tmp"
 #=================================================
 ynh_print_info --message="Configuring nginx web server..."
 
-### `ynh_add_nginx_config` will use the file conf/nginx.conf
-
 # Create a dedicated nginx config
 ynh_add_nginx_config
 
@@ -116,6 +119,7 @@ chown -R $app: $final_logpath
 #=================================================
 # MODIFY A CONFIG FILE
 #=================================================
+ynh_print_info --message="Modifying a config file..."
 
 # Configuration
 ynh_replace_string --match_string="__TIMEZONE__" --replace_string=$(cat /etc/timezone) --target_file="../conf/config.php"
@@ -209,6 +213,7 @@ ln -s /usr/share/awl/inc/XML* /var/www/$app/include/
 #=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================
+ynh_print_info --message="Securing files and directories..."
 
 # Set permissions to app files
 chown -R $app: $final_path
