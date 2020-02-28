@@ -30,7 +30,6 @@ Z-Push is an Exchange ActiveSync fronted written in php which lets you synchroni
 
 * x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/z-push%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/z-push/)
 * ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/z-push%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/z-push/)
-* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/ci/logs/z-push%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/z-push/)
 
 ## Links
 
