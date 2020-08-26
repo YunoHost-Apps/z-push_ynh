@@ -217,6 +217,13 @@ ynh_print_info --message="Securing files and directories..."
 
 # Set permissions to app files
 chown -R $app: $final_path
+##add jail2ban file
+echo "[z-push] " > /etc/fail2ban/jail.d/z-push.conf
+echo "enable = true" >> /etc/fail2ban/jail.d/z-push.conf
+echo "port = http, https" >> /etc/fail2ban/jail.d/z-push.conf
+echo "filter = z-push " >> /etc/fail2ban/jail.d/z-push.conf
+echo "logpath = /var/log/z-push/z-push-error.log" >> /etc/fail2ban/jail.d/z-push.conf
+## that easy
 
 #=================================================
 # SETUP LOGROTATE
