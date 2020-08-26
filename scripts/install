@@ -176,8 +176,8 @@ elif yunohost app list --installed -f nextcloud | grep -q id ; then
 	ynh_replace_string --match_string="__CALDAV_PERSONAL__" --replace_string="personal" --target_file="../conf/backend/config-caldav.php"
 
 	ynh_replace_string --match_string="__CARDDAV_SERVER__" --replace_string="${nextclouddomain}" --target_file="../conf/backend/config-carddav.php"
-	ynh_replace_string --match_string="__CARDDAV_PATH__" --replace_string="${nextcloudpath}/remote.php/dav/addressbooks/users/%u/contacts/" --target_file="../conf/backend/config-carddav.php"
-	ynh_replace_string --match_string="__CARDDAV_DEFAULT_PATH__" --replace_string="${nextcloudpath}/remote.php/dav/addressbooks/users/%u/contacts/" --target_file="../conf/backend/config-carddav.php"
+	ynh_replace_string --match_string="__CARDDAV_PATH__" --replace_string="${nextcloudpath}/remote.php/dav/addressbooks/users/%u/" --target_file="../conf/backend/config-carddav.php"
+	ynh_replace_string --match_string="__CARDDAV_DEFAULT_PATH__" --replace_string="${nextcloudpath}/remote.php/dav/addressbooks/users/%u/" --target_file="../conf/backend/config-carddav.php"
 
 	ynh_replace_string --match_string="__IMAP_SERVER__" --replace_string="${domain}" --target_file="../conf/backend/config-imap.php"
 	ynh_replace_string --match_string="__FLAGTOCHANGE__" --replace_string="true" --target_file="../conf/backend/config-imap.php"
