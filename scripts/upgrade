@@ -12,7 +12,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_print_info --message="Loading installation settings..."
+ynh_script_progression --message="Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -25,14 +25,14 @@ final_logpath=$(ynh_app_setting_get --app=$app --key=final_logpath)
 #=================================================
 # CHECK VERSION
 #=================================================
-ynh_print_info --message="Checking version..."
+ynh_script_progression --message="Checking version..."
 
 upgrade_type=$(ynh_check_app_version_changed)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
-ynh_print_info --message="Ensuring downward compatibility..."
+ynh_script_progression --message="Ensuring downward compatibility..."
 
 # Fix is_public as a boolean value
 if [ "$is_public" = "Yes" ]; then
@@ -66,7 +66,7 @@ fi
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
-ynh_print_info --message="Backing up the app before upgrading (may take a while)..."
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..."
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
@@ -78,18 +78,6 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# CHECK THE PATH
-#=================================================
-
-# Normalize the URL path syntax
-# N.B. : this is for app installations before YunoHost 2.7
-# where this value might be something like /foo/ or foo/
-# instead of /foo ....
-# If nobody installed your app before 2.7, then you may
-# safely remove this line
-path_url=$(ynh_normalize_url_path --path_url=$path_url)
-
-#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -97,7 +85,7 @@ path_url=$(ynh_normalize_url_path --path_url=$path_url)
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_print_info --message="Upgrading source files..."
+	ynh_script_progression --message="Upgrading source files..."
 
 	# Download, check integrity, uncompress and patch the source from app.src
 	mkdir "$final_path/tmp"
@@ -109,7 +97,7 @@ fi
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_print_info --message="Upgrading nginx web server configuration..."
+ynh_script_progression --message="Upgrading nginx web server configuration..."
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
@@ -117,14 +105,14 @@ ynh_add_nginx_config
 #=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
-ynh_print_info --message="Upgrading dependencies..."
+ynh_script_progression --message="Upgrading dependencies..."
 
 ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_print_info --message="Making sure dedicated system user exists..."
+ynh_script_progression --message="Making sure dedicated system user exists..."
 
 # Create a dedicated user (if not existing)
 ynh_system_user_create --username=$app
@@ -132,7 +120,7 @@ ynh_system_user_create --username=$app
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-ynh_print_info --message="Upgrading php-fpm configuration..."
+ynh_script_progression --message="Upgrading php-fpm configuration..."
 
 # Create a dedicated php-fpm config
 ynh_add_fpm_config
@@ -142,7 +130,7 @@ ynh_add_fpm_config
 #=================================================
 # MODIFY A CONFIG FILE
 #=================================================
-ynh_print_info --message="Modifying a config file..."
+ynh_script_progression --message="Modifying a config file..."
 
 # Configuration
 ynh_replace_string --match_string="__TIMEZONE__" --replace_string="$(cat /etc/timezone)" --target_file="../conf/config.php"
@@ -155,7 +143,7 @@ ynh_replace_string --match_string="__FINAL_LOGPATH__" --replace_string="$final_l
 ynh_replace_string __STATEDIR__ $statedir ../conf/config.php
 
 # Enable caldav carddav support
-if yunohost app list --installed -f baikal | grep -q id ; then
+if yunohost app list | grep -q 'id: baikal' ; then
 	echo "Detected Baikal"
 	bailkaldomain=$(ynh_app_setting_get --app=baikal --key=domain)
 	bailkalpath=$(ynh_app_setting_get --app=baikal --key=path)
@@ -183,7 +171,7 @@ if yunohost app list --installed -f baikal | grep -q id ; then
 	cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
 	cp ../conf/backend/config-combined.php $final_path/backend/combined/config.php
 
-elif yunohost app list --installed -f nextcloud | grep -q id ; then
+elif yunohost app list | grep -q 'id: nextcloud' ; then
 	echo "Detected NextCloud"
 	nextclouddomain=$(ynh_app_setting_get --app=nextcloud --key=domain)
 	nextcloudpath=$(ynh_app_setting_get --app=nextcloud --key=path)
@@ -234,7 +222,7 @@ $final_path/z-push-admin.php -a fixstates
 #=================================================
 # SETUP LOGROTATE
 #=================================================
-ynh_print_info --message="Upgrading logrotate configuration..."
+ynh_script_progression --message="Upgrading logrotate configuration..."
 
 # Use logrotate to manage app-specific logfile(s)
 ynh_use_logrotate --non-append
@@ -244,7 +232,7 @@ ynh_use_logrotate --non-append
 #=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================
-ynh_print_info --message="Securing files and directories..."
+ynh_script_progression --message="Securing files and directories..."
 
 # Set permissions on app files
 chown -R $app: $final_path
@@ -255,7 +243,7 @@ chown -R $app: $final_logpath
 #=================================================
 # SETUP SSOWAT
 #=================================================
-ynh_print_info --message="Upgrading SSOwat configuration..."
+ynh_script_progression --message="Upgrading SSOwat configuration..."
 
 # Make app public
 ynh_app_setting_set --app=$app --key=unprotected_uris --value="/"
@@ -265,7 +253,7 @@ ynh_app_setting_set --app=$app --key=skipped_regex --value="$domain_regex/[Aa]ut
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_print_info --message="Reloading nginx web server..."
+ynh_script_progression --message="Reloading nginx web server..."
 
 ynh_systemd_action --service_name=nginx --action=reload
 
@@ -273,4 +261,4 @@ ynh_systemd_action --service_name=nginx --action=reload
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info --message="Upgrade of $app completed"
+ynh_script_progression --message="Upgrade of $app completed"
