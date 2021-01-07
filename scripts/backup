@@ -13,7 +13,6 @@ source /usr/share/yunohost/helpers
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
-ynh_print_info --message="Managing script failure..."
 
 ynh_clean_setup () {
 	true
@@ -63,6 +62,8 @@ ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 ynh_backup --src_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
 
+#=================================================
+# SPECIFIC BACKUP
 #=================================================
 # BACKUP LOGROTATE
 #=================================================
