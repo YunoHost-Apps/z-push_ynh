@@ -3,10 +3,10 @@
     "id": "z-push",
     "packaging_format": 1,
     "description": {
-        "en": "Z-Push is an ActiveSync frontend that helps you synchronize emails, calendar and contacts",
-        "fr": "Z-Push est un frontend ActiveSync qui permet de synchroniser emails, calendrier et contacts"
+        "en": "ActiveSync frontend that helps you synchronize emails, calendar and contacts",
+        "fr": "Frontend ActiveSync qui permet de synchroniser emails, calendrier et contacts"
     },
-    "version": "2.5.2~ynh1",
+    "version": "2.6.1~ynh1",
     "url": "https://z-push.org",
     "license": "AGPL-3.0-or-later",
     "maintainer": {
@@ -21,11 +21,11 @@
         }
     ],
     "requirements": {
-        "yunohost": ">= 3.5"
+        "yunohost": ">= 3.8.1"
     },
     "services": [
         "nginx",
-        "php7.0-fpm"
+        "php7.3-fpm"
     ],
     "multi_instance": true,
     "arguments": {
@@ -34,8 +34,8 @@
                 "name": "domain",
                 "type": "domain",
                 "ask": {
-                    "en": "Choose a domain for Z-push",
-                    "fr": "Choisissez un domaine pour Z-push"
+                    "en": "Choose a domain for Z-Push",
+                    "fr": "Choisissez un domaine pour Z-Push"
                 },
                 "example": "domain.org"
             }
