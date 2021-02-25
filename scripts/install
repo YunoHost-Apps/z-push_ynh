@@ -51,8 +51,8 @@ ynh_script_progression --message="Storing installation settings..."
 
 ynh_app_setting_set --app=$app --key=domain --value=$domain
 ynh_app_setting_set --app=$app --key=path --value=$path_url
-ynh_app_setting_set --app=$app --key=statedir --value="$statedir"
-ynh_app_setting_set --app=$app --key=final_logpath --value="$final_logpath"
+ynh_app_setting_set --app=$app --key=statedir --value=$statedir
+ynh_app_setting_set --app=$app --key=final_logpath --value=$final_logpath
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -227,12 +227,13 @@ ynh_use_logrotate
 #=================================================
 # SETUP SSOWAT
 #=================================================
-ynh_script_progression --message="Configuring SSOwat..."
+ynh_script_progression --message="Configuring permissions..."
 
 # Make app public
-ynh_app_setting_set --app=$app --key=unprotected_uris --value="/"
+ynh_permission_update --permission="main" --add="visitors"
+
 domain_regex=$(echo "$domain" | sed 's@-@.@g')
-ynh_app_setting_set --app=$app --key=skipped_regex --value="$domain_regex/[Aa]uto[Dd]iscover/.*"
+ynh_permission_create --permission="autodiscover" --url "re:$domain_regex/[Aa]uto[Dd]iscover/.*" --allowed="visitors" --show_tile="false" --protected="true"
 
 #=================================================
 # RELOAD NGINX
