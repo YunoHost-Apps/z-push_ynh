@@ -34,21 +34,6 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..."
 
-# Fix is_public as a boolean value
-if [ "$is_public" = "Yes" ]; then
-	ynh_app_setting_set --app=$app --key=is_public --value=1
-	is_public=1
-elif [ "$is_public" = "No" ]; then
-	ynh_app_setting_set --app=$app --key=is_public --value=0
-	is_public=0
-fi
-
-# If final_path doesn't exist, create it
-if [ -z "$final_path" ]; then
-	final_path=/var/www/$app
-	ynh_app_setting_set --app=$app --key=final_path --value=$final_path
-fi
-
 if [ -z "$statedir" ];
 then
    statedir="/home/yunohost.app/$app"
@@ -61,6 +46,13 @@ then
    final_logpath="/var/log/$app"
    ynh_app_setting_set --app=$app --key=final_logpath --value=$final_logpath
    mkdir -p $final_logpath
+fi
+
+# Cleaning legacy permissions
+if ynh_legacy_permissions_exists; then
+	ynh_legacy_permissions_delete_all
+
+	ynh_app_setting_delete --app=$app --key=is_public
 fi
 
 #=================================================
@@ -221,14 +213,6 @@ cp ../conf/backend/config-searchldap.php $final_path/backend/searchldap/config.p
 $final_path/z-push-admin.php -a fixstates
 
 #=================================================
-# SETUP LOGROTATE
-#=================================================
-ynh_script_progression --message="Upgrading logrotate configuration..."
-
-# Use logrotate to manage app-specific logfile(s)
-ynh_use_logrotate --non-append
-
-#=================================================
 # GENERIC FINALIZATION
 #=================================================
 # SECURE FILES AND DIRECTORIES
@@ -242,14 +226,12 @@ chown -R $app: $statedir
 chown -R $app: $final_logpath
 
 #=================================================
-# SETUP SSOWAT
+# SETUP LOGROTATE
 #=================================================
-ynh_script_progression --message="Upgrading SSOwat configuration..."
+ynh_script_progression --message="Upgrading logrotate configuration..."
 
-# Make app public
-ynh_app_setting_set --app=$app --key=unprotected_uris --value="/"
-domain_regex=$(echo "$domain" | sed 's@-@.@g')
-ynh_app_setting_set --app=$app --key=skipped_regex --value="$domain_regex/[Aa]uto[Dd]iscover/.*"
+# Use logrotate to manage app-specific logfile(s)
+ynh_use_logrotate --non-append
 
 #=================================================
 # RELOAD NGINX

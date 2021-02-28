@@ -3,8 +3,8 @@
 [![Integration level](https://dash.yunohost.org/integration/z-push.svg)](https://dash.yunohost.org/appci/app/z-push) ![](https://ci-apps.yunohost.org/ci/badges/z-push.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/z-push.maintain.svg)  
 [![Install Z-Push with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=z-push)
 
-> *This package allow you to install Z-Push quickly and simply on a YunoHost server.  
-If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
+> *This package allows you to install Z-Push quickly and simply on a YunoHost server.  
+If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/install) to learn how to install it.*
 
 ## Overview
 Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchronize emails (IMAP/SMTP backend) and calendar/contacts (cardDAV and caldDAV backend)
@@ -21,7 +21,6 @@ Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchroni
 - [x] The current IMAP backend configuration seems able to handle email addresses different from login (for example login: john and email john.doe@domain.tld instead of john@domain.tld) - Further testing required!
 - [x] The sources are based on http://download.z-push.org/final/
 - [x] Autodiscover implemented
-- [x] Use of version 2.6.1 final
 
 ## Documentation
 
@@ -41,9 +40,9 @@ Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchroni
 
 ---
 
-## Developers info
+## Developer info
 
-Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/z-push_ynh/tree/testing).
+Please send your pull request to the [testing branch](https://github.com/YunoHost-Apps/z-push_ynh/tree/testing).
 
 To try the testing branch, please proceed like that.
 ```
