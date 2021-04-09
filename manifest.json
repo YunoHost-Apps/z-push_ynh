@@ -33,10 +33,6 @@
             {
                 "name": "domain",
                 "type": "domain",
-                "ask": {
-                    "en": "Choose a domain for Z-Push",
-                    "fr": "Choisissez un domaine pour Z-Push"
-                },
                 "example": "example.com"
             }
         ]

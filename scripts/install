@@ -64,6 +64,14 @@ ynh_script_progression --message="Installing dependencies..."
 ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Configuring system user..."
+
+# Create a system user
+ynh_system_user_create --username=$app
+
+#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression --message="Setting up source files..."
@@ -76,28 +84,24 @@ ynh_setup_source --dest_dir="$final_path/tmp"
 cp -a "$final_path/tmp/src/." "$final_path/."
 ynh_secure_remove "$final_path/tmp"
 
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R root:$app "$final_path"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
 ynh_script_progression --message="Configuring NGINX web server..."
 
-# Create a dedicated nginx config
+# Create a dedicated NGINX config
 ynh_add_nginx_config
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Configuring system user..."
-
-# Create a system user
-ynh_system_user_create --username=$app
 
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
 ynh_script_progression --message="Configuring PHP-FPM..."
 
-# Create a dedicated php-fpm config
+# Create a dedicated PHP-FPM config
 ynh_add_fpm_config --usage=low --footprint=low --package="$extra_php_dependencies"
 phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 
@@ -109,15 +113,19 @@ phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 ynh_script_progression --message="Creating statedir and final_logpath..."
 
 mkdir -p $statedir
-chown -R $app: $statedir
+chmod 750 "$statedir"
+chmod -R o-rwx "$statedir"
+chown -R root:$app "$statedir"
 
 mkdir -p $final_logpath
-chown -R $app: $final_logpath
+chmod 750 "$final_logpath"
+chmod -R o-rwx "$final_logpath"
+chown -R root:$app "$final_logpath"
 
 #=================================================
-# MODIFY A CONFIG FILE
+# ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Modifying a config file..."
+ynh_script_progression --message="Adding a config file..."
 
 # Configuration
 ynh_replace_string --match_string="__TIMEZONE__" --replace_string=$(cat /etc/timezone) --target_file="../conf/config.php"
@@ -208,14 +216,6 @@ ln -s /usr/share/awl/inc/XML* /var/www/$app/include/
 
 #=================================================
 # GENERIC FINALIZATION
-#=================================================
-# SECURE FILES AND DIRECTORIES
-#=================================================
-ynh_script_progression --message="Securing files and directories..."
-
-# Set permissions to app files
-chown -R $app: $final_path
-
 #=================================================
 # SETUP LOGROTATE
 #=================================================

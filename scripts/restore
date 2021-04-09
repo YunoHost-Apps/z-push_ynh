@@ -49,22 +49,9 @@ test ! -d $final_path \
 #=================================================
 # RESTORE THE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Restoring the NGINX configuration..."
+ynh_script_progression --message="Restoring the NGINX web server configuration..."
 
 ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
-
-#=================================================
-# RESTORE THE APP MAIN DIR
-#=================================================
-ynh_script_progression --message="Restoring the app main directory..."
-
-ynh_restore_file --origin_path="$final_path"
-
-# Restore statedir
-ynh_restore_file --origin_path="$statedir"
-
-# Restore logs, data & permissions
-ynh_restore_file --origin_path="$final_logpath"
 
 #=================================================
 # RECREATE THE DEDICATED USER
@@ -75,14 +62,27 @@ ynh_script_progression --message="Recreating the dedicated system user..."
 ynh_system_user_create --username=$app
 
 #=================================================
-# RESTORE USER RIGHTS
+# RESTORE THE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Restoring user rights..."
+ynh_script_progression --message="Restoring the app main directory..."
 
-# Restore permissions on app files
-chown -R $app: $final_path
-chown -R $app: $statedir
-chown -R $app: $final_logpath
+ynh_restore_file --origin_path="$final_path"
+
+# Restore statedir
+ynh_restore_file --origin_path="$statedir" --not_mandatory
+
+# Restore logs, data & permissions
+ynh_restore_file --origin_path="$final_logpath" --not_mandatory
+
+mkdir -p $statedir
+chmod 750 "$statedir"
+chmod -R o-rwx "$statedir"
+chown -R root:$app "$statedir"
+
+mkdir -p $final_logpath
+chmod 750 "$final_logpath"
+chmod -R o-rwx "$final_logpath"
+chown -R root:$app "$final_logpath"
 
 #=================================================
 # RESTORE THE PHP-FPM CONFIGURATION
