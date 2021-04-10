@@ -11,17 +11,6 @@ Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchroni
 
 **Shipped version:** 2.6.1
 
-## Current status
-- [x] Z-Push for YunoHost supports IMAP sync and CardDAV/CalDAV sync if Baïkal or Nextcloud is installed
-- [x] Ability to send calendar invitations
-- [x] Use of push for emails, contacts and calendar
-- [x] Sync States are now stored in `/home/yunohost.app/$app`
-- [x] Logrotate has been activated as Z-Push can become noisy at times
-- [x] Z-Push is now configured to use SMTP to send emails instead of `php_mail()` function. This let us have emails signed by dkim for example.
-- [x] The current IMAP backend configuration seems able to handle email addresses different from login (for example login: john and email john.doe@domain.tld instead of john@domain.tld) - Further testing required!
-- [x] The sources are based on http://download.z-push.org/final/
-- [x] Autodiscover implemented
-
 ## Documentation
 
  * Official documentation: https://wiki.z-hub.io/display/ZP/Documentation
