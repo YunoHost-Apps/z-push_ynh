@@ -69,7 +69,7 @@ ynh_install_app_dependencies $pkg_dependencies
 ynh_script_progression --message="Configuring system user..."
 
 # Create a system user
-ynh_system_user_create --username=$app
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -78,8 +78,7 @@ ynh_script_progression --message="Setting up source files..."
 
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
-mkdir "$final_path"
-mkdir "$final_path/tmp"
+mkdir -p "$final_path/tmp"
 ynh_setup_source --dest_dir="$final_path/tmp"
 cp -a "$final_path/tmp/src/." "$final_path/."
 ynh_secure_remove "$final_path/tmp"
@@ -233,7 +232,7 @@ ynh_script_progression --message="Configuring permissions..."
 ynh_permission_update --permission="main" --add="visitors"
 
 domain_regex=$(echo "$domain" | sed 's@-@.@g')
-ynh_permission_create --permission="autodiscover" --url "re:$domain_regex/[Aa]uto[Dd]iscover/.*" --allowed="visitors" --show_tile="false" --protected="true"
+ynh_permission_create --permission="autodiscover" --url="re:$domain_regex/[Aa]uto[Dd]iscover/.*" --allowed="visitors" --show_tile="false" --protected="true"
 
 #=================================================
 # RELOAD NGINX

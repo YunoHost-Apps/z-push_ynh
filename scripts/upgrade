@@ -56,7 +56,7 @@ if ynh_legacy_permissions_exists; then
 fi
 
 #=================================================
-# BACKUP BEFORE CHANGE URL THEN ACTIVE TRAP
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
 ynh_script_progression --message="Backing up the app before upgrading (may take a while)..."
 
@@ -77,7 +77,7 @@ ynh_abort_if_errors
 ynh_script_progression --message="Making sure dedicated system user exists..."
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
