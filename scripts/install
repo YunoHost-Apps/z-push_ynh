@@ -85,7 +85,7 @@ ynh_secure_remove "$final_path/tmp"
 
 chmod 750 "$final_path"
 chmod -R o-rwx "$final_path"
-chown -R $app:$app "$final_path"
+chown -R $app:www-data "$final_path"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -114,12 +114,12 @@ ynh_script_progression --message="Creating statedir and final_logpath..."
 mkdir -p $statedir
 chmod 750 "$statedir"
 chmod -R o-rwx "$statedir"
-chown -R $app:$app "$statedir"
+chown -R $app:www-data "$statedir"
 
 mkdir -p $final_logpath
 chmod 750 "$final_logpath"
 chmod -R o-rwx "$final_logpath"
-chown -R $app:$app "$final_logpath"
+chown -R $app:www-data "$final_logpath"
 
 #=================================================
 # ADD A CONFIGURATION
