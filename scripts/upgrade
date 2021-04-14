@@ -90,7 +90,7 @@ then
 	# Download, check integrity, uncompress and patch the source from app.src
 	mkdir "$final_path/tmp"
 	ynh_setup_source --dest_dir="$final_path/tmp"
-	cp -a "$final_path/tmp/src/." "$final_path/."
+	cp -af "$final_path/tmp/src/." "$final_path/."
 	ynh_secure_remove --file="$final_path/tmp"
 fi
 
@@ -163,10 +163,10 @@ if yunohost app list | grep -q 'id: baikal' ; then
 	ynh_replace_string --match_string="__FLAGTOCHANGE__" --replace_string="true" --target_file="../conf/backend/config-imap.php"
 
 	# Copy config
-	cp ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
-	cp ../conf/backend/config-carddav.php $final_path/backend/carddav/config.php
-	cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
-	cp ../conf/backend/config-combined.php $final_path/backend/combined/config.php
+	cp -af ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
+	cp -af ../conf/backend/config-carddav.php $final_path/backend/carddav/config.php
+	cp -af ../conf/backend/config-imap.php $final_path/backend/imap/config.php
+	cp -af ../conf/backend/config-combined.php $final_path/backend/combined/config.php
 
 elif yunohost app list | grep -q 'id: nextcloud' ; then
 	echo "Detected NextCloud"
@@ -191,10 +191,10 @@ elif yunohost app list | grep -q 'id: nextcloud' ; then
 	ynh_replace_string --match_string="__FLAGTOCHANGE__" --replace_string="true" --target_file="../conf/backend/config-imap.php"
 
 	# Copy config
-	cp ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
-	cp ../conf/backend/config-carddav.php $final_path/backend/carddav/config.php
-	cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php
-	cp ../conf/backend/config-combined.php $final_path/backend/combined/config.php
+	cp -af ../conf/backend/config-caldav.php $final_path/backend/caldav/config.php
+	cp -af ../conf/backend/config-carddav.php $final_path/backend/carddav/config.php
+	cp -af ../conf/backend/config-imap.php $final_path/backend/imap/config.php
+	cp -af ../conf/backend/config-combined.php $final_path/backend/combined/config.php
 else
 	# Configuration of backend
 	ynh_replace_string --match_string="__BACKEND__" --replace_string="BackendIMAP" --target_file="../conf/config.php"
@@ -205,13 +205,13 @@ else
 	ynh_replace_string --match_string="__FLAGTOCHANGE__" --replace_string="false" --target_file="../conf/backend/config-imap.php"
 
 	# Copy config
-	cp ../conf/backend/config-imap.php $final_path/backend/imap/config.php	
+	cp -af ../conf/backend/config-imap.php $final_path/backend/imap/config.php	
 fi
 
 # Copy config
-cp ../conf/config.php $final_path/config.php
-cp ../conf/backend/config-autodiscover.php $final_path/autodiscover/config.php
-cp ../conf/backend/config-searchldap.php $final_path/backend/searchldap/config.php
+cp -af ../conf/config.php $final_path/config.php
+cp -af ../conf/backend/config-autodiscover.php $final_path/autodiscover/config.php
+cp -af ../conf/backend/config-searchldap.php $final_path/backend/searchldap/config.php
 
 # Fixstates to avoid full resync of devices after version upgrades
 $final_path/z-push-admin.php -a fixstates
