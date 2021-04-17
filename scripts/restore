@@ -71,14 +71,14 @@ ynh_restore_file --origin_path="$final_path"
 # Restore statedir
 ynh_restore_file --origin_path="$statedir" --not_mandatory
 mkdir -p $statedir
-chmod -R 750 "$statedir"
+chmod 750 "$statedir"
 chmod -R o-rwx "$statedir"
 chown -R $app:www-data "$statedir"
 
 # Restore logs, data & permissions
 ynh_restore_file --origin_path="$final_logpath" --not_mandatory
 mkdir -p $final_logpath
-chmod -R 750 "$final_logpath"
+chmod 750 "$final_logpath"
 chmod -R o-rwx "$final_logpath"
 chown -R $app:www-data "$final_logpath"
 

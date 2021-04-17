@@ -83,7 +83,7 @@ ynh_setup_source --dest_dir="$final_path/tmp"
 cp -af "$final_path/tmp/src/." "$final_path/."
 ynh_secure_remove "$final_path/tmp"
 
-chmod -R 750 "$final_path"
+chmod 750 "$final_path"
 chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
 
@@ -112,12 +112,12 @@ phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 ynh_script_progression --message="Creating statedir and final_logpath..."
 
 mkdir -p $statedir
-chmod -R 750 "$statedir"
+chmod 750 "$statedir"
 chmod -R o-rwx "$statedir"
 chown -R $app:www-data "$statedir"
 
 mkdir -p $final_logpath
-chmod -R 750 "$final_logpath"
+chmod 750 "$final_logpath"
 chmod -R o-rwx "$final_logpath"
 chown -R $app:www-data "$final_logpath"
 
