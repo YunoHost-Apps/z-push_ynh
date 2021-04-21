@@ -1,33 +1,36 @@
 ;; Test complet
-    auto_remove=1
-    ; Manifest
-        domain="domain.tld"	(DOMAIN)
-        path="/Microsoft-Server-ActiveSync"     (PATH)
-    ; Checks
-        pkg_linter=1
-        setup_sub_dir=1
-        setup_root=0
-        setup_nourl=0
-        setup_private=0
-        setup_public=1
-        upgrade=1
-        # 2.5.1~ynh3
-        upgrade=1	from_commit=9e8a72669814237122dfc6f901c9377895c193db
-        # 2.5.2~ynh1
-        upgrade=1   from_commit=a857788c1fb369baa5f0608da12013b003cceed3
-        # 2.6.1~ynh1
-        upgrade=1   from_commit=a05896f0e4f2b015dcf643c644ac6c98c2f6695b
-        backup_restore=1
-        multi_instance=1
-        port_already_use=0
-        change_url=0
+	; Manifest
+		domain="domain.tld"	(DOMAIN)
+		path="/Microsoft-Server-ActiveSync"	(PATH)
+	; Checks
+		pkg_linter=1
+		setup_sub_dir=1
+		setup_root=0
+		setup_nourl=0
+		setup_private=0
+		setup_public=1
+		upgrade=1
+		# 2.5.1~ynh3
+		upgrade=1	from_commit=9e8a72669814237122dfc6f901c9377895c193db
+		# 2.5.2~ynh1
+		upgrade=1   from_commit=a857788c1fb369baa5f0608da12013b003cceed3
+		# 2.6.1~ynh1
+		upgrade=1   from_commit=a05896f0e4f2b015dcf643c644ac6c98c2f6695b
+		# 2.6.1~ynh2
+		upgrade=1   from_commit=8e99ec37fb90d1ac4f8eb2c838e6d2e1f5b0c905
+		backup_restore=1
+		multi_instance=1
+		port_already_use=0
+		change_url=0
 ;;; Options
 Email=yalh@yahoo.com
 Notification=all
 ;;; Upgrade options
-    ; commit=9e8a72669814237122dfc6f901c9377895c193db
-        name=2.5.1~ynh3
-    ; commit=a857788c1fb369baa5f0608da12013b003cceed3
-        name=2.5.2~ynh1
-    ; commit=a05896f0e4f2b015dcf643c644ac6c98c2f6695b
-        name=2.6.1~ynh1
+	; commit=9e8a72669814237122dfc6f901c9377895c193db
+		name=2.5.1~ynh3
+	; commit=a857788c1fb369baa5f0608da12013b003cceed3
+		name=2.5.2~ynh1
+	; commit=a05896f0e4f2b015dcf643c644ac6c98c2f6695b
+		name=2.6.1~ynh1
+	; commit=8e99ec37fb90d1ac4f8eb2c838e6d2e1f5b0c905
+		name=2.6.1~ynh2

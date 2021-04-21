@@ -6,7 +6,7 @@
         "en": "ActiveSync frontend that helps you synchronize emails, calendar and contacts",
         "fr": "Frontend ActiveSync qui permet de synchroniser emails, calendrier et contacts"
     },
-    "version": "2.6.1~ynh2",
+    "version": "2.6.1~ynh3",
     "url": "https://z-push.org",
     "license": "AGPL-3.0-or-later",
     "maintainer": {
@@ -33,10 +33,6 @@
             {
                 "name": "domain",
                 "type": "domain",
-                "ask": {
-                    "en": "Choose a domain for Z-Push",
-                    "fr": "Choisissez un domaine pour Z-Push"
-                },
                 "example": "example.com"
             }
         ]
