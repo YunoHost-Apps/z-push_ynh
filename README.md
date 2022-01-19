@@ -22,6 +22,10 @@ Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchroni
 
 
 
+## Disclaimers / important information
+
+* would be better to create a dedicated domain: autodiscover.yourdomain.org
+
 ## Documentation and resources
 
 * Official app website: http://z-push.org
