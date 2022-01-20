@@ -19,7 +19,7 @@ app=$YNH_APP_INSTANCE_NAME
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-statedir=$(ynh_app_setting_get --app=$app --key=statedir)
+datadir=$(ynh_app_setting_get --app=$app --key=datadir)
 final_logpath=$(ynh_app_setting_get --app=$app --key=final_logpath)
 
 #=================================================
@@ -28,32 +28,6 @@ final_logpath=$(ynh_app_setting_get --app=$app --key=final_logpath)
 ynh_script_progression --message="Checking version..."
 
 upgrade_type=$(ynh_check_app_version_changed)
-
-#=================================================
-# ENSURE DOWNWARD COMPATIBILITY
-#=================================================
-ynh_script_progression --message="Ensuring downward compatibility..."
-
-if [ -z "$statedir" ];
-then
-   statedir="/home/yunohost.app/$app"
-   ynh_app_setting_set --app=$app --key=statedir --value=$statedir
-   mkdir -p $statedir
-fi
-
-if [ -z "$final_logpath" ];
-then
-   final_logpath="/var/log/$app"
-   ynh_app_setting_set --app=$app --key=final_logpath --value=$final_logpath
-   mkdir -p $final_logpath
-fi
-
-# Cleaning legacy permissions
-if ynh_legacy_permissions_exists; then
-	ynh_legacy_permissions_delete_all
-
-	ynh_app_setting_delete --app=$app --key=is_public
-fi
 
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
@@ -72,12 +46,39 @@ ynh_abort_if_errors
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+ynh_script_progression --message="Ensuring downward compatibility..."
+
+if [ -z "$datadir" ];
+then
+   datadir="/home/yunohost.app/$app"
+   ynh_app_setting_set --app=$app --key=datadir --value=$datadir
+   ynh_app_setting_delete --app=$app --key=statedir
+   mkdir -p $datadir
+fi
+
+if [ -z "$final_logpath" ];
+then
+   final_logpath="/var/log/$app"
+   ynh_app_setting_set --app=$app --key=final_logpath --value=$final_logpath
+   mkdir -p $final_logpath
+fi
+
+# Cleaning legacy permissions
+if ynh_legacy_permissions_exists; then
+	ynh_legacy_permissions_delete_all
+
+	ynh_app_setting_delete --app=$app --key=is_public
+fi
+
+#=================================================
 # CREATE DEDICATED USER
 #=================================================
 ynh_script_progression --message="Making sure dedicated system user exists..."
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir="$final_path"
+ynh_system_user_create --username=$app --home_dir=$final_path
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -137,7 +138,7 @@ ynh_replace_string --match_string="__FINAL_LOGPATH__" --replace_string="$final_l
 
 # Storage of state_dir in /home/yunohost.app
 # This contains the sync status in between device and z-push
-ynh_replace_string __STATEDIR__ $statedir ../conf/config.php
+ynh_replace_string __DATADIR__ $datadir ../conf/config.php
 
 # Enable caldav carddav support
 if yunohost app list | grep -q 'id: baikal' ; then

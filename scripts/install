@@ -36,11 +36,6 @@ ynh_script_progression --message="Validating installation parameters..."
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
 
-statedir="/home/yunohost.app/$app"
-test ! -e "$statedir" || ynh_die --message="This path already contains a folder"
-
-final_logpath="/var/log/$app"
-
 # Register (book) web path
 ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 
@@ -51,8 +46,6 @@ ynh_script_progression --message="Storing installation settings..."
 
 ynh_app_setting_set --app=$app --key=domain --value=$domain
 ynh_app_setting_set --app=$app --key=path --value=$path_url
-ynh_app_setting_set --app=$app --key=statedir --value=$statedir
-ynh_app_setting_set --app=$app --key=final_logpath --value=$final_logpath
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -69,7 +62,7 @@ ynh_install_app_dependencies $pkg_dependencies
 ynh_script_progression --message="Configuring system user..."
 
 # Create a system user
-ynh_system_user_create --username=$app --home_dir="$final_path"
+ynh_system_user_create --username=$app --home_dir=$final_path
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -107,16 +100,29 @@ phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 #=================================================
 # SPECIFIC SETUP
 #=================================================
-# CREATE STATEDIR AND FINAL_LOGPATH
+# CREATE DATA DIRECTORY
 #=================================================
-ynh_script_progression --message="Creating statedir and final_logpath..."
+ynh_script_progression --message="Creating a data directory..."
 
-mkdir -p $statedir
-chmod 750 "$statedir"
-chmod -R o-rwx "$statedir"
-chown -R $app:www-data "$statedir"
+datadir=/home/yunohost.app/$app
+ynh_app_setting_set --app=$app --key=datadir --value=$datadir
+
+mkdir -p $datadir
+
+chmod 750 "$datadir"
+chmod -R o-rwx "$datadir"
+chown -R $app:www-data "$datadir"
+
+#=================================================
+# CREATE FINAL LOG PATH
+#=================================================
+ynh_script_progression --message="Creating a final log path..."
+
+final_logpath="/var/log/$app"
+ynh_app_setting_set --app=$app --key=final_logpath --value=$final_logpath
 
 mkdir -p $final_logpath
+
 chmod 750 "$final_logpath"
 chmod -R o-rwx "$final_logpath"
 chown -R $app:www-data "$final_logpath"
@@ -134,7 +140,7 @@ ynh_replace_string --match_string="__FINAL_LOGPATH__" --replace_string=$final_lo
 
 # Storage of state_dir in /home/yunohost.app
 # This contains the sync status in between device and z-push
-ynh_replace_string --match_string="__STATEDIR__" --replace_string=$statedir --target_file="../conf/config.php"
+ynh_replace_string --match_string="__DATADIR__" --replace_string=$datadir --target_file="../conf/config.php"
 
 # Enable caldav carddav support
 if yunohost app list | grep -q 'id: baikal' ; then

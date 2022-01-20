@@ -38,7 +38,7 @@ define('CALDAV_SERVER', '__CALDAV_SERVER__');
 // Server port
 define('CALDAV_PORT', '443');
 
-// Path
+// Base URL to principals calendar collection: use '%l' for local part or '%u' for full username
 define('CALDAV_PATH', '__CALDAV_PATH__');
 
 // Default CalDAV folder (calendar folder/principal). This will be marked as the default calendar in the mobile

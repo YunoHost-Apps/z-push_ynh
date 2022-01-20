@@ -29,9 +29,9 @@ app=$YNH_APP_INSTANCE_NAME
 
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
-statedir=$(ynh_app_setting_get --app=$app --key=statedir)
-final_logpath=$(ynh_app_setting_get --app=$app --key=final_logpath)
 phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
+datadir=$(ynh_app_setting_get --app=$app --key=datadir)
+final_logpath=$(ynh_app_setting_get --app=$app --key=final_logpath)
 
 #=================================================
 # DECLARE DATA AND CONF FILES TO BACKUP
@@ -44,11 +44,11 @@ ynh_print_info --message="Declaring files to be backed up..."
 
 ynh_backup --src_path="$final_path"
 
-# Backup statedir
-ynh_backup --src_path="$statedir" --is_big
+#=================================================
+# BACKUP THE DATA DIR
+#=================================================
 
-# Backup logs
-ynh_backup --src_path="$final_logpath" --is_big
+ynh_backup --src_path="$datadir" --is_big
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
