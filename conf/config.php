@@ -65,7 +65,7 @@
  *           State migration script is available, more informations: https://wiki.z-hub.io/x/xIAa
  */
     define('STATE_MACHINE', 'FILE');
-    define('STATE_DIR', '__STATEDIR__/');
+    define('STATE_DIR', '__DATADIR__/');
 
 /**********************************************************************************
  *  IPC - InterProcessCommunication

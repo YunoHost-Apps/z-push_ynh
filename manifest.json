@@ -6,8 +6,14 @@
         "en": "ActiveSync frontend that helps you synchronize emails, calendar and contacts",
         "fr": "Frontend ActiveSync qui permet de synchroniser emails, calendrier et contacts"
     },
-    "version": "2.6.1~ynh3",
+    "version": "2.6.4~ynh1",
     "url": "https://z-push.org",
+    "upstream": {
+        "license": "AGPL-3.0-or-later",
+        "website": "http://z-push.org",
+        "admindoc": "https://wiki.z-hub.io/display/ZP/Documentation",
+        "code": "https://github.com/Z-Hub/Z-Push"
+    },
     "license": "AGPL-3.0-or-later",
     "maintainer": {
         "name": "yalh76"
@@ -21,7 +27,7 @@
         }
     ],
     "requirements": {
-        "yunohost": ">= 4.1.3"
+        "yunohost": ">= 4.3.0"
     },
     "multi_instance": true,
     "services": [
@@ -29,11 +35,10 @@
         "php7.3-fpm"
     ],
     "arguments": {
-        "install" : [
+        "install": [
             {
                 "name": "domain",
-                "type": "domain",
-                "example": "example.com"
+                "type": "domain"
             }
         ]
     }
