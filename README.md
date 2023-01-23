@@ -5,7 +5,7 @@ It shall NOT be edited by hand.
 
 # Z-Push for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/z-push.svg)](https://dash.yunohost.org/appci/app/z-push) ![Working status](https://ci-apps.yunohost.org/ci/badges/z-push.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/z-push.maintain.svg)  
+[![Integration level](https://dash.yunohost.org/integration/z-push.svg)](https://dash.yunohost.org/appci/app/z-push) ![Working status](https://ci-apps.yunohost.org/ci/badges/z-push.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/z-push.maintain.svg)
 [![Install Z-Push with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=z-push)
 
 *[Lire ce readme en français.](./README_fr.md)*
