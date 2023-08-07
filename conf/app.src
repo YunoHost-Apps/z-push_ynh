@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/Z-Hub/Z-Push/archive/2.6.4.tar.gz
-SOURCE_SUM=7795ae7165fa3fb39a6ba40ca3e79609767e0c78c01857ede0f7014b90b27431
+SOURCE_URL=https://github.com/Z-Hub/Z-Push/archive/2.7.0.tar.gz
+SOURCE_SUM=0d3507af509723c0a145a910c707dce81adb5535b83455c05ebf070880988c66
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
