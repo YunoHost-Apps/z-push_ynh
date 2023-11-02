@@ -10,75 +10,10 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# LOAD SETTINGS
-#=================================================
-ynh_script_progression --message="Loading settings..." --weight=1
-
-#REMOVEME? app=$YNH_APP_INSTANCE_NAME
-
-#REMOVEME? domain=$(ynh_app_setting_get --app=$app --key=domain)
-#REMOVEME? path=$(ynh_app_setting_get --app=$app --key=path)
-#REMOVEME? #REMOVEME? install_dir=$(ynh_app_setting_get --app=$app --key=install_dir)
-#REMOVEME? data_dir=$(ynh_app_setting_get --app=$app --key=data_dir)
-#REMOVEME? final_logpath=$(ynh_app_setting_get --app=$app --key=final_logpath)
-
-#=================================================
 # CHECK VERSION
 #=================================================
-ynh_script_progression --message="Checking version..." --weight=1
 
 upgrade_type=$(ynh_check_app_version_changed)
-
-#=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
-#=================================================
-#REMOVEME? ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=1
-
-# Backup the current version of the app
-#REMOVEME? ynh_backup_before_upgrade
-#REMOVEME? ynh_clean_setup () {
-	# Restore it if the upgrade fails
-#REMOVEME? 	ynh_restore_upgradebackup
-}
-# Exit if an error occurs during the execution of the script
-#REMOVEME? ynh_abort_if_errors
-
-#=================================================
-# STANDARD UPGRADE STEPS
-#=================================================
-# ENSURE DOWNWARD COMPATIBILITY
-#=================================================
-ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
-
-# Cleaning legacy permissions
-#REMOVEME? if ynh_legacy_permissions_exists; then
-#REMOVEME? 	ynh_legacy_permissions_delete_all
-
-	ynh_app_setting_delete --app=$app --key=is_public
-fi
-
-if [ -z "$data_dir" ];
-then
-   data_dir="/home/yunohost.app/$app"
-#REMOVEME?    ynh_app_setting_set --app=$app --key=data_dir --value=$data_dir
-   ynh_app_setting_delete --app=$app --key=statedir
-   mkdir -p $data_dir
-fi
-
-if [ -z "$final_logpath" ];
-then
-   final_logpath="/var/log/$app"
-#REMOVEME?    ynh_app_setting_set --app=$app --key=final_logpath --value=$final_logpath
-   mkdir -p $final_logpath
-fi
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-#REMOVEME? ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
-
-# Create a dedicated user (if not existing)
-#REMOVEME? ynh_system_user_create --username=$app --home_dir="$install_dir"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -92,19 +27,11 @@ then
 	mkdir "$install_dir/tmp"
 	ynh_setup_source --dest_dir="$install_dir/tmp"
 	cp -af "$install_dir/tmp/src/." "$install_dir/."
-#REMOVEME? 	ynh_secure_remove --file="$install_dir/tmp"
+	ynh_secure_remove --file="$install_dir/tmp"
 fi
 
-chmod 750 "$install_dir"
 chmod -R o-rwx "$install_dir"
 chown -R $app:www-data "$install_dir"
-
-#=================================================
-# UPGRADE DEPENDENCIES
-#=================================================
-#REMOVEME? ynh_script_progression --message="Upgrading dependencies..." --weight=1
-
-#REMOVEME? ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # PHP-FPM CONFIGURATION
@@ -112,13 +39,7 @@ chown -R $app:www-data "$install_dir"
 ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
 
 # Create a dedicated PHP-FPM config
-ynh_add_fpm_config --usage=low --footprint=low
-#REMOVEME? phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
-
-#=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=1
+ynh_add_fpm_config
 
 # Create a dedicated NGINX config
 ynh_add_nginx_config
@@ -143,8 +64,8 @@ ynh_replace_string __DATA_DIR__ $data_dir ../conf/config.php
 # Enable caldav carddav support
 if yunohost app list | grep -q 'id: baikal' ; then
 	echo "Detected Baikal"
-#REMOVEME? 	bailkaldomain=$(ynh_app_setting_get --app=baikal --key=domain)
-#REMOVEME? 	bailkalpath=$(ynh_app_setting_get --app=baikal --key=path)
+	bailkaldomain=$(ynh_app_setting_get --app=baikal --key=domain)
+	bailkalpath=$(ynh_app_setting_get --app=baikal --key=path)
 	bailkalpath=${bailkalpath%/}
 
 	# Configuration of backend
@@ -171,8 +92,8 @@ if yunohost app list | grep -q 'id: baikal' ; then
 
 elif yunohost app list | grep -q 'id: nextcloud' ; then
 	echo "Detected NextCloud"
-#REMOVEME? 	nextclouddomain=$(ynh_app_setting_get --app=nextcloud --key=domain)
-#REMOVEME? 	nextcloudpath=$(ynh_app_setting_get --app=nextcloud --key=path)
+	nextclouddomain=$(ynh_app_setting_get --app=nextcloud --key=domain)
+	nextcloudpath=$(ynh_app_setting_get --app=nextcloud --key=path)
 	nextcloudpath=${nextcloudpath%/}
 
 	# Configuration of backend
@@ -226,13 +147,6 @@ ynh_script_progression --message="Upgrading logrotate configuration..." --weight
 
 # Use logrotate to manage app-specific logfile(s)
 ynh_use_logrotate --non-append
-
-#=================================================
-# RELOAD NGINX
-#=================================================
-#REMOVEME? ynh_script_progression --message="Reloading NGINX web server..." --weight=1
-
-#REMOVEME? ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT
