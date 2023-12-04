@@ -25,7 +25,7 @@ ynh_remove_nginx_config
 # Remove the dedicated PHP-FPM config
 ynh_remove_fpm_config
 
-ynh_secure_remove --file="$final_logpath"
+ynh_secure_remove --file="$log_dir"
 
 #=================================================
 # END OF SCRIPT
