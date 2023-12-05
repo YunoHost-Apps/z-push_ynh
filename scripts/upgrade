@@ -27,7 +27,7 @@ then
     ynh_script_progression --message="Upgrading source files..."
 
     mkdir "$install_dir/bkp"
-    conf_files_to_keep="backend/caldav/config.php backend/carddav/config.php backend/imap/config.php backend/combined/config.php autodiscover/config.php backend/searchldap/config.php"
+    conf_files_to_keep="config.php backend/caldav/config.php backend/carddav/config.php backend/imap/config.php backend/combined/config.php autodiscover/config.php backend/searchldap/config.php"
     for file in $conf_files_to_keep
     do
         if [ -e $install_dir/$file ]
