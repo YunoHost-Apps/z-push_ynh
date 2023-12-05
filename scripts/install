@@ -15,12 +15,12 @@ source /usr/share/yunohost/helpers
 
 path="/Microsoft-Server-ActiveSync"
 timezone="$(cat /etc/timezone)"
-log_dir="/var/log/$app"
+log_dir="/var/log/$app/"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --weight=1
+ynh_script_progression --message="Setting up source files..."
 
 # Download, check integrity, uncompress and patch the source from app.src
 mkdir -p "$install_dir/tmp"
@@ -34,7 +34,7 @@ chown -R $app:www-data "$install_dir"
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring PHP-FPM..." --weight=1
+ynh_script_progression --message="Installing system configurations..."
 
 # Create a dedicated PHP-FPM config
 ynh_add_fpm_config
@@ -42,20 +42,17 @@ ynh_add_fpm_config
 # Create a dedicated NGINX config
 ynh_add_nginx_config
 
-#=================================================
-# CREATE FINAL LOG PATH
-#=================================================
-ynh_script_progression --message="Creating a final log path..." --weight=1
-
 mkdir -p $log_dir
 chmod 750 "$log_dir"
 chmod -R o-rwx "$log_dir"
 chown -R $app:www-data "$log_dir"
 
+ynh_use_logrotate
+
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding a configuration file..." --weight=1
+ynh_script_progression --message="Adding a configuration file..."
 
 # Enable caldav carddav support
 if yunohost app list | grep -q 'id: baikal' ; then
@@ -122,15 +119,6 @@ ynh_add_config --template="backend/config-searchldap.php" --destination="$instal
 #Copy XMLElement.php
 ln -s /usr/share/awl/inc/XML* /var/www/$app/include/
 
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# SETUP LOGROTATE
-#=================================================
-ynh_script_progression --message="Configuring log rotation..." --weight=1
-
-# Use logrotate to manage application logfile(s)
-ynh_use_logrotate
 
 #=================================================
 # END OF SCRIPT
