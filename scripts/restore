@@ -10,6 +10,8 @@
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
+log_dir="/var/log/$app/"
+
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
