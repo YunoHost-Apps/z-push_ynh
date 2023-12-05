@@ -65,7 +65,7 @@
  *           State migration script is available, more informations: https://wiki.z-hub.io/x/xIAa
  */
     define('STATE_MACHINE', 'FILE');
-    define('STATE_DIR', '__DATADIR__/');
+    define('STATE_DIR', '__DATA_DIR__/');
 
 /**********************************************************************************
  *  IPC - InterProcessCommunication
@@ -120,7 +120,7 @@
     $specialLogUsers = array();
 
     // Filelog settings
-    define('LOGFILEDIR', '__FINAL_LOGPATH__/');
+    define('LOGFILEDIR', '__LOG_DIR__');
     define('LOGFILE', LOGFILEDIR . 'z-push.log');
     define('LOGERRORFILE', LOGFILEDIR . 'z-push-error.log');
 

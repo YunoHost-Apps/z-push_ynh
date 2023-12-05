@@ -1,0 +1,53 @@
+packaging_format = 2
+
+id = "z-push"
+name = "Z-Push"
+description.en = "ActiveSync frontend that helps you synchronize emails, calendar and contacts"
+description.fr = "Frontend ActiveSync qui permet de synchroniser emails, calendrier et contacts"
+
+version = "2.7.1~ynh1"
+
+maintainers = ["yalh76"]
+
+[upstream]
+license = "AGPL-3.0-or-later"
+website = "http://z-push.org"
+admindoc = "https://wiki.z-hub.io/display/ZP/Documentation"
+code = "https://github.com/Z-Hub/Z-Push"
+
+[integration]
+yunohost = ">= 11.2"
+architectures = "all"
+multi_instance = true
+ldap = false
+sso = false
+disk = "50M"
+ram.build = "50M"
+ram.runtime = "50M"
+
+[install]
+
+    [install.domain]
+    type = "domain"
+
+[resources]
+        [resources.sources.main]
+        url = "https://github.com/Z-Hub/Z-Push/archive/2.7.1.tar.gz"
+        sha256 = "7aadddb5da06494a35c79e4b70d6ade6b2f62203f3df343077731f8952b64a41"
+
+
+    [resources.system_user]
+
+    [resources.install_dir]
+
+    [resources.data_dir]
+
+    [resources.permissions]
+    main.url = "/"
+    main.allowed = "visitors" # should it always be public ?
+ 
+    # FIXME: watdo with this ...
+    #REMOVEME? ynh_permission_create --permission="autodiscover" --url="re:$domain_regex/[Aa]uto[Dd]iscover/.*" --allowed="visitors" --show_tile="false" --protected="true"
+
+    [resources.apt]
+    packages = "php7.4-soap, php7.4-imap, php7.4-xsl, php7.4-curl, php7.4-xml, php7.4-ldap, php7.4-cli, php7.4-mbstring, php7.4-memcached, libawl-php"
