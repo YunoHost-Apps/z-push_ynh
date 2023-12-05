@@ -24,13 +24,33 @@ log_dir="/var/log/$app/"
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_script_progression --message="Upgrading source files..."
+    ynh_script_progression --message="Upgrading source files..."
 
-	# Download, check integrity, uncompress and patch the source from app.src
-	mkdir "$install_dir/tmp"
-	ynh_setup_source --dest_dir="$install_dir/tmp"
-	cp -af "$install_dir/tmp/src/." "$install_dir/."
-	ynh_secure_remove --file="$install_dir/tmp"
+    mkdir "$install_dir/bkp"
+    conf_files_to_keep="backend/caldav/config.php backend/carddav/config.php backend/imap/config.php backend/combined/config.php autodiscover/config.php backend/searchldap/config.php"
+    for file in $conf_files_to_keep
+    do
+        if [ -e $install_dir/$file ]
+        then
+            mkdir -p $install_dir/bkp/$(dirname $file)
+            cp $install_dir/$file $install_dir/bkp/$file
+        fi
+    done
+
+    # Download, check integrity, uncompress and patch the source from app.src
+    mkdir "$install_dir/tmp"
+    ynh_setup_source --dest_dir="$install_dir/tmp"
+    cp -af "$install_dir/tmp/src/." "$install_dir/."
+    ynh_secure_remove --file="$install_dir/tmp"
+
+    for file in $conf_files_to_keep
+    do
+        if [ -e $install_dir/bkp/$file ]
+        then
+            cp $install_dir/bkp/$file $install_dir/$file
+        fi
+    done
+    ynh_secure_remove --file="$install_dir/bkp"
 fi
 
 chmod -R o-rwx "$install_dir"
@@ -63,10 +83,10 @@ ynh_script_progression --message="Updating a config file..."
 
 # Enable caldav carddav support
 if yunohost app list | grep -q 'id: baikal' ; then
-	echo "Detected Baikal"
-	baikaldomain=$(ynh_app_setting_get --app="baikal" --key=domain)
-	baikalpath=$(ynh_app_setting_get --app="baikal" --key=path)
-	baikalpath=${baikalpath%/}
+    echo "Detected Baikal"
+    baikaldomain=$(ynh_app_setting_get --app="baikal" --key=domain)
+    baikalpath=$(ynh_app_setting_get --app="baikal" --key=path)
+    baikalpath=${baikalpath%/}
 
     # Variables to hydrate template
     backend="BackendCombined"
@@ -87,10 +107,10 @@ if yunohost app list | grep -q 'id: baikal' ; then
     ynh_add_config --template="backend/config-combined.php" --destination="$install_dir/backend/combined/config.php"
 
 elif yunohost app list | grep -q 'id: nextcloud' ; then
-	echo "Detected NextCloud"
-	nextclouddomain=$(ynh_app_setting_get --app="nextcloud" --key=domain)
-	nextcloudpath=$(ynh_app_setting_get --app="nextcloud" --key=path)
-	nextcloudpath=${nextcloudpath%/}
+    echo "Detected NextCloud"
+    nextclouddomain=$(ynh_app_setting_get --app="nextcloud" --key=domain)
+    nextcloudpath=$(ynh_app_setting_get --app="nextcloud" --key=path)
+    nextcloudpath=${nextcloudpath%/}
 
     # Variables to hydrate template
     backend="BackendCombined"
