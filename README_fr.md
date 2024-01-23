@@ -19,11 +19,7 @@ Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) po
 Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchronize emails (IMAP/SMTP backend) and calendar/contacts (cardDAV and caldDAV backend)
 
 
-**Version incluse :** 2.7.0~ynh3
-## Avertissements / informations importantes
-
-* would be better to create a dedicated domain: autodiscover.yourdomain.org
-
+**Version incluse :** 2.7.1~ynh1
 ## Documentations et ressources
 
 * Site officiel de l’app : <http://z-push.org>
