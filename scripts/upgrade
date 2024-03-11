@@ -39,7 +39,7 @@ then
 
     # Download, check integrity, uncompress and patch the source from app.src
     mkdir "$install_dir/tmp"
-    ynh_setup_source --dest_dir="$install_dir/tmp"
+    ynh_setup_source --dest_dir="$install_dir/tmp" --full_replace=1
     cp -af "$install_dir/tmp/src/." "$install_dir/."
     ynh_secure_remove --file="$install_dir/tmp"
 
