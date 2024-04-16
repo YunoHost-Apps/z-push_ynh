@@ -5,7 +5,7 @@ name = "Z-Push"
 description.en = "ActiveSync frontend that helps you synchronize emails, calendar and contacts"
 description.fr = "Frontend ActiveSync qui permet de synchroniser emails, calendrier et contacts"
 
-version = "2.7.1~ynh1"
+version = "2.7.1~ynh2"
 
 maintainers = ["yalh76"]
 
