@@ -3,7 +3,7 @@
 请勿手动编辑。
 -->
 
-# YunoHost 的 Z-Push
+# YunoHost 上的 Z-Push
 
 [![集成程度](https://dash.yunohost.org/integration/z-push.svg)](https://dash.yunohost.org/appci/app/z-push) ![工作状态](https://ci-apps.yunohost.org/ci/badges/z-push.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/z-push.maintain.svg)
 
