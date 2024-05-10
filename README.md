@@ -19,7 +19,7 @@ It shall NOT be edited by hand.
 Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchronize emails (IMAP/SMTP backend) and calendar/contacts (cardDAV and caldDAV backend)
 
 
-**Shipped version:** 2.7.1~ynh2
+**Shipped version:** 2.7.2~ynh1
 ## Documentation and resources
 
 - Official app website: <http://z-push.org>
