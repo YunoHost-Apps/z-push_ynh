@@ -134,7 +134,7 @@ else
     backend="BackendIMAP"
     imap_server="$domain"
     imap_meeting_use_caldav="false"
-    
+
     ynh_add_config --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
 fi
 
@@ -144,7 +144,7 @@ ynh_add_config --template="backend/config-autodiscover.php" --destination="$inst
 ynh_add_config --template="backend/config-searchldap.php" --destination="$install_dir/backend/searchldap/config.php"
 
 # Fixstates to avoid full resync of devices after version upgrades
-$install_dir/z-push-admin.php -a fixstates
+"php$phpversion" "$install_dir/z-push-admin.php" -a fixstates
 
 #=================================================
 # END OF SCRIPT
