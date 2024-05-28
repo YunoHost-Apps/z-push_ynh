@@ -48,9 +48,20 @@ ram.runtime = "50M"
     [resources.permissions]
     main.url = "/"
     main.allowed = "visitors" # should it always be public ?
- 
+
     # FIXME: watdo with this ...
     #REMOVEME? ynh_permission_create --permission="autodiscover" --url="re:$domain_regex/[Aa]uto[Dd]iscover/.*" --allowed="visitors" --show_tile="false" --protected="true"
 
     [resources.apt]
-    packages = "php7.4-soap, php7.4-imap, php7.4-xsl, php7.4-curl, php7.4-xml, php7.4-ldap, php7.4-cli, php7.4-mbstring, php7.4-memcached, libawl-php"
+    packages = [
+        "php7.4-soap",
+        "php7.4-imap",
+        "php7.4-xsl",
+        "php7.4-curl",
+        "php7.4-xml",
+        "php7.4-ldap",
+        "php7.4-cli",
+        "php7.4-mbstring",
+        "php7.4-memcached",
+        "libawl-php",
+    ]
