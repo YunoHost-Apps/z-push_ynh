@@ -5,7 +5,7 @@ No se debe editar a mano.
 
 # Z-Push para Yunohost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/z-push.svg)](https://dash.yunohost.org/appci/app/z-push) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/z-push.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/z-push.maintain.svg)
+[![Nivel de integración](https://dash.yunohost.org/integration/z-push.svg)](https://ci-apps.yunohost.org/ci/apps/z-push/) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/z-push.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/z-push.maintain.svg)
 
 [![Instalar Z-Push con Yunhost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=z-push)
 
@@ -19,7 +19,7 @@ No se debe editar a mano.
 Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchronize emails (IMAP/SMTP backend) and calendar/contacts (cardDAV and caldDAV backend)
 
 
-**Versión actual:** 2.7.3~ynh1
+**Versión actual:** 2.7.4~ynh1
 ## Documentaciones y recursos
 
 - Sitio web oficial: <http://z-push.org>
