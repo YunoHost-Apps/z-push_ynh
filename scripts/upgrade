@@ -16,7 +16,6 @@ source /usr/share/yunohost/helpers
 upgrade_type=$(ynh_check_app_version_changed)
 
 timezone="$(cat /etc/timezone)"
-log_dir="/var/log/$app/"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -67,10 +66,10 @@ ynh_add_fpm_config
 # Create a dedicated NGINX config
 ynh_add_nginx_config
 
-mkdir -p $log_dir
-chmod 750 "$log_dir"
-chmod -R o-rwx "$log_dir"
-chown -R $app:www-data "$log_dir"
+mkdir -p "/var/log/$app/"
+chmod 750 "/var/log/$app/"
+chmod -R o-rwx "/var/log/$app/"
+chown -R $app:www-data "/var/log/$app/"
 
 ynh_use_logrotate --non-append
 

@@ -16,7 +16,7 @@ admindoc = "https://wiki.z-hub.io/display/ZP/Documentation"
 code = "https://github.com/Z-Hub/Z-Push"
 
 [integration]
-yunohost = ">= 11.2"
+yunohost = ">= 11.2.20"
 architectures = "all"
 multi_instance = true
 
@@ -47,21 +47,18 @@ ram.runtime = "50M"
 
     [resources.permissions]
     main.url = "/"
-    main.allowed = "visitors" # should it always be public ?
-
-    # FIXME: watdo with this ...
-    #REMOVEME? ynh_permission_create --permission="autodiscover" --url="re:$domain_regex/[Aa]uto[Dd]iscover/.*" --allowed="visitors" --show_tile="false" --protected="true"
+    main.allowed = "visitors"
 
     [resources.apt]
     packages = [
-        "php7.4-soap",
-        "php7.4-imap",
-        "php7.4-xsl",
-        "php7.4-curl",
-        "php7.4-xml",
-        "php7.4-ldap",
-        "php7.4-cli",
-        "php7.4-mbstring",
-        "php7.4-memcached",
+        "php8.3-soap",
+        "php8.3-imap",
+        "php8.3-xsl",
+        "php8.3-curl",
+        "php8.3-xml",
+        "php8.3-ldap",
+        "php8.3-cli",
+        "php8.3-mbstring",
+        "php8.3-memcached",
         "libawl-php",
     ]
