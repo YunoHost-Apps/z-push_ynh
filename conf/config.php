@@ -120,7 +120,7 @@
     $specialLogUsers = array();
 
     // Filelog settings
-    define('LOGFILEDIR', '__LOG_DIR__');
+    define('LOGFILEDIR', '/var/log/__APP__/');
     define('LOGFILE', LOGFILEDIR . 'z-push.log');
     define('LOGERRORFILE', LOGFILEDIR . 'z-push-error.log');
 
