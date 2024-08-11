@@ -87,7 +87,7 @@
 
     define('LOGBACKEND', 'filelog');
 
-    define('LOGFILEDIR', '__LOG_DIR__/');
+    define('LOGFILEDIR', '/var/log/__APP__/');
     define('LOGFILE', LOGFILEDIR . 'autodiscover.log');
     define('LOGERRORFILE', LOGFILEDIR . 'autodiscover-error.log');
     define('LOGLEVEL', LOGLEVEL_ERROR);
