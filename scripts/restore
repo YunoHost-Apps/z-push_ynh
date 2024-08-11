@@ -10,8 +10,6 @@
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
-log_dir="/var/log/$app/"
-
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
@@ -42,10 +40,10 @@ ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 ynh_restore_file --origin_path="/etc/logrotate.d/$app"
 
-mkdir -p $log_dir
-chmod 750 "$log_dir"
-chmod -R o-rwx "$log_dir"
-chown -R $app:www-data "$log_dir"
+mkdir -p "/var/log/$app/"
+chmod 750 "/var/log/$app/"
+chmod -R o-rwx "/var/log/$app/"
+chown -R $app:www-data "/var/log/$app/"
 
 #=================================================
 # GENERIC FINALIZATION
