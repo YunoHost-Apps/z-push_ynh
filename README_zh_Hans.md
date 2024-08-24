@@ -23,7 +23,7 @@ Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchroni
 ## 文档与资源
 
 - 官方应用网站： <http://z-push.org>
-- 官方管理文档： <https://wiki.z-hub.io/display/ZP/Documentation>
+- 官方管理文档： <https://github.com/Z-Hub/Z-Push/wiki>
 - 上游应用代码库： <https://github.com/Z-Hub/Z-Push>
 - YunoHost 商店： <https://apps.yunohost.org/app/z-push>
 - 报告 bug： <https://github.com/YunoHost-Apps/z-push_ynh/issues>
