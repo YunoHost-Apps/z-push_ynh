@@ -1,24 +1,16 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
-#=================================================
-# CHECK VERSION
-#=================================================
+ynh_app_setting_set_default --key=php_memory_limit --value=256M
 
 timezone="$(cat /etc/timezone)"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-    ynh_script_progression --message="Upgrading source files..."
+    ynh_script_progression "Upgrading source files..."
 
     mkdir "$install_dir/bkp"
     conf_files_to_keep="config.php backend/caldav/config.php backend/carddav/config.php backend/imap/config.php backend/combined/config.php autodiscover/config.php backend/searchldap/config.php"
@@ -35,7 +27,7 @@ timezone="$(cat /etc/timezone)"
     mkdir "$install_dir/tmp"
     ynh_setup_source --dest_dir="$install_dir/tmp"
     cp -af "$install_dir/tmp/src/." "$install_dir/."
-    ynh_secure_remove --file="$install_dir/tmp"
+    ynh_safe_rm "$install_dir/tmp"
 
     for file in $conf_files_to_keep
     do
@@ -44,35 +36,32 @@ timezone="$(cat /etc/timezone)"
             cp $install_dir/bkp/$file $install_dir/$file
         fi
     done
-    ynh_secure_remove --file="$install_dir/bkp"
+    ynh_safe_rm "$install_dir/bkp"
 
-chmod -R o-rwx "$install_dir"
-chown -R $app:www-data "$install_dir"
-
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "$install_dir"
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Installing system configurations..."
+ynh_script_progression "Installing system configurations..."
 
 # Create a dedicated PHP-FPM config
-ynh_add_fpm_config
+ynh_config_add_phpfpm
 
 # Create a dedicated NGINX config
-ynh_add_nginx_config
+ynh_config_add_nginx
 
 mkdir -p "/var/log/$app/"
-chmod 750 "/var/log/$app/"
-chmod -R o-rwx "/var/log/$app/"
-chown -R $app:www-data "/var/log/$app/"
+#REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 750 "/var/log/$app/"
+#REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "/var/log/$app/"
+#REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "/var/log/$app/"
 
-ynh_use_logrotate --non-append
+ynh_config_add_logrotate
 
-#=================================================
-# SPECIFIC UPGRADE
 #=================================================
 # UPDATE A CONFIG FILE
 #=================================================
-ynh_script_progression --message="Updating a config file..."
+ynh_script_progression "Updating a config file..."
 
 # Enable caldav carddav support
 if yunohost app list | grep -q 'id: baikal' ; then
@@ -94,10 +83,10 @@ if yunohost app list | grep -q 'id: baikal' ; then
     imap_server="$domain"
     imap_meeting_use_caldav="true"
 
-    ynh_add_config --template="backend/config-caldav.php" --destination="$install_dir/backend/caldav/config.php"
-    ynh_add_config --template="backend/config-carddav.php" --destination="$install_dir/backend/carddav/config.php"
-    ynh_add_config --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
-    ynh_add_config --template="backend/config-combined.php" --destination="$install_dir/backend/combined/config.php"
+    ynh_config_add --template="backend/config-caldav.php" --destination="$install_dir/backend/caldav/config.php"
+    ynh_config_add --template="backend/config-carddav.php" --destination="$install_dir/backend/carddav/config.php"
+    ynh_config_add --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
+    ynh_config_add --template="backend/config-combined.php" --destination="$install_dir/backend/combined/config.php"
 
 elif yunohost app list | grep -q 'id: nextcloud' ; then
     echo "Detected NextCloud"
@@ -118,29 +107,29 @@ elif yunohost app list | grep -q 'id: nextcloud' ; then
     imap_server="$domain"
     imap_meeting_use_caldav="true"
 
-    ynh_add_config --template="backend/config-caldav.php" --destination="$install_dir/backend/caldav/config.php"
-    ynh_add_config --template="backend/config-carddav.php" --destination="$install_dir/backend/carddav/config.php"
-    ynh_add_config --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
-    ynh_add_config --template="backend/config-combined.php" --destination="$install_dir/backend/combined/config.php"
+    ynh_config_add --template="backend/config-caldav.php" --destination="$install_dir/backend/caldav/config.php"
+    ynh_config_add --template="backend/config-carddav.php" --destination="$install_dir/backend/carddav/config.php"
+    ynh_config_add --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
+    ynh_config_add --template="backend/config-combined.php" --destination="$install_dir/backend/combined/config.php"
 
 else
     backend="BackendIMAP"
     imap_server="$domain"
     imap_meeting_use_caldav="false"
 
-    ynh_add_config --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
+    ynh_config_add --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
 fi
 
 # Copy config
-ynh_add_config --template="config.php" --destination="$install_dir/config.php"
-ynh_add_config --template="backend/config-autodiscover.php" --destination="$install_dir/autodiscover/config.php"
-ynh_add_config --template="backend/config-searchldap.php" --destination="$install_dir/backend/searchldap/config.php"
+ynh_config_add --template="config.php" --destination="$install_dir/config.php"
+ynh_config_add --template="backend/config-autodiscover.php" --destination="$install_dir/autodiscover/config.php"
+ynh_config_add --template="backend/config-searchldap.php" --destination="$install_dir/backend/searchldap/config.php"
 
 # Fixstates to avoid full resync of devices after version upgrades
-"php$phpversion" "$install_dir/z-push-admin.php" -a fixstates
+"php$php_version" "$install_dir/z-push-admin.php" -a fixstates
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed" --last
+ynh_script_progression "Upgrade of $app completed"
