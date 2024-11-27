@@ -5,7 +5,9 @@
 
 # YunoHost 上的 Z-Push
 
-[![集成程度](https://dash.yunohost.org/integration/z-push.svg)](https://ci-apps.yunohost.org/ci/apps/z-push/) ![工作状态](https://ci-apps.yunohost.org/ci/badges/z-push.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/z-push.maintain.svg)
+[![集成程度](https://apps.yunohost.org/badge/integration/z-push)](https://ci-apps.yunohost.org/ci/apps/z-push/)
+![工作状态](https://apps.yunohost.org/badge/state/z-push)
+![维护状态](https://apps.yunohost.org/badge/maintained/z-push)
 
 [![使用 YunoHost 安装 Z-Push](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=z-push)
 
@@ -23,7 +25,7 @@ Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchroni
 ## 文档与资源
 
 - 官方应用网站： <http://z-push.org>
-- 官方管理文档： <https://wiki.z-hub.io/display/ZP/Documentation>
+- 官方管理文档： <https://github.com/Z-Hub/Z-Push/wiki>
 - 上游应用代码库： <https://github.com/Z-Hub/Z-Push>
 - YunoHost 商店： <https://apps.yunohost.org/app/z-push>
 - 报告 bug： <https://github.com/YunoHost-Apps/z-push_ynh/issues>

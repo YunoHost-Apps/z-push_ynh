@@ -5,7 +5,9 @@ It shall NOT be edited by hand.
 
 # Z-Push for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/z-push.svg)](https://ci-apps.yunohost.org/ci/apps/z-push/) ![Working status](https://ci-apps.yunohost.org/ci/badges/z-push.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/z-push.maintain.svg)
+[![Integration level](https://apps.yunohost.org/badge/integration/z-push)](https://ci-apps.yunohost.org/ci/apps/z-push/)
+![Working status](https://apps.yunohost.org/badge/state/z-push)
+![Maintenance status](https://apps.yunohost.org/badge/maintained/z-push)
 
 [![Install Z-Push with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=z-push)
 
@@ -23,7 +25,7 @@ Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchroni
 ## Documentation and resources
 
 - Official app website: <http://z-push.org>
-- Official admin documentation: <https://wiki.z-hub.io/display/ZP/Documentation>
+- Official admin documentation: <https://github.com/Z-Hub/Z-Push/wiki>
 - Upstream app code repository: <https://github.com/Z-Hub/Z-Push>
 - YunoHost Store: <https://apps.yunohost.org/app/z-push>
 - Report a bug: <https://github.com/YunoHost-Apps/z-push_ynh/issues>

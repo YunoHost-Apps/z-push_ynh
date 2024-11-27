@@ -5,7 +5,9 @@ No se debe editar a mano.
 
 # Z-Push para Yunohost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/z-push.svg)](https://ci-apps.yunohost.org/ci/apps/z-push/) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/z-push.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/z-push.maintain.svg)
+[![Nivel de integración](https://apps.yunohost.org/badge/integration/z-push)](https://ci-apps.yunohost.org/ci/apps/z-push/)
+![Estado funcional](https://apps.yunohost.org/badge/state/z-push)
+![Estado En Mantención](https://apps.yunohost.org/badge/maintained/z-push)
 
 [![Instalar Z-Push con Yunhost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=z-push)
 
@@ -23,14 +25,14 @@ Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchroni
 ## Documentaciones y recursos
 
 - Sitio web oficial: <http://z-push.org>
-- Documentación administrador oficial: <https://wiki.z-hub.io/display/ZP/Documentation>
+- Documentación administrador oficial: <https://github.com/Z-Hub/Z-Push/wiki>
 - Repositorio del código fuente oficial de la aplicación : <https://github.com/Z-Hub/Z-Push>
 - Catálogo YunoHost: <https://apps.yunohost.org/app/z-push>
 - Reportar un error: <https://github.com/YunoHost-Apps/z-push_ynh/issues>
 
 ## Información para desarrolladores
 
-Por favor enviar sus correcciones a la [`branch testing`](https://github.com/YunoHost-Apps/z-push_ynh/tree/testing
+Por favor enviar sus correcciones a la [rama `testing`](https://github.com/YunoHost-Apps/z-push_ynh/tree/testing).
 
 Para probar la rama `testing`, sigue asÍ:
 

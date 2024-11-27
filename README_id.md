@@ -5,7 +5,9 @@ Ini TIDAK boleh diedit dengan tangan.
 
 # Z-Push untuk YunoHost
 
-[![Tingkat integrasi](https://dash.yunohost.org/integration/z-push.svg)](https://ci-apps.yunohost.org/ci/apps/z-push/) ![Status kerja](https://ci-apps.yunohost.org/ci/badges/z-push.status.svg) ![Status pemeliharaan](https://ci-apps.yunohost.org/ci/badges/z-push.maintain.svg)
+[![Tingkat integrasi](https://apps.yunohost.org/badge/integration/z-push)](https://ci-apps.yunohost.org/ci/apps/z-push/)
+![Status kerja](https://apps.yunohost.org/badge/state/z-push)
+![Status pemeliharaan](https://apps.yunohost.org/badge/maintained/z-push)
 
 [![Pasang Z-Push dengan YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=z-push)
 
@@ -23,7 +25,7 @@ Z-Push is an Exchange ActiveSync fronted written in PHP which lets you synchroni
 ## Dokumentasi dan sumber daya
 
 - Website aplikasi resmi: <http://z-push.org>
-- Dokumentasi admin resmi: <https://wiki.z-hub.io/display/ZP/Documentation>
+- Dokumentasi admin resmi: <https://github.com/Z-Hub/Z-Push/wiki>
 - Depot kode aplikasi hulu: <https://github.com/Z-Hub/Z-Push>
 - Gudang YunoHost: <https://apps.yunohost.org/app/z-push>
 - Laporkan bug: <https://github.com/YunoHost-Apps/z-push_ynh/issues>
