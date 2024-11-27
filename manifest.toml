@@ -16,7 +16,8 @@ admindoc = "https://github.com/Z-Hub/Z-Push/wiki"
 code = "https://github.com/Z-Hub/Z-Push"
 
 [integration]
-yunohost = ">= 11.2.20"
+yunohost = ">= 11.2.18"
+helpers_version = "2.1"
 architectures = "all"
 multi_instance = true
 
@@ -42,6 +43,7 @@ ram.runtime = "50M"
     [resources.system_user]
 
     [resources.install_dir]
+    group = "www-data:r-x"
 
     [resources.data_dir]
 
