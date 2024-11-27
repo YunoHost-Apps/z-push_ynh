@@ -12,7 +12,7 @@ maintainers = ["yalh76"]
 [upstream]
 license = "AGPL-3.0-or-later"
 website = "http://z-push.org"
-admindoc = "https://wiki.z-hub.io/display/ZP/Documentation"
+admindoc = "https://github.com/Z-Hub/Z-Push/wiki"
 code = "https://github.com/Z-Hub/Z-Push"
 
 [integration]
