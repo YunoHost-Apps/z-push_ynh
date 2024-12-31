@@ -7,3 +7,6 @@ test_format = 1.0
     # ------------
 
     exclude = ["change_url"]
+    
+    [default.curl_tests]
+    default.logged_on_sso = true
