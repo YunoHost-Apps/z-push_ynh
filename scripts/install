@@ -14,7 +14,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 path="/Microsoft-Server-ActiveSync"
-timezone="$(cat /etc/timezone)"
+timezone="$(timedatectl show --value --property=Timezone)"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE

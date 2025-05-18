@@ -13,7 +13,7 @@ source /usr/share/yunohost/helpers
 # CHECK VERSION
 #=================================================
 
-timezone="$(cat /etc/timezone)"
+timezone="$(timedatectl show --value --property=Timezone)"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
