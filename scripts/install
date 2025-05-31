@@ -1,13 +1,9 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
+
+ynh_app_setting_set --key=php_memory_limit --value=256M
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
@@ -19,39 +15,38 @@ timezone="$(timedatectl show --value --property=Timezone)"
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..."
+ynh_script_progression "Setting up source files..."
 
 # Download, check integrity, uncompress and patch the source from app.src
 mkdir -p "$install_dir/tmp"
 ynh_setup_source --dest_dir="$install_dir/tmp"
 cp -af "$install_dir/tmp/src/." "$install_dir/."
-ynh_secure_remove "$install_dir/tmp"
+ynh_safe_rm "$install_dir/tmp"
 
-chmod -R o-rwx "$install_dir"
-chown -R $app:www-data "$install_dir"
-
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "$install_dir"
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Installing system configurations..."
+ynh_script_progression "Installing system configurations..."
 
 # Create a dedicated PHP-FPM config
-ynh_add_fpm_config
+ynh_config_add_phpfpm
 
 # Create a dedicated NGINX config
-ynh_add_nginx_config
+ynh_config_add_nginx
 
 mkdir -p "/var/log/$app/"
-chmod 750 "/var/log/$app/"
-chmod -R o-rwx "/var/log/$app/"
-chown -R $app:www-data "/var/log/$app/"
+#REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 750 "/var/log/$app/"
+#REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "/var/log/$app/"
+#REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "/var/log/$app/"
 
-ynh_use_logrotate
+ynh_config_add_logrotate
 
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding a configuration file..."
+ynh_script_progression "Adding $app's configuration..."
 
 # Enable caldav carddav support
 if yunohost app list | grep -q 'id: baikal' ; then
@@ -73,10 +68,10 @@ if yunohost app list | grep -q 'id: baikal' ; then
     imap_server="$domain"
     imap_meeting_use_caldav="true"
 
-    ynh_add_config --template="backend/config-caldav.php" --destination="$install_dir/backend/caldav/config.php"
-    ynh_add_config --template="backend/config-carddav.php" --destination="$install_dir/backend/carddav/config.php"
-    ynh_add_config --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
-    ynh_add_config --template="backend/config-combined.php" --destination="$install_dir/backend/combined/config.php"
+    ynh_config_add --template="backend/config-caldav.php" --destination="$install_dir/backend/caldav/config.php"
+    ynh_config_add --template="backend/config-carddav.php" --destination="$install_dir/backend/carddav/config.php"
+    ynh_config_add --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
+    ynh_config_add --template="backend/config-combined.php" --destination="$install_dir/backend/combined/config.php"
 
 elif yunohost app list | grep -q 'id: nextcloud' ; then
 	echo "Detected NextCloud"
@@ -97,23 +92,23 @@ elif yunohost app list | grep -q 'id: nextcloud' ; then
     imap_server="$domain"
     imap_meeting_use_caldav="true"
 
-    ynh_add_config --template="backend/config-caldav.php" --destination="$install_dir/backend/caldav/config.php"
-    ynh_add_config --template="backend/config-carddav.php" --destination="$install_dir/backend/carddav/config.php"
-    ynh_add_config --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
-    ynh_add_config --template="backend/config-combined.php" --destination="$install_dir/backend/combined/config.php"
+    ynh_config_add --template="backend/config-caldav.php" --destination="$install_dir/backend/caldav/config.php"
+    ynh_config_add --template="backend/config-carddav.php" --destination="$install_dir/backend/carddav/config.php"
+    ynh_config_add --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
+    ynh_config_add --template="backend/config-combined.php" --destination="$install_dir/backend/combined/config.php"
 
 else
     backend="BackendIMAP"
     imap_server="$domain"
     imap_meeting_use_caldav="false"
-    
-    ynh_add_config --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
+
+    ynh_config_add --template="backend/config-imap.php" --destination="$install_dir/backend/imap/config.php"
 fi
 
 # Copy config
-ynh_add_config --template="config.php" --destination="$install_dir/config.php"
-ynh_add_config --template="backend/config-autodiscover.php" --destination="$install_dir/autodiscover/config.php"
-ynh_add_config --template="backend/config-searchldap.php" --destination="$install_dir/backend/searchldap/config.php"
+ynh_config_add --template="config.php" --destination="$install_dir/config.php"
+ynh_config_add --template="backend/config-autodiscover.php" --destination="$install_dir/autodiscover/config.php"
+ynh_config_add --template="backend/config-searchldap.php" --destination="$install_dir/backend/searchldap/config.php"
 
 #Copy XMLElement.php
 ln -s /usr/share/awl/inc/XML* /var/www/$app/include/
@@ -122,4 +117,4 @@ ln -s /usr/share/awl/inc/XML* /var/www/$app/include/
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed" --last
+ynh_script_progression "Installation of $app completed"
