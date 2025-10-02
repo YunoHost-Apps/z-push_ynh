@@ -1,6 +1,5 @@
 #!/bin/bash
 
-source _common.sh
 source /usr/share/yunohost/helpers
 
 ynh_app_setting_set_default --key=php_memory_limit --value=256M
@@ -10,36 +9,37 @@ timezone="$(cat /etc/timezone)"
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-    ynh_script_progression "Upgrading source files..."
+ynh_script_progression "Upgrading source files..."
 
-    mkdir "$install_dir/bkp"
-    conf_files_to_keep="config.php backend/caldav/config.php backend/carddav/config.php backend/imap/config.php backend/combined/config.php autodiscover/config.php backend/searchldap/config.php"
-    for file in $conf_files_to_keep
-    do
-        if [ -e $install_dir/$file ]
-        then
-            mkdir -p $install_dir/bkp/$(dirname $file)
-            cp $install_dir/$file $install_dir/bkp/$file
-        fi
-    done
+mkdir "$install_dir/bkp"
+conf_files_to_keep="config.php backend/caldav/config.php backend/carddav/config.php backend/imap/config.php backend/combined/config.php autodiscover/config.php backend/searchldap/config.php"
+for file in $conf_files_to_keep
+do
+    if [ -e $install_dir/$file ]
+    then
+        mkdir -p $install_dir/bkp/$(dirname $file)
+        cp $install_dir/$file $install_dir/bkp/$file
+    fi
+done
 
-    # Download, check integrity, uncompress and patch the source from app.src
-    mkdir "$install_dir/tmp"
-    ynh_setup_source --dest_dir="$install_dir/tmp"
-    cp -af "$install_dir/tmp/src/." "$install_dir/."
-    ynh_safe_rm "$install_dir/tmp"
+# Download, check integrity, uncompress and patch the source from app.src
+mkdir "$install_dir/tmp"
+ynh_setup_source --dest_dir="$install_dir/tmp"
+cp -af "$install_dir/tmp/src/." "$install_dir/."
+ynh_safe_rm "$install_dir/tmp"
 
-    for file in $conf_files_to_keep
-    do
-        if [ -e $install_dir/bkp/$file ]
-        then
-            cp $install_dir/bkp/$file $install_dir/$file
-        fi
-    done
-    ynh_safe_rm "$install_dir/bkp"
+for file in $conf_files_to_keep
+do
+    if [ -e $install_dir/bkp/$file ]
+    then
+       cp $install_dir/bkp/$file $install_dir/$file
+    fi
+done
+ynh_safe_rm "$install_dir/bkp"
 
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
+
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
