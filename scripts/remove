@@ -19,6 +19,9 @@ ynh_script_progression --message="Removing logrotate configuration..." --weight=
 # Remove the app-specific logrotate config
 ynh_remove_logrotate
 
+# Remove the dedicated Fail2Ban config
+ynh_remove_fail2ban_config
+
 # Remove the dedicated NGINX config
 ynh_remove_nginx_config
 

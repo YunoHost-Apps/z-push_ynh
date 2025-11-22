@@ -110,7 +110,7 @@
  */
     define('LOGBACKEND', 'filelog');
     define('LOGLEVEL', LOGLEVEL_ERROR);
-    define('LOGAUTHFAIL', false);
+    define('LOGAUTHFAIL', true);
 
     // To save e.g. WBXML data only for selected users, add the usernames to the array
     // The data will be saved into a dedicated file per user in the LOGFILEDIR

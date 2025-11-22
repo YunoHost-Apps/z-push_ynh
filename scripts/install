@@ -49,6 +49,14 @@ chown -R $app:www-data "/var/log/$app/"
 ynh_use_logrotate
 
 #=================================================
+# SETUP FAIL2BAN
+#=================================================
+ynh_script_progression --message="Configuring Fail2Ban..."
+
+# Create a dedicated Fail2Ban config
+ynh_add_fail2ban_config --logpath="/var/log/$app/z-push-error.log" --failregex="IP: <HOST> failed to authenticate user" --max_retry="5"
+
+#=================================================
 # ADD A CONFIGURATION
 #=================================================
 ynh_script_progression --message="Adding a configuration file..."
