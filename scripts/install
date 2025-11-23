@@ -49,6 +49,13 @@ chown -R $app:www-data "/var/log/$app/"
 ynh_use_logrotate
 
 #=================================================
+# CREATE DATA DIRECTORY
+#=================================================
+ynh_script_progression "Setting permissions for the data directory..."
+
+chown -R $app:$app "$data_dir"
+
+#=================================================
 # ADD A CONFIGURATION
 #=================================================
 ynh_script_progression --message="Adding a configuration file..."
